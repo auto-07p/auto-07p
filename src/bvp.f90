@@ -87,6 +87,9 @@ CONTAINS
          udotps,upoldp,dtm,thu,nllv)
     dum=0
     if (nllv==0)then
+       if(ap%ntot>=2)then
+          call stupbv(ap,par,icp,funi,ndim,ups,upoldp,na)
+       endif
        call stepbv(ap,dsold,par,icp,funi,bcni,icni,fnci,rds, &
             rlcur,rlold,rldot,ndim,ups,uoldps,udotps,upoldp, &
             dum1,dtm,dum1,dum1,dum1,thu,nitps,istop)
@@ -330,6 +333,7 @@ CONTAINS
        NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU)
 
     USE MESH
+    USE AUTOMPI
 
 ! Computes new rate of change (UDOTPS,RLDOT) and time derivative (UPOLDP)
 ! arrays depending on (UOLDPS,RLOLD) and (UPS,RLCUR), and then replaces
@@ -347,10 +351,18 @@ CONTAINS
     DOUBLE PRECISION, INTENT(INOUT) :: RLOLD(AP%NFPR)
     DOUBLE PRECISION, INTENT(OUT) :: RLDOT(AP%NFPR)
 
-    INTEGER NTST,NCOL
+    INTEGER NTST,NCOL,IAM,KWT,NA
+    INTEGER, ALLOCATABLE :: NP(:)
 
     NTST=AP%NTST
     NCOL=AP%NCOL
+
+    IAM=MPIIAM()
+    KWT=MPIKWT()
+    ALLOCATE(NP(KWT))
+    CALL PARTITION(NTST,KWT,NP)
+    NA=NP(IAM+1)
+    DEALLOCATE(NP)
 
 ! Compute rate of change (along branch) of PAR(ICP(1)) and U :
 
@@ -361,7 +373,7 @@ CONTAINS
 
 ! Store time-derivative.
 
-    CALL STUPBV(AP,PAR,ICP,FUNI,NDIM,UPS,UPOLDP)
+    CALL STUPBV(AP,PAR,ICP,FUNI,NDIM,UPS,UPOLDP,NA)
 
     RLOLD(:)=RLCUR(:)
     UOLDPS(:,0:NCOL*NTST)=UPS(:,0:NCOL*NTST)
@@ -369,21 +381,20 @@ CONTAINS
   END SUBROUTINE CONTBV
 
 ! ---------- ------
-  SUBROUTINE STUPBV(AP,PAR,ICP,FUNI,NDIM,UPS,UPOLDP)
+  SUBROUTINE STUPBV(AP,PAR,ICP,FUNI,NDIM,UPS,UPOLDP,NTSTNA)
 
 ! Stores U-prime (derivative with respect to T) in UPOLDP.
 
     include 'interfaces.h'
 
     TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
-    INTEGER, INTENT(IN) :: ICP(*),NDIM
+    INTEGER, INTENT(IN) :: ICP(*),NDIM,NTSTNA
     DOUBLE PRECISION, INTENT(INOUT) :: UPS(NDIM,0:*), PAR(*)
     DOUBLE PRECISION, INTENT(OUT) :: UPOLDP(NDIM,0:*)
 ! Local
-    INTEGER NTST,NCOL,NPAR,J
+    INTEGER NCOL,NPAR,J
     DOUBLE PRECISION, ALLOCATABLE :: UOLD(:),DFDU(:,:),DFDP(:,:)
 
-    NTST=AP%NTST
     NCOL=AP%NCOL
     NPAR=AP%NPAR
 
@@ -391,7 +402,7 @@ CONTAINS
     DFDU(:,:)=0.d0
     DFDP(:,:)=0.d0
 
-    DO J=0,NTST*NCOL
+    DO J=0,NTSTNA*NCOL
        UOLD(:)=UPS(:,J)
        CALL FUNI(AP,NDIM,UPS(1,J),UOLD,ICP,PAR,0,UPOLDP(1,J),&
             DFDU,DFDP)
@@ -781,7 +792,7 @@ CONTAINS
        AP%ISW=1
     ELSE
 !      ** Restart from orbit.
-       CALL STUPBV(AP,PAR,ICP,FUNI,NDIM,UPS,UPOLDP)
+       CALL STUPBV(AP,PAR,ICP,FUNI,NDIM,UPS,UPOLDP,NTST)
     ENDIF
 
   END SUBROUTINE RSPTBV

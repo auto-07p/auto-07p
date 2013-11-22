@@ -278,7 +278,9 @@ subroutine mpisbv(ap,par,icp,ndim,uoldps,rds,rlold,rldot, &
   call mpiscat(dtm,1,ntst,0)
   call mpiscat(uoldps,ndim*ncol,ntst,ndim)
   call mpiscat(udotps,ndim*ncol,ntst,ndim)
-  call mpiscat(upoldp,ndim*ncol,ntst,ndim)
+  if(ap%ntot<2)then
+     call mpiscat(upoldp,ndim*ncol,ntst,ndim)
+  endif
 
   ! Worker runs here
 
