@@ -92,11 +92,7 @@ CONTAINS
             rlcur,rlold,rldot,ndim,ups,uoldps,udotps,upoldp, &
             dum1,dtm,dum1,dum1,dum1,thu,nitps,converged)
     else
-       if(nllv==-1)then
-          ifst=0
-       else
-          ifst=1
-       endif
+       ifst=1
        call solvbv(ifst,ap,det,par,icp,funi,bcni,icni,dum, &
             nllv,rlcur,rlold,rldot,ndim,ups,uoldps,udotps,upoldp,dtm, &
             dups,dum1,dum1,dum1,dum1,thu)
@@ -522,7 +518,8 @@ CONTAINS
 
     INTEGER NTST,NCOL,IID,ITNW,NWTN,NFPR,IFST,NLLV,I,J,NIT1,IPS,ILP,ISP
     INTEGER IAM, KWT, NA, NTSTNA, STATE
-    INTEGER, PARAMETER :: NEWTON_CYCLE=0, NEWTON_EXIT=1, NEWTON_CONVERGED=2
+    INTEGER, PARAMETER :: NEWTON_CYCLE=0, NEWTON_EXIT=1
+    INTEGER, PARAMETER :: NEWTON_CONVERGED=2, NEWTON_CONVERGED_FLDF=3
     INTEGER, ALLOCATABLE :: NP(:)
     DOUBLE PRECISION EPSL,EPSU,DELREF,DELMAX,ADRL,ADU,AU,DET
     DOUBLE PRECISION DUMX,RDRL,RDUMX,UMX,RDSZ
@@ -604,69 +601,68 @@ CONTAINS
           ENDDO
        ENDDO
 
-       IF(IAM>0)THEN
-          CALL MPIBCAST1I(STATE)
-          SELECT CASE(STATE)
-          CASE(NEWTON_CONVERGED)
-             CONVERGED=.TRUE.
-             RETURN
-          CASE(NEWTON_EXIT)
-             EXIT
-          CASE(NEWTON_CYCLE)
-             CYCLE
-          END SELECT
-       ENDIF
-
-       CALL WRTBV9(AP,RLCUR,NDIM,UPS,TM,DTM,THU,NITPS)
+       IF(IAM==0)THEN
+          CALL WRTBV9(AP,RLCUR,NDIM,UPS,TM,DTM,THU,NITPS)
 
 ! Check whether user-supplied error tolerances have been met :
 
-       DONE=.TRUE.
-       RDRL=0.d0
-       DO I=1,NFPR
-          ADRL=ABS(DRL(I))/(1.d0+ABS(RLCUR(I)))
-          IF(ADRL.GT.EPSL)DONE=.FALSE.
-          IF(ADRL.GT.RDRL)RDRL=ADRL
-       ENDDO
-       RDUMX=DUMX/(1.d0+UMX)
-       IF(DONE.AND.RDUMX.LT.EPSU)THEN
-          STATE=NEWTON_CONVERGED
-          CALL MPIBCAST1I(STATE)
-          IF(CHECKSP('LP',IPS,ILP,ISP))THEN
-             ! Find the direction vector (for test functions)
-             ALLOCATE(P0T(NDIM*NDIM),P1T(NDIM*NDIM))
-             NLLV=-1
-             IFST=0
-             RDSZ=0.d0
+          DONE=.TRUE.
+          RDRL=0.d0
+          DO I=1,NFPR
+             ADRL=ABS(DRL(I))/(1.d0+ABS(RLCUR(I)))
+             IF(ADRL.GT.EPSL)DONE=.FALSE.
+             IF(ADRL.GT.RDRL)RDRL=ADRL
+          ENDDO
+          RDUMX=DUMX/(1.d0+UMX)
+          IF(DONE.AND.RDUMX.LT.EPSU)THEN
+             STATE=NEWTON_CONVERGED
+             IF(CHECKSP('LP',IPS,ILP,ISP))THEN
+                STATE=NEWTON_CONVERGED_FLDF
+             ENDIF
+          ELSEIF(NITPS.EQ.1)THEN
+             DELREF=20*DMAX1(RDRL,RDUMX)
+          ELSE
+             DELMAX=DMAX1(RDRL,RDUMX)
+             IF(DELMAX.GT.DELREF)THEN
+                STATE=NEWTON_EXIT
+             ENDIF
+          ENDIF
+       ENDIF
 
-             CALL SOLVBV(IFST,AP,DET,PAR,ICP,FUNI,BCNI,ICNI,RDSZ,NLLV, &
-                  RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,DUPS,&
-                  DRL,P0T,P1T,THL,THU)
+       CALL MPIBCAST1I(STATE)
 
-             ! Scale the direction vector.
+       IF(STATE==NEWTON_EXIT)EXIT
+
+       IF(STATE==NEWTON_CONVERGED_FLDF)THEN
+          ! Find the direction vector (for test functions)
+          ALLOCATE(P0T(NDIM*NDIM),P1T(NDIM*NDIM))
+          NLLV=-1
+          IFST=0
+          RDSZ=0.d0
+
+          CALL SOLVBV(IFST,AP,DET,PAR,ICP,FUNI,BCNI,ICNI,RDSZ,NLLV, &
+               RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,DUPS,&
+               DRL,P0T,P1T,THL,THU)
+
+          ! Scale the direction vector.
+          IF(IAM==0)THEN
              CALL SCALEB(NTST,NCOL,NDIM,NFPR,DUPS,DRL,DTM,THL,THU)
              AP%FLDF=DRL(1)
-             DEALLOCATE(P0T,P1T)
           ENDIF
 
-          CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
-          IF(IID.GE.2)WRITE(9,*)
-          DEALLOCATE(DUPS,DRL)
+          STATE=NEWTON_CONVERGED
+          DEALLOCATE(P0T,P1T)
+       ENDIF
+
+       IF(STATE==NEWTON_CONVERGED)THEN
+          IF(IAM==0)THEN
+             CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
+             IF(IID.GE.2)WRITE(9,*)
+          ENDIF
           CONVERGED=.TRUE.
-          RETURN
+          EXIT
        ENDIF
 
-       IF(NITPS.EQ.1)THEN
-          DELREF=20*DMAX1(RDRL,RDUMX)
-       ELSE
-          DELMAX=DMAX1(RDRL,RDUMX)
-          IF(DELMAX.GT.DELREF)THEN
-             STATE=NEWTON_EXIT
-             CALL MPIBCAST1I(STATE)
-             EXIT
-          ENDIF
-       ENDIF
-       CALL MPIBCAST1I(STATE)
     ENDDO
     DEALLOCATE(DUPS,DRL)
 
