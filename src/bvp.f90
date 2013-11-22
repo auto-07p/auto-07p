@@ -51,7 +51,7 @@ CONTAINS
     include 'interfaces.h'
 
     integer :: ndim, ifst, nllv, na, ncol, nint, ntst, nfpr
-    integer :: npar, nitps
+    integer :: npar, nitps, istop
     type(autoparameters) ap
 
     double precision, allocatable :: ups(:,:), uoldps(:,:)
@@ -59,8 +59,7 @@ CONTAINS
     double precision, allocatable :: udotps(:,:), upoldp(:,:), thu(:)
     double precision, allocatable :: dups(:,:), dtm(:), par(:)
     integer, allocatable :: np(:),icp(:)
-    double precision :: dum,dum1(1),det,rds
-    logical converged
+    double precision :: dum,dum1(1),det,rds,dsold
 
     call mpibcastap(ap)
     iam=mpiiam()
@@ -88,9 +87,9 @@ CONTAINS
          udotps,upoldp,dtm,thu,nllv)
     dum=0
     if (nllv==0)then
-       call newtonbv(ap,par,icp,funi,bcni,icni,fnci,rds, &
+       call stepbv(ap,dsold,par,icp,funi,bcni,icni,fnci,rds, &
             rlcur,rlold,rldot,ndim,ups,uoldps,udotps,upoldp, &
-            dum1,dtm,dum1,dum1,dum1,thu,nitps,converged)
+            dum1,dtm,dum1,dum1,dum1,thu,nitps,istop)
     else
        ifst=1
        call solvbv(ifst,ap,det,par,icp,funi,bcni,icni,dum, &
@@ -423,7 +422,7 @@ CONTAINS
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*), RDS
     DOUBLE PRECISION, INTENT(OUT) :: DSOLD, P0(*),P1(*)
 
-    INTEGER NTST,NCOL,IADS,IID,ITNW,NFPR,IBR,NTOT,NTOP,I,NLLV
+    INTEGER NTST,NCOL,IADS,IID,ITNW,NFPR,IBR,NTOT,NTOP,I,NLLV,IAM
     DOUBLE PRECISION DSMIN,DSMAX
     LOGICAL CONVERGED
 
@@ -439,26 +438,31 @@ CONTAINS
 
     DSMIN=AP%DSMIN
 
+    IAM=MPIIAM()
+    NLLV=0
+    IF(IAM==0)THEN
+       CALL MPISBV(AP,PAR,ICP,NDIM,UPS,UOLDPS,RDS,RLOLD,RLDOT,UDOTPS, &
+            UPOLDP,DTM,THU,NLLV)
+    ENDIF
+
+    ISTOP=0
     DO
        DSOLD=RDS
 
 ! Perform Newton iterations
 
-       NLLV=0
-       CALL MPISBV(AP,PAR,ICP,NDIM,UPS,UOLDPS,RDS,RLOLD,RLDOT,UDOTPS, &
-            UPOLDP,DTM,THU,NLLV)
        CALL NEWTONBV(AP,PAR,ICP,FUNI,BCNI,ICNI,FNCI,RDS, &
             RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
             TM,DTM,P0,P1,THL,THU,NITPS,CONVERGED)
        IF(CONVERGED)THEN
-          ISTOP=0
           RETURN
        ENDIF
 
 ! Maximum number of iterations reached.
 
        IF(IADS.EQ.0)THEN
-          IF(IID>0)WRITE(9,101)IBR,NTOP
+          IF(IAM==0.AND.IID>0)WRITE(9,101)IBR,NTOP
+          ISTOP=1
           EXIT
        ENDIF
 
@@ -468,12 +472,14 @@ CONTAINS
        NITPS=ITNW
        CALL ADPTDS(NITPS,ITNW,IBR,NTOP,IID,DSMAX,RDS)
        AP%RDS=RDS
-       IF(ABS(RDS).LT.DSMIN)THEN
+       IF(IAM==0.AND.ABS(RDS).LT.DSMIN)THEN
           ! Minimum stepsize reached.
           IF(IID>0)WRITE(9,103)IBR,NTOP
-          EXIT
+          ISTOP=1
        ENDIF
-       IF(IID.GE.2)WRITE(9,102)IBR,NTOP
+       CALL MPIBCAST1I(ISTOP)
+       IF(ISTOP==1)EXIT
+       IF(IAM==0.AND.IID.GE.2)WRITE(9,102)IBR,NTOP
     ENDDO
 
 ! Minimum stepsize reached.
@@ -483,7 +489,6 @@ CONTAINS
        PAR(ICP(I))=RLCUR(I)
     ENDDO
     UPS(:,0:NCOL*NTST)=UOLDPS(:,0:NCOL*NTST)
-    ISTOP=1
 
 101 FORMAT(I4,I6,' NOTE:No convergence with fixed step size')
 102 FORMAT(I4,I6,' NOTE:Retrying step')
