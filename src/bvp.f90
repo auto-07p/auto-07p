@@ -92,7 +92,7 @@ CONTAINS
        endif
        call stepbv(ap,dsold,par,icp,funi,bcni,icni,fnci,rds, &
             rlcur,rlold,rldot,ndim,ups,uoldps,udotps,upoldp, &
-            dum1,dtm,dum1,dum1,dum1,thu,nitps,istop)
+            dum1,dtm,dum1,dum1,dum1,thu,nitps,istop,na)
     else
        ifst=1
        ups(:,:)=uoldps(:,:)
@@ -247,7 +247,7 @@ CONTAINS
        NINS=AP%NINS
        CALL STEPBV(AP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,FNCI,RDS, &
             RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
-            TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
+            TM,DTM,P0,P1,THL,THU,NITPS,ISTOP,NTST)
 
        IFOUND=0
        DSTEST=DSOLD
@@ -414,7 +414,7 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE STEPBV(AP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,FNCI,RDS, &
        RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
-       TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
+       TM,DTM,P0,P1,THL,THU,NITPS,ISTOP,NTSTNA)
 
     USE MESH
     USE AUTOMPI
@@ -425,7 +425,7 @@ CONTAINS
     include 'interfaces.h'
 
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
-    INTEGER, INTENT(IN) :: ICP(*), NDIM
+    INTEGER, INTENT(IN) :: ICP(*), NDIM, NTSTNA
     INTEGER, INTENT(OUT) :: ISTOP, NITPS
     DOUBLE PRECISION, INTENT(OUT) :: UPS(NDIM,0:*), RLCUR(AP%NFPR)
     DOUBLE PRECISION, INTENT(IN) :: UOLDPS(NDIM,0:*), RLOLD(AP%NFPR)
@@ -434,11 +434,10 @@ CONTAINS
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*), RDS
     DOUBLE PRECISION, INTENT(OUT) :: DSOLD, P0(*),P1(*)
 
-    INTEGER NTST,NCOL,IADS,IID,ITNW,NFPR,IBR,NTOT,NTOP,I,NLLV,IAM
+    INTEGER NCOL,IADS,IID,ITNW,NFPR,IBR,NTOT,NTOP,I,NLLV,IAM
     DOUBLE PRECISION DSMIN,DSMAX
     LOGICAL CONVERGED
 
-    NTST=AP%NTST
     NCOL=AP%NCOL
     IADS=AP%IADS
     IID=AP%IID
@@ -455,6 +454,8 @@ CONTAINS
     IF(IAM==0)THEN
        CALL MPISBV(AP,PAR,ICP,NDIM,UOLDPS,RDS,RLOLD,RLDOT,UDOTPS, &
             UPOLDP,DTM,THU,NLLV)
+    ELSE
+       IID=0
     ENDIF
 
     ISTOP=0
@@ -473,7 +474,7 @@ CONTAINS
 ! Maximum number of iterations reached.
 
        IF(IADS.EQ.0)THEN
-          IF(IAM==0.AND.IID>0)WRITE(9,101)IBR,NTOP
+          IF(IID>0)WRITE(9,101)IBR,NTOP
           ISTOP=1
           EXIT
        ENDIF
@@ -491,7 +492,7 @@ CONTAINS
        ENDIF
        CALL MPIBCAST1I(ISTOP)
        IF(ISTOP==1)EXIT
-       IF(IAM==0.AND.IID.GE.2)WRITE(9,102)IBR,NTOP
+       IF(IID.GE.2)WRITE(9,102)IBR,NTOP
     ENDDO
 
 ! Minimum stepsize reached.
@@ -500,7 +501,7 @@ CONTAINS
        RLCUR(I)=RLOLD(I)
        PAR(ICP(I))=RLCUR(I)
     ENDDO
-    UPS(:,0:NCOL*NTST)=UOLDPS(:,0:NCOL*NTST)
+    UPS(:,0:NCOL*NTSTNA)=UOLDPS(:,0:NCOL*NTSTNA)
 
 101 FORMAT(I4,I6,' NOTE:No convergence with fixed step size')
 102 FORMAT(I4,I6,' NOTE:Retrying step')
@@ -1137,7 +1138,7 @@ CONTAINS
             NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU)
        CALL STEPBV(AP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,FNCI,RDS, &
             RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
-            TM,DTM,P0,P1,THL,THU,NITPS,ISTOP)
+            TM,DTM,P0,P1,THL,THU,NITPS,ISTOP,NTST)
        IF(ISTOP.NE.0)EXIT
 
 ! Check for zero.
