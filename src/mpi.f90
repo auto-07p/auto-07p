@@ -200,14 +200,14 @@ subroutine mpisend(a,isize,idest)
        0, MPI_COMM_WORLD, ierr)
 end subroutine mpisend
 
-subroutine mpisbv(ap,par,icp,ndim,ups,uoldps,rds,rlold,rldot, &
+subroutine mpisbv(ap,par,icp,ndim,uoldps,rds,rlold,rldot, &
      udotps,upoldp,dtm,thu,nllv)
 
   type(autoparameters) :: ap
   integer, intent(in) :: ndim,icp(*)
   integer, intent(inout) :: nllv
   double precision :: par(*),dtm(*),thu(*)
-  double precision :: ups(ndim,0:*),uoldps(ndim,0:*),udotps(ndim,0:*),upoldp(ndim,0:*)
+  double precision :: uoldps(ndim,0:*),udotps(ndim,0:*),upoldp(ndim,0:*)
   double precision :: rds,rlold(ap%nfpr),rldot(ap%nfpr)
 
   integer :: ncol,npar,ierr,ntst,iam,nint,nfpr
@@ -276,7 +276,6 @@ subroutine mpisbv(ap,par,icp,ndim,ups,uoldps,rds,rlold,rldot, &
   ntst=ap%ntst
   ncol=ap%ncol
   call mpiscat(dtm,1,ntst,0)
-  call mpiscat(ups,ndim*ncol,ntst,ndim)
   call mpiscat(uoldps,ndim*ncol,ntst,ndim)
   call mpiscat(udotps,ndim*ncol,ntst,ndim)
   call mpiscat(upoldp,ndim*ncol,ntst,ndim)

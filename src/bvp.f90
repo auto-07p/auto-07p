@@ -83,7 +83,7 @@ CONTAINS
     allocate(udotps(ndim,0:na*ncol),upoldp(ndim,0:na*ncol))
     allocate(dups(ndim,0:na*ncol))
 
-    call mpisbv(ap,par,icp,ndim,ups,uoldps,rds,rlold,rldot,&
+    call mpisbv(ap,par,icp,ndim,uoldps,rds,rlold,rldot,&
          udotps,upoldp,dtm,thu,nllv)
     dum=0
     if (nllv==0)then
@@ -92,6 +92,7 @@ CONTAINS
             dum1,dtm,dum1,dum1,dum1,thu,nitps,istop)
     else
        ifst=1
+       ups(:,:)=uoldps(:,:)
        call solvbv(ifst,ap,det,par,icp,funi,bcni,icni,dum, &
             nllv,rlcur,rlold,rldot,ndim,ups,uoldps,udotps,upoldp,dtm, &
             dups,dum1,dum1,dum1,dum1,thu)
@@ -441,7 +442,7 @@ CONTAINS
     IAM=MPIIAM()
     NLLV=0
     IF(IAM==0)THEN
-       CALL MPISBV(AP,PAR,ICP,NDIM,UPS,UOLDPS,RDS,RLOLD,RLDOT,UDOTPS, &
+       CALL MPISBV(AP,PAR,ICP,NDIM,UOLDPS,RDS,RLOLD,RLDOT,UDOTPS, &
             UPOLDP,DTM,THU,NLLV)
     ENDIF
 
