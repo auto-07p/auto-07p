@@ -27,30 +27,33 @@ CONTAINS
 
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     INTEGER, INTENT(IN) :: ICP(*),ICU(*)
+    INTEGER NLLV
 
     include 'interfaces.h'
 
     IF(MPIIAM()>0)THEN
 !        This is a little trick to tell MPI workers what FUNI and ICNI
 !        are.
-       DO WHILE(MPIWFI(.TRUE.))
-          CALL mpi_setubv_worker(FUNI,ICNI,BCNI,FNCI)
+       IF(.NOT.MPIWFI(.TRUE.))RETURN
+       DO
+          CALL mpi_setubv_worker(FUNI,ICNI,BCNI,FNCI,NLLV)
+          IF(NLLV==0)RETURN
        ENDDO
-       RETURN
     ENDIF
     CALL CNRLBV(AP,ICP,ICU,FUNI,BCNI,ICNI,STPNBVI,FNCI)
 
   END SUBROUTINE AUTOBV
 
 ! ---------- -----------------
-  subroutine mpi_setubv_worker(funi,icni,bcni,fnci)
+  subroutine mpi_setubv_worker(funi,icni,bcni,fnci,nllv)
     use autompi
     use solvebv
 
     integer iam,kwt
     include 'interfaces.h'
+    integer, intent(out) :: nllv
 
-    integer :: ndim, ifst, nllv, na, ncol, nint, ntst, nfpr
+    integer :: ndim, ifst, na, ncol, nint, ntst, nfpr
     integer :: npar, nitps, istop
     type(autoparameters) ap
 
@@ -87,22 +90,28 @@ CONTAINS
          udotps,upoldp,dtm,thu,nllv)
     dum=0
     if (nllv==0)then
-       if(ap%ntot>=2)then
+       do
+          call stepbv(ap,dsold,par,icp,funi,bcni,icni,fnci,rds, &
+               rlcur,rlold,rldot,ndim,ups,uoldps,udotps,upoldp, &
+               dum1,dtm,dum1,dum1,dum1,thu,nitps,istop,na)
+          if(.not.mpiwfi(.true.))exit
+          call mpibcastap(ap)
+          call mpisbv(ap,par,icp,ndim,uoldps,rds,rlold,rldot,&
+               udotps,upoldp,dtm,thu,nllv)
           call stupbv(ap,par,icp,funi,ndim,uoldps,upoldp,na)
-       endif
-       call stepbv(ap,dsold,par,icp,funi,bcni,icni,fnci,rds, &
-            rlcur,rlold,rldot,ndim,ups,uoldps,udotps,upoldp, &
-            dum1,dtm,dum1,dum1,dum1,thu,nitps,istop,na)
+       enddo
     else
        ifst=1
        ups(:,:)=uoldps(:,:)
        call solvbv(ifst,ap,det,par,icp,funi,bcni,icni,dum, &
             nllv,rlcur,rlold,rldot,ndim,ups,uoldps,udotps,upoldp,dtm, &
             dups,dum1,dum1,dum1,dum1,thu)
+       if(.not.mpiwfi(.true.))nllv=0
     endif
 
     ! free input arrays
-    deallocate(ups,uoldps,dtm,udotps,upoldp,dups,thu,icp,par)
+    deallocate(ups,uoldps,dtm,udotps,upoldp,dups,thu,icp,par,rlcur,&
+         rlold,rldot)
 
   end subroutine mpi_setubv_worker
 
