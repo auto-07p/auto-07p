@@ -88,7 +88,7 @@ CONTAINS
     dum=0
     if (nllv==0)then
        if(ap%ntot>=2)then
-          call stupbv(ap,par,icp,funi,ndim,ups,upoldp,na)
+          call stupbv(ap,par,icp,funi,ndim,uoldps,upoldp,na)
        endif
        call stepbv(ap,dsold,par,icp,funi,bcni,icni,fnci,rds, &
             rlcur,rlold,rldot,ndim,ups,uoldps,udotps,upoldp, &
