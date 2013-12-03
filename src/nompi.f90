@@ -6,7 +6,7 @@ use auto_constants, only: autoparameters
 
 implicit none
 private
-public :: mpiini, mpiiap, mpiwfi, mpireduce, mpibcksub, mpisbv, mpibcast
+public :: mpiini, mpiiap, mpiwfi, mpireduce, mpibcksub, mpisbv, mpicbv, mpibcast
 public :: mpibcasti, mpibcast1i, mpibcastap
 public :: mpigat, mpiend, mpitim, mpiiam, mpikwt, partition
 
@@ -55,6 +55,14 @@ subroutine mpisbv(ap,par,icp,ndim,uoldps,rds,rlold,rldot, &
   double precision :: uoldps(ndim,0:*),udotps(ndim,0:*),upoldp(ndim,0:*)
   double precision :: rds,rlold(ap%nfpr),rldot(ap%nfpr)
 end subroutine mpisbv
+
+subroutine mpicbv(ap,par,ndim,uoldps,rds,rlold,rldot,udotps,dtm)
+  type(autoparameters) :: ap
+  integer, intent(in) :: ndim
+  double precision :: par(*),dtm(*)
+  double precision :: uoldps(ndim,0:*),udotps(ndim,0:*),upoldp(ndim,0:*)
+  double precision :: rds,rlold(ap%nfpr),rldot(ap%nfpr)
+end subroutine mpicbv
 
 subroutine mpibcast(buf,len)
   integer, intent(in) :: len

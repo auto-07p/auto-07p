@@ -22,7 +22,7 @@ use auto_constants, only: autoparameters, niap, nrap
 implicit none
 private
 
-public :: mpiini, mpiiap, mpiwfi, mpireduce, mpibcksub, mpisbv, mpibcast
+public :: mpiini, mpiiap, mpiwfi, mpireduce, mpibcksub, mpisbv, mpicbv, mpibcast
 public :: mpibcasti, mpibcast1i, mpibcastap
 public :: mpigat, mpiend, mpitim, mpiiam, mpikwt, partition
 
@@ -278,13 +278,62 @@ subroutine mpisbv(ap,par,icp,ndim,uoldps,rds,rlold,rldot, &
   call mpiscat(dtm,1,ntst,0)
   call mpiscat(uoldps,ndim*ncol,ntst,ndim)
   call mpiscat(udotps,ndim*ncol,ntst,ndim)
-  if(ap%ntot<2)then
-     call mpiscat(upoldp,ndim*ncol,ntst,ndim)
-  endif
+  call mpiscat(upoldp,ndim*ncol,ntst,ndim)
 
   ! Worker runs here
 
 end subroutine mpisbv
+
+subroutine mpicbv(ap,par,ndim,uoldps,rds,rlold,rldot,udotps,dtm)
+
+  type(autoparameters) :: ap
+  integer, intent(in) :: ndim
+  double precision :: par(*),dtm(*)
+  double precision :: uoldps(ndim,0:*),udotps(ndim,0:*)
+  double precision :: rds,rlold(ap%nfpr),rldot(ap%nfpr)
+
+  integer :: ncol,npar,ierr,ntst,iam,nfpr,bufsize
+  double precision, allocatable :: buffer(:)
+
+  call MPI_Comm_rank(MPI_COMM_WORLD,iam,ierr)
+  if(iam==0)then
+     ! Send message to get worker into contbv mode
+     call MPI_Bcast(AUTO_MPI_SETUBV_MESSAGE,1,MPI_INTEGER,0, &
+             MPI_COMM_WORLD,ierr)
+  endif
+
+  nfpr=ap%nfpr
+  npar=ap%npar
+  bufsize = npar+2*nfpr+1
+  allocate(buffer(bufsize))
+
+  if(iam==0)then
+     buffer(1:npar)=par(1:npar)
+     buffer(npar+1:npar+nfpr)=rlold(:)
+     buffer(npar+nfpr+1:npar+2*nfpr)=rldot(:)
+     buffer(npar+2*nfpr+1)=rds
+  endif
+
+  call MPI_Bcast(buffer,bufsize,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+
+  if(iam>0)then
+     par(1:npar)=buffer(1:npar)
+     rlold(:)=buffer(npar+1:npar+nfpr)
+     rldot(:)=buffer(npar+nfpr+1:npar+2*nfpr)
+     rds=buffer(npar+2*nfpr+1)
+  endif
+
+  deallocate(buffer)
+
+  ntst=ap%ntst
+  ncol=ap%ncol
+  call mpiscat(dtm,1,ntst,0)
+  call mpiscat(uoldps,ndim*ncol,ntst,ndim)
+  call mpiscat(udotps,ndim*ncol,ntst,ndim)
+
+  ! Worker runs here
+
+end subroutine mpicbv
 
 subroutine mpibcast(buf,len)
   integer, intent(in) :: len
