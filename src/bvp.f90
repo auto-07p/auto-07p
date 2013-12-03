@@ -60,7 +60,7 @@ CONTAINS
     double precision, allocatable :: ups(:,:), uoldps(:,:)
     double precision, allocatable :: rlcur(:),rlold(:),rldot(:)
     double precision, allocatable :: udotps(:,:), upoldp(:,:), thu(:)
-    double precision, allocatable :: dups(:,:), dtm(:), par(:)
+    double precision, allocatable :: dups(:,:), drl(:), dtm(:), par(:)
     integer, allocatable :: np(:),icp(:)
     double precision :: dum,dum1(1),det,rds,dsold
 
@@ -84,7 +84,6 @@ CONTAINS
     allocate(rlcur(nfpr),rlold(nfpr),rldot(nfpr))
     allocate(ups(ndim,0:na*ncol),uoldps(ndim,0:na*ncol))
     allocate(udotps(ndim,0:na*ncol),upoldp(ndim,0:na*ncol))
-    allocate(dups(ndim,0:na*ncol))
 
     call mpisbv(ap,par,icp,ndim,uoldps,rds,rlold,rldot,&
          udotps,upoldp,dtm,thu,nllv)
@@ -103,14 +102,16 @@ CONTAINS
     else
        ifst=1
        ups(:,:)=uoldps(:,:)
+       allocate(dups(ndim,0:na*ncol),drl(nfpr))
        call solvbv(ifst,ap,det,par,icp,funi,bcni,icni,dum, &
             nllv,rlcur,rlold,rldot,ndim,ups,uoldps,udotps,upoldp,dtm, &
-            dups,dum1,dum1,dum1,dum1,thu)
+            dups,drl,dum1,dum1,dum1,thu)
+       deallocate(dups,drl)
        if(.not.mpiwfi(.true.))nllv=0
     endif
 
     ! free input arrays
-    deallocate(ups,uoldps,dtm,udotps,upoldp,dups,thu,icp,par,rlcur,&
+    deallocate(ups,uoldps,dtm,udotps,upoldp,thu,icp,par,rlcur,&
          rlold,rldot)
 
   end subroutine mpi_setubv_worker
