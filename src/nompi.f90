@@ -8,7 +8,7 @@ implicit none
 private
 public :: mpiini, mpiiap, mpiwfi, mpireduce, mpibcksub, mpisbv, mpicbv, mpibcast
 public :: mpibcasti, mpibcast1i, mpibcastap
-public :: mpigat, mpiend, mpitim, mpiiam, mpikwt, partition
+public :: mpiadapt, mpigat, mpiend, mpitim, mpiiam, mpikwt, partition
 
 contains
 
@@ -56,12 +56,17 @@ subroutine mpisbv(ap,par,icp,ndim,uoldps,rds,rlold,rldot, &
   double precision :: rds,rlold(ap%nfpr),rldot(ap%nfpr)
 end subroutine mpisbv
 
-subroutine mpicbv(ap,par,ndim,uoldps,rds,rlold,rldot,udotps,dtm)
+subroutine mpiadapt(ap,ndim,ups,uoldps,dtm,rlcur,rlold,dsold)
   type(autoparameters) :: ap
   integer, intent(in) :: ndim
-  double precision :: par(*),dtm(*)
-  double precision :: uoldps(ndim,0:*),udotps(ndim,0:*),upoldp(ndim,0:*)
-  double precision :: rds,rlold(ap%nfpr),rldot(ap%nfpr)
+  double precision :: ups(ndim,0:*),uoldps(ndim,0:*),dtm(0:*)
+  double precision :: rlcur(ap%nfpr),rlold(ap%nfpr),dsold
+end subroutine mpiadapt
+
+subroutine mpicbv(npar,par,rds,ss)
+  integer, intent(in) :: npar
+  double precision :: par(npar)
+  double precision :: rds,ss
 end subroutine mpicbv
 
 subroutine mpibcast(buf,len)

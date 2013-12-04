@@ -24,7 +24,7 @@ private
 
 public :: mpiini, mpiiap, mpiwfi, mpireduce, mpibcksub, mpisbv, mpicbv, mpibcast
 public :: mpibcasti, mpibcast1i, mpibcastap
-public :: mpigat, mpiend, mpitim, mpiiam, mpikwt, partition
+public :: mpiadapt, mpigat, mpiend, mpitim, mpiiam, mpikwt, partition
 
 integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
 integer, parameter :: AUTO_MPI_INIT_MESSAGE = 2
@@ -284,15 +284,14 @@ subroutine mpisbv(ap,par,icp,ndim,uoldps,rds,rlold,rldot, &
 
 end subroutine mpisbv
 
-subroutine mpicbv(ap,par,ndim,uoldps,rds,rlold,rldot,udotps,dtm)
+subroutine mpiadapt(ap,ndim,ups,uoldps,dtm,rlcur,rlold,dsold)
 
   type(autoparameters) :: ap
   integer, intent(in) :: ndim
-  double precision :: par(*),dtm(*)
-  double precision :: uoldps(ndim,0:*),udotps(ndim,0:*)
-  double precision :: rds,rlold(ap%nfpr),rldot(ap%nfpr)
+  double precision :: ups(ndim,0:*),uoldps(ndim,0:*),dtm(0:*)
+  double precision :: rlcur(ap%nfpr),rlold(ap%nfpr),dsold
 
-  integer :: ncol,npar,ierr,ntst,iam,nfpr,bufsize
+  integer :: ncol,ierr,ntst,iam,nfpr,bufsize
   double precision, allocatable :: buffer(:)
 
   call MPI_Comm_rank(MPI_COMM_WORLD,iam,ierr)
@@ -303,33 +302,63 @@ subroutine mpicbv(ap,par,ndim,uoldps,rds,rlold,rldot,udotps,dtm)
   endif
 
   nfpr=ap%nfpr
-  npar=ap%npar
-  bufsize = npar+2*nfpr+1
+  bufsize = 2*nfpr+1
   allocate(buffer(bufsize))
 
   if(iam==0)then
-     buffer(1:npar)=par(1:npar)
-     buffer(npar+1:npar+nfpr)=rlold(:)
-     buffer(npar+nfpr+1:npar+2*nfpr)=rldot(:)
-     buffer(npar+2*nfpr+1)=rds
+     buffer(1:nfpr)=rlcur(:)
+     buffer(nfpr+1:2*nfpr)=rlold(:)
+     buffer(2*nfpr+1)=dsold
   endif
 
   call MPI_Bcast(buffer,bufsize,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 
   if(iam>0)then
-     par(1:npar)=buffer(1:npar)
-     rlold(:)=buffer(npar+1:npar+nfpr)
-     rldot(:)=buffer(npar+nfpr+1:npar+2*nfpr)
-     rds=buffer(npar+2*nfpr+1)
+     rlcur(:)=buffer(1:nfpr)
+     rlold(:)=buffer(nfpr+1:2*nfpr)
+     dsold=buffer(2*nfpr+1)
   endif
 
   deallocate(buffer)
 
   ntst=ap%ntst
   ncol=ap%ncol
-  call mpiscat(dtm,1,ntst,0)
+  call mpiscat(ups,ndim*ncol,ntst,ndim)
   call mpiscat(uoldps,ndim*ncol,ntst,ndim)
-  call mpiscat(udotps,ndim*ncol,ntst,ndim)
+  call mpiscat(dtm,1,ntst,0)
+
+  ! Worker runs here
+
+end subroutine mpiadapt
+
+subroutine mpicbv(npar,par,rds,ss)
+
+  integer, intent(in) :: npar
+  double precision :: par(npar)
+  double precision :: rds,ss
+
+  integer :: iam,bufsize
+  double precision, allocatable :: buffer(:)
+
+  iam=mpiiam()
+  bufsize = npar+2
+  allocate(buffer(bufsize))
+
+  if(iam==0)then
+     buffer(1:npar)=par(:)
+     buffer(npar+1)=rds
+     buffer(npar+2)=ss
+  endif
+
+  call mpibcast(buffer,bufsize)
+
+  if(iam>0)then
+     par(1:npar)=buffer(1:npar)
+     rds=buffer(npar+1)
+     ss=buffer(npar+2)
+  endif
+
+  deallocate(buffer)
 
   ! Worker runs here
 
