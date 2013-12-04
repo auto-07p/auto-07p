@@ -95,8 +95,8 @@ CONTAINS
                rlcur,rlold,rldot,ndim,ups,uoldps,udotps,upoldp, &
                dum1,dtm,dum1,dum1,dum1,thu,nitps,istop,na)
           if(.not.mpiwfi(.true.))exit
-          call mpicbv(ap,par,ndim,uoldps,rds,rlold,rldot,udotps,dtm)
-          call stupbv(ap,par,icp,funi,ndim,uoldps,upoldp,na)
+          call contbv(ap,dsold,par,icp,funi,rlcur,rlold,rldot, &
+               ndim,ups,uoldps,udotps,upoldp,dtm,dum1,thu,rds)
        enddo
     else
        ifst=1
@@ -364,7 +364,7 @@ CONTAINS
     DOUBLE PRECISION, INTENT(INOUT) :: RLOLD(AP%NFPR)
     DOUBLE PRECISION, INTENT(OUT) :: RLDOT(AP%NFPR)
 
-    INTEGER NTST,NCOL,IAM,KWT,NA
+    INTEGER NTST,NCOL,IAM,KWT,NA,NTSTNA
     INTEGER, ALLOCATABLE :: NP(:)
 
     NTST=AP%NTST
@@ -377,12 +377,17 @@ CONTAINS
     NA=NP(IAM+1)
     DEALLOCATE(NP)
 
+    IF(IAM==0)THEN
+       NTSTNA=NTST
 ! Compute rate of change (along branch) of PAR(ICP(1)) and U :
 
-    UDOTPS(:,0:NCOL*NTST)=(UPS(:,0:NCOL*NTST)-UOLDPS(:,0:NCOL*NTST))/DSOLD
-    RLDOT(:)=(RLCUR(:)-RLOLD(:))/DSOLD
+       UDOTPS(:,0:NCOL*NTST)=(UPS(:,0:NCOL*NTST)-UOLDPS(:,0:NCOL*NTST))/DSOLD
+       RLDOT(:)=(RLCUR(:)-RLOLD(:))/DSOLD
 ! Rescale, to set the norm of (UDOTPS,RLDOT) equal to 1.
-    CALL SCALEB(NTST,NCOL,NDIM,AP%NFPR,UDOTPS,RLDOT,DTM,THL,THU)
+       CALL SCALEB(NTST,NCOL,NDIM,AP%NFPR,UDOTPS,RLDOT,DTM,THL,THU)
+    ELSE
+       NTSTNA=NA
+    ENDIF
 
     CALL MPICBV(AP,PAR,NDIM,UPS,RDS,RLCUR,RLDOT,UDOTPS,DTM)
 
@@ -391,7 +396,7 @@ CONTAINS
     CALL STUPBV(AP,PAR,ICP,FUNI,NDIM,UPS,UPOLDP,NA)
 
     RLOLD(:)=RLCUR(:)
-    UOLDPS(:,0:NCOL*NTST)=UPS(:,0:NCOL*NTST)
+    UOLDPS(:,0:NCOL*NTSTNA)=UPS(:,0:NCOL*NTSTNA)
 
   END SUBROUTINE CONTBV
 
