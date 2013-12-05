@@ -16,7 +16,7 @@ MODULE BVP
   INTEGER, ALLOCATABLE :: NRTN(:)
   INTEGER IRTN
 
-  INTEGER, PARAMETER :: LCSPBV_CHECK=1, LCSPBV_NOT_CONVERGED=2, &
+  INTEGER, PARAMETER :: LCSPBV_CHECK=1, LCSPBV_CONVERGED=2, &
        CNRLBV_CONT=3, CNRLBV_STOP=4
 
 CONTAINS
@@ -55,15 +55,18 @@ CONTAINS
     integer, intent(out) :: nllv
 
     integer :: ndim, ifst, na, ncol, nint, ntst, nfpr
-    integer :: npar, nitps, istop, mpistate
+    integer :: npar, nitps, istop, mpistate, itest, iuz(1)
     type(autoparameters) ap
 
     double precision, allocatable :: ups(:,:), uoldps(:,:)
     double precision, allocatable :: rlcur(:),rlold(:),rldot(:)
     double precision, allocatable :: udotps(:,:), upoldp(:,:), thu(:)
-    double precision, allocatable :: dups(:,:), drl(:), dtm(:), par(:)
+    double precision, allocatable :: dups(:,:), drl(:), dtm(:), par(:), p0(:,:), p1(:,:)
     integer, allocatable :: np(:),icp(:)
-    double precision :: dum,dum1(1),det,rds,dsold
+    double precision :: dum,dum1(1),det,rds,dsold,dstest,q
+    logical :: stepped
+    character(4) :: atype
+    complex(kind(1.0d0)), allocatable :: ev(:)
 
     call mpibcastap(ap)
     iam=mpiiam()
@@ -91,31 +94,38 @@ CONTAINS
     ap%iid=0
     dum=0
     if (nllv==0)then
+       allocate(p0(ndim,ndim),p1(ndim,ndim),ev(ap%ndm))
+       p0(:,:) = 0
+       p1(:,:) = 0
+       ev(:) = 0
        do
           call stepbv(ap,dsold,par,icp,funi,bcni,icni,fnci,rds, &
                rlcur,rlold,rldot,ndim,ups,uoldps,udotps,upoldp, &
                dum1,dtm,dum1,dum1,dum1,thu,nitps,istop,na)
-          call mpibcast1i(mpistate)
-          if(mpistate==LCSPBV_NOT_CONVERGED)then
-             call mpiadapt(ap,ndim,ups,uoldps,dtm,rlcur,rlold,dsold)
+          do 
              call mpibcast1i(mpistate)
-          endif
+             if(mpistate/=LCSPBV_CHECK)exit
+             dstest=dsold
+             call lcspbv(ap,dsold,dstest,par,icp,itest,funi,bcni,icni,fnci, &
+                  q,rlcur,rlold,rldot,ndim,ups,uoldps,udotps, &
+                  upoldp,dum1,dtm,p0,p1,ev,dum1,thu,iuz,dum1,nitps,atype, &
+                  stepped,na)
+          enddo
           select case(mpistate)
              case(CNRLBV_CONT)
                 ap%ntot=ap%ntot+1
                 if(ap%iad/=0)then
                    if(mod(ap%ntot,ap%iad)==0)then
-                      call mpiadapt(ap,ndim,ups,uoldps,dtm,rlcur,rlold,dsold)
+                      call mpiadapt(ntst,ncol,ndim,ups,uoldps,dtm)
                    endif
                 endif
              case(CNRLBV_STOP)
                 exit
-             case(LCSPBV_CHECK)
-                ! nothing to do
           end select
           call contbv(ap,dsold,par,icp,funi,rlcur,rlold,rldot, &
                ndim,ups,uoldps,udotps,upoldp,dtm,dum1,thu,rds)
        enddo
+       deallocate(p0,p1,ev)
     else
        ifst=1
        ups(:,:)=uoldps(:,:)
@@ -290,7 +300,7 @@ CONTAINS
              ! Check for special points
              CALL LCSPBV(AP,DSOLD,DSTEST,PAR,ICP,ITEST,FUNI,BCNI,ICNI,FNCI, &
                   TEST(ITEST),RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS, &
-                  UPOLDP,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ATYPE,STEPPED)
+                  UPOLDP,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ATYPE,STEPPED,NTST)
              IF(STEPPED)ISTEPPED=ITEST
              IF(LEN_TRIM(ATYPE)>0)THEN
                 IFOUND=ITEST
@@ -333,7 +343,7 @@ CONTAINS
           IF(MOD(NTOT,IAD).EQ.0)THEN
              CALL ADAPT(NTST,NCOL,NDIM,TM,DTM,UPS,UOLDPS, &
                   ((IPS==2.OR.IPS==12) .AND. ABS(ISW)<=1))
-             CALL MPIADAPT(AP,NDIM,UPS,UOLDPS,DTM,RLCUR,RLOLD,DSOLD)
+             CALL MPIADAPT(NTST,NCOL,NDIM,UPS,UOLDPS,DTM)
           ENDIF
        ENDIF
 
@@ -1041,7 +1051,7 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE LCSPBV(AP,DSOLD,DSTEST,PAR,ICP,ITEST,FUNI,BCNI,ICNI,FNCI,Q, &
        RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
-       TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ATYPE,STEPPED)
+       TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ATYPE,STEPPED,NTSTNA)
 
     USE SUPPORT
     USE AUTOMPI
@@ -1065,10 +1075,10 @@ CONTAINS
     INTEGER, INTENT(IN) :: ICP(*),ITEST,IUZ(*),NDIM
     INTEGER, INTENT(INOUT) :: NITPS
     COMPLEX(KIND(1.0D0)), INTENT(INOUT) :: EV(AP%NDM)
-    DOUBLE PRECISION, INTENT(INOUT) :: PAR(*), UPS(NDIM,0:AP%NCOL*AP%NTST)
-    DOUBLE PRECISION, INTENT(INOUT) :: UOLDPS(NDIM,0:AP%NCOL*AP%NTST)
-    DOUBLE PRECISION, INTENT(INOUT) :: UDOTPS(NDIM,0:AP%NCOL*AP%NTST)
-    DOUBLE PRECISION, INTENT(INOUT) :: UPOLDP(NDIM,0:AP%NCOL*AP%NTST)
+    DOUBLE PRECISION, INTENT(INOUT) :: PAR(*), UPS(NDIM,0:AP%NCOL*NTSTNA)
+    DOUBLE PRECISION, INTENT(INOUT) :: UOLDPS(NDIM,0:AP%NCOL*NTSTNA)
+    DOUBLE PRECISION, INTENT(INOUT) :: UDOTPS(NDIM,0:AP%NCOL*NTSTNA)
+    DOUBLE PRECISION, INTENT(INOUT) :: UPOLDP(NDIM,0:AP%NCOL*NTSTNA)
     DOUBLE PRECISION, INTENT(IN) :: TM(*),DTM(*),THL(*),THU(*),VUZ(*)
     DOUBLE PRECISION, INTENT(INOUT) :: DSOLD,DSTEST,Q
     DOUBLE PRECISION, INTENT(INOUT) :: RLCUR(AP%NFPR),RLOLD(AP%NFPR)
@@ -1077,7 +1087,7 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(OUT) :: ATYPE
     LOGICAL, INTENT(OUT) :: STEPPED
 
-    INTEGER I,IID,ITMX,IBR,NTOT,NTOP,NITSP1,ISTOP,NCOL,NFPR,NTST,NITPSS,MPISTATE
+    INTEGER I,IAM,IID,ITMX,IBR,NTOT,NTOP,NITSP1,ISTOP,NCOL,NFPR,NTSTNA,NITPSS,MPISTATE
     DOUBLE PRECISION DS,DSMAX,EPSS,Q0,Q1,DQ,RDS,RRDS,S0,S1
     DOUBLE PRECISION DETS,FLDFS,DSOLDS,DSTESTS
     CHARACTER(4) :: ATYPEDUM
@@ -1087,13 +1097,13 @@ CONTAINS
     DOUBLE PRECISION, ALLOCATABLE :: RLDOTS(:),UDOTPSS(:,:)
     COMPLEX(KIND(1.0D0)), ALLOCATABLE :: EVS(:)
 
+    IAM=MPIIAM()
     IID=AP%IID
     ITMX=AP%ITMX
     IBR=AP%IBR
     NTOT=AP%NTOT
     NTOP=MOD(NTOT-1,9999)+1
     NCOL=AP%NCOL
-    NTST=AP%NTST
     NFPR=AP%NFPR
 
     DS=AP%DS
@@ -1104,8 +1114,16 @@ CONTAINS
 
 ! Check for zero.
 
-    Q0=Q
-    Q1=FNCS(AP,ICP,UPS,PAR,ATYPE,IUZ,VUZ,ITEST,FNCI)
+    IF(IAM==0)THEN
+       Q0=Q
+       Q1=FNCS(AP,ICP,UPS,PAR,ATYPE,IUZ,VUZ,ITEST,FNCI)
+    ELSE
+       ! dummy values for MPI workers (test always succeeds)
+       AP%ITP=0
+       ATYPE='PAR'
+       Q0=1
+       Q1=-1
+    ENDIF
     ! disable detected potential bifurcations without stability changes
     I=LEN_TRIM(ATYPE)
     IF(I>0)THEN
@@ -1144,17 +1162,18 @@ CONTAINS
 ! Return if tolerance has been met :
 
     RRDS=ABS(RDS)/(1+SQRT(ABS(DS*DSMAX)))
-    IF(RRDS.LT.EPSS) THEN
+    IF(IAM==0.AND.RRDS.LT.EPSS) THEN
        Q=0.d0
        IF(IID>0)WRITE(9,102)RDS
        RETURN
     ENDIF
 
     MPISTATE=LCSPBV_CHECK
+    IF(IAM==0)CALL MPIBCAST1I(MPISTATE)
 
-    ALLOCATE(UOLDPSS(NDIM,0:NTST*NCOL),RLOLDS(NFPR))
-    ALLOCATE(UDOTPSS(NDIM,0:NTST*NCOL),RLDOTS(NFPR))
-    ALLOCATE(UPSS(NDIM,0:NTST*NCOL),RLCURS(NFPR))
+    ALLOCATE(UOLDPSS(NDIM,0:NTSTNA*NCOL),RLOLDS(NFPR))
+    ALLOCATE(UDOTPSS(NDIM,0:NTSTNA*NCOL),RLDOTS(NFPR))
+    ALLOCATE(UPSS(NDIM,0:NTSTNA*NCOL),RLCURS(NFPR))
     ALLOCATE(P0S(NDIM,NDIM),P1S(NDIM,NDIM),EVS(AP%NDM))
     ! save state to restore in case of non-convergence or
     ! "possible special point"
@@ -1181,24 +1200,27 @@ CONTAINS
           WRITE(9,101)NITSP1,RDS
        ENDIF
 
-       CALL MPIBCAST1I(MPISTATE)
        CALL CONTBV(AP,DSOLD,PAR,ICP,FUNI,RLCUR,RLOLD,RLDOT, &
             NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU,RDS)
        CALL STEPBV(AP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,FNCI,RDS, &
             RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
-            TM,DTM,P0,P1,THL,THU,NITPS,ISTOP,NTST)
+            TM,DTM,P0,P1,THL,THU,NITPS,ISTOP,NTSTNA)
        IF(ISTOP.NE.0)EXIT
 
 ! Check for zero.
 
-       Q=FNCS(AP,ICP,UPS,PAR,ATYPE,IUZ,VUZ,ITEST,FNCI)
+       IF(IAM==0)THEN
+          Q=FNCS(AP,ICP,UPS,PAR,ATYPE,IUZ,VUZ,ITEST,FNCI)
+       ELSE
+          Q=0
+       ENDIF
        ! ignore stability changes
        I=LEN_TRIM(ATYPE)
        IF(ATYPE(I:I)=='0')ATYPE=ATYPE(1:I-1)
 
 !        Use Mueller's method with bracketing for subsequent steps
        DSTEST=S1+RDS
-       CALL MUELLER(Q0,Q1,Q,S0,S1,DSTEST,RDS)
+       IF(IAM==0)CALL MUELLER(Q0,Q1,Q,S0,S1,DSTEST,RDS)
 
        RDS=(1.d0+HMACH)*RDS
 
@@ -1206,6 +1228,10 @@ CONTAINS
 
        RRDS=ABS(RDS)/(1+SQRT(ABS(DS*DSMAX)))
        IF(RRDS.LT.EPSS) THEN
+          MPISTATE=LCSPBV_CONVERGED
+       ENDIF
+       CALL MPIBCAST1I(MPISTATE)
+       IF(MPISTATE==LCSPBV_CONVERGED)THEN
           Q=0.d0
           IF(IID>0)WRITE(9,102)RDS
           DEALLOCATE(UPSS,RLCURS,UOLDPSS,RLOLDS,UDOTPSS,RLDOTS,P0S,P1S)
@@ -1214,10 +1240,6 @@ CONTAINS
        ENDIF
 
     ENDDO
-
-    MPISTATE=LCSPBV_NOT_CONVERGED
-    CALL MPIBCAST1I(MPISTATE)
-    CALL MPIADAPT(AP,NDIM,UPSS,UOLDPSS,DTM,RLCURS,RLOLDS,DSOLDS)
 
     IF(IID>0)WRITE(9,103)IBR,NTOP+1
     ATYPE=''

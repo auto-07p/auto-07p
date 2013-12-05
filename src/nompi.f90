@@ -56,11 +56,9 @@ subroutine mpisbv(ap,par,icp,ndim,uoldps,rds,rlold,rldot, &
   double precision :: rds,rlold(ap%nfpr),rldot(ap%nfpr)
 end subroutine mpisbv
 
-subroutine mpiadapt(ap,ndim,ups,uoldps,dtm,rlcur,rlold,dsold)
-  type(autoparameters) :: ap
-  integer, intent(in) :: ndim
+subroutine mpiadapt(ntst,ncol,ndim,ups,uoldps,dtm)
+  integer, intent(in) :: ntst,ncol,ndim
   double precision :: ups(ndim,0:*),uoldps(ndim,0:*),dtm(0:*)
-  double precision :: rlcur(ap%nfpr),rlold(ap%nfpr),dsold
 end subroutine mpiadapt
 
 subroutine mpicbv(npar,par,rds,ss)

@@ -284,40 +284,11 @@ subroutine mpisbv(ap,par,icp,ndim,uoldps,rds,rlold,rldot, &
 
 end subroutine mpisbv
 
-subroutine mpiadapt(ap,ndim,ups,uoldps,dtm,rlcur,rlold,dsold)
+subroutine mpiadapt(ntst,ncol,ndim,ups,uoldps,dtm)
 
-  type(autoparameters) :: ap
-  integer, intent(in) :: ndim
+  integer, intent(in) :: ntst,ncol,ndim
   double precision :: ups(ndim,0:*),uoldps(ndim,0:*),dtm(0:*)
-  double precision :: rlcur(ap%nfpr),rlold(ap%nfpr),dsold
 
-  integer :: ncol,ierr,ntst,iam,nfpr,bufsize
-  double precision, allocatable :: buffer(:)
-
-  call MPI_Comm_rank(MPI_COMM_WORLD,iam,ierr)
-
-  nfpr=ap%nfpr
-  bufsize = 2*nfpr+1
-  allocate(buffer(bufsize))
-
-  if(iam==0)then
-     buffer(1:nfpr)=rlcur(:)
-     buffer(nfpr+1:2*nfpr)=rlold(:)
-     buffer(2*nfpr+1)=dsold
-  endif
-
-  call MPI_Bcast(buffer,bufsize,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-
-  if(iam>0)then
-     rlcur(:)=buffer(1:nfpr)
-     rlold(:)=buffer(nfpr+1:2*nfpr)
-     dsold=buffer(2*nfpr+1)
-  endif
-
-  deallocate(buffer)
-
-  ntst=ap%ntst
-  ncol=ap%ncol
   call mpiscat(ups,ndim*ncol,ntst,ndim)
   call mpiscat(uoldps,ndim*ncol,ntst,ndim)
   call mpiscat(dtm,1,ntst,0)
