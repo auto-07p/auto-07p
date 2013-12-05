@@ -16,6 +16,9 @@ MODULE BVP
   INTEGER, ALLOCATABLE :: NRTN(:)
   INTEGER IRTN
 
+  INTEGER, PARAMETER :: LCSPBV_CHECK=1, LCSPBV_NOT_CONVERGED=2, &
+       CNRLBV_CONT=3, CNRLBV_STOP=4
+
 CONTAINS
 
 ! ---------- ------
@@ -34,10 +37,8 @@ CONTAINS
     IF(MPIIAM()>0)THEN
 !        This is a little trick to tell MPI workers what FUNI and ICNI
 !        are.
-       IF(.NOT.MPIWFI(.TRUE.))RETURN
-       DO
+       DO WHILE(MPIWFI(.TRUE.))
           CALL mpi_setubv_worker(FUNI,ICNI,BCNI,FNCI,NLLV)
-          IF(NLLV==0)RETURN
        ENDDO
     ENDIF
     CALL CNRLBV(AP,ICP,ICU,FUNI,BCNI,ICNI,STPNBVI,FNCI)
@@ -54,7 +55,7 @@ CONTAINS
     integer, intent(out) :: nllv
 
     integer :: ndim, ifst, na, ncol, nint, ntst, nfpr
-    integer :: npar, nitps, istop
+    integer :: npar, nitps, istop, mpistate
     type(autoparameters) ap
 
     double precision, allocatable :: ups(:,:), uoldps(:,:)
@@ -94,7 +95,24 @@ CONTAINS
           call stepbv(ap,dsold,par,icp,funi,bcni,icni,fnci,rds, &
                rlcur,rlold,rldot,ndim,ups,uoldps,udotps,upoldp, &
                dum1,dtm,dum1,dum1,dum1,thu,nitps,istop,na)
-          if(.not.mpiwfi(.true.))exit
+          call mpibcast1i(mpistate)
+          if(mpistate==LCSPBV_NOT_CONVERGED)then
+             call mpiadapt(ap,ndim,ups,uoldps,dtm,rlcur,rlold,dsold)
+             call mpibcast1i(mpistate)
+          endif
+          select case(mpistate)
+             case(CNRLBV_CONT)
+                ap%ntot=ap%ntot+1
+                if(ap%iad/=0)then
+                   if(mod(ap%ntot,ap%iad)==0)then
+                      call mpiadapt(ap,ndim,ups,uoldps,dtm,rlcur,rlold,dsold)
+                   endif
+                endif
+             case(CNRLBV_STOP)
+                exit
+             case(LCSPBV_CHECK)
+                ! nothing to do
+          end select
           call contbv(ap,dsold,par,icp,funi,rlcur,rlold,rldot, &
                ndim,ups,uoldps,udotps,upoldp,dtm,dum1,thu,rds)
        enddo
@@ -106,7 +124,6 @@ CONTAINS
             nllv,rlcur,rlold,rldot,ndim,ups,uoldps,udotps,upoldp,dtm, &
             dups,drl,dum1,dum1,dum1,thu)
        deallocate(dups,drl)
-       if(.not.mpiwfi(.true.))nllv=0
     endif
 
     ! free input arrays
@@ -139,7 +156,7 @@ CONTAINS
     DOUBLE PRECISION, ALLOCATABLE :: UDOTPS(:,:),TM(:),TEST(:)
     INTEGER NDIM,IPS,IRS,ILP,NTST,NCOL,IAD,IADS,ISP,ISW,NUZR,ITP,ITPST,NFPR
     INTEGER IBR,IPERP,ISTOP,ITNW,ITEST,I,NITPS,NODIR,NTOP,NTOT,NPAR,NINS,NLLV
-    INTEGER IFOUND,ISTEPPED
+    INTEGER IFOUND,ISTEPPED,MPISTATE
     INTEGER STOPCNTS(-9:14)
     DOUBLE PRECISION DS,DSMAX,DSOLD,DSTEST,RDS,SP1
     LOGICAL STEPPED
@@ -254,6 +271,7 @@ CONTAINS
     NLLV=0
     CALL MPISBV(AP,PAR,ICP,NDIM,UOLDPS,RDS,RLOLD,RLDOT,UDOTPS, &
          UPOLDP,DTM,THU,NLLV)
+    MPISTATE=CNRLBV_CONT
     DO WHILE(ISTOP==0)
        ITP=0
        AP%ITP=ITP
@@ -304,7 +322,9 @@ CONTAINS
        CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
        CALL STPLBV(AP,PAR,ICP,ICU,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,THU,ISTOP)
 
-       IF(ISTOP/=0)EXIT
+       IF(ISTOP/=0)MPISTATE=CNRLBV_STOP
+       CALL MPIBCAST1I(MPISTATE)
+       IF(MPISTATE==CNRLBV_STOP)EXIT
        NTOT=AP%NTOT
 
 ! Adapt the mesh to the solution.
@@ -313,6 +333,7 @@ CONTAINS
           IF(MOD(NTOT,IAD).EQ.0)THEN
              CALL ADAPT(NTST,NCOL,NDIM,TM,DTM,UPS,UOLDPS, &
                   ((IPS==2.OR.IPS==12) .AND. ABS(ISW)<=1))
+             CALL MPIADAPT(AP,NDIM,UPS,UOLDPS,DTM,RLCUR,RLOLD,DSOLD)
           ENDIF
        ENDIF
 
@@ -377,8 +398,6 @@ CONTAINS
     CALL PARTITION(NTST,KWT,NP)
     NA=NP(IAM+1)
     DEALLOCATE(NP)
-
-    CALL MPIADAPT(AP,NDIM,UPS,UOLDPS,DTM,RLCUR,RLOLD,DSOLD)
 
     IF(IAM==0)THEN
        NTSTNA=NTST
@@ -1025,6 +1044,7 @@ CONTAINS
        TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ATYPE,STEPPED)
 
     USE SUPPORT
+    USE AUTOMPI
 
     DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7
 
@@ -1057,7 +1077,7 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(OUT) :: ATYPE
     LOGICAL, INTENT(OUT) :: STEPPED
 
-    INTEGER I,IID,ITMX,IBR,NTOT,NTOP,NITSP1,ISTOP,NCOL,NFPR,NTST,NITPSS
+    INTEGER I,IID,ITMX,IBR,NTOT,NTOP,NITSP1,ISTOP,NCOL,NFPR,NTST,NITPSS,MPISTATE
     DOUBLE PRECISION DS,DSMAX,EPSS,Q0,Q1,DQ,RDS,RRDS,S0,S1
     DOUBLE PRECISION DETS,FLDFS,DSOLDS,DSTESTS
     CHARACTER(4) :: ATYPEDUM
@@ -1130,6 +1150,8 @@ CONTAINS
        RETURN
     ENDIF
 
+    MPISTATE=LCSPBV_CHECK
+
     ALLOCATE(UOLDPSS(NDIM,0:NTST*NCOL),RLOLDS(NFPR))
     ALLOCATE(UDOTPSS(NDIM,0:NTST*NCOL),RLDOTS(NFPR))
     ALLOCATE(UPSS(NDIM,0:NTST*NCOL),RLCURS(NFPR))
@@ -1159,6 +1181,7 @@ CONTAINS
           WRITE(9,101)NITSP1,RDS
        ENDIF
 
+       CALL MPIBCAST1I(MPISTATE)
        CALL CONTBV(AP,DSOLD,PAR,ICP,FUNI,RLCUR,RLOLD,RLDOT, &
             NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU,RDS)
        CALL STEPBV(AP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,FNCI,RDS, &
@@ -1191,6 +1214,10 @@ CONTAINS
        ENDIF
 
     ENDDO
+
+    MPISTATE=LCSPBV_NOT_CONVERGED
+    CALL MPIBCAST1I(MPISTATE)
+    CALL MPIADAPT(AP,NDIM,UPSS,UOLDPSS,DTM,RLCURS,RLOLDS,DSOLDS)
 
     IF(IID>0)WRITE(9,103)IBR,NTOP+1
     ATYPE=''

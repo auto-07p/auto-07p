@@ -295,11 +295,6 @@ subroutine mpiadapt(ap,ndim,ups,uoldps,dtm,rlcur,rlold,dsold)
   double precision, allocatable :: buffer(:)
 
   call MPI_Comm_rank(MPI_COMM_WORLD,iam,ierr)
-  if(iam==0)then
-     ! Send message to get worker into contbv mode
-     call MPI_Bcast(AUTO_MPI_SETUBV_MESSAGE,1,MPI_INTEGER,0, &
-             MPI_COMM_WORLD,ierr)
-  endif
 
   nfpr=ap%nfpr
   bufsize = 2*nfpr+1
