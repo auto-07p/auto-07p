@@ -16,8 +16,6 @@ MODULE BVP
   INTEGER, ALLOCATABLE :: NRTN(:)
   INTEGER IRTN
 
-  INTEGER, PARAMETER :: CNRLBV_CONT=0, CNRLBV_STOP=-1
-
 CONTAINS
 
 ! ---------- ------
@@ -53,19 +51,15 @@ CONTAINS
     include 'interfaces.h'
     integer, intent(out) :: nllv
 
-    integer :: ndim, ifst, na, ncol, nint, ntst, nfpr
-    integer :: npar, nitps, istop, mpistate, itest, iuz(1)
+    integer :: ndim, ifst, na, ncol, nint, ntst, nfpr, npar
     type(autoparameters) ap
 
     double precision, allocatable :: ups(:,:), uoldps(:,:)
     double precision, allocatable :: rlcur(:),rlold(:),rldot(:)
     double precision, allocatable :: udotps(:,:), upoldp(:,:), thu(:)
-    double precision, allocatable :: dups(:,:), drl(:), dtm(:), par(:), p0(:,:), p1(:,:)
+    double precision, allocatable :: dups(:,:), drl(:), dtm(:), par(:)
     integer, allocatable :: np(:),icp(:)
-    double precision :: dum,dum1(1),det,rds,dsold,dstest,q
-    logical :: stepped
-    character(4) :: atype
-    complex(kind(1.0d0)), allocatable :: ev(:)
+    double precision :: dum,dum1(1),det,rds
 
     call mpibcastap(ap)
     iam=mpiiam()
@@ -87,53 +81,20 @@ CONTAINS
     allocate(rlcur(nfpr),rlold(nfpr),rldot(nfpr))
     allocate(ups(ndim,0:na*ncol),uoldps(ndim,0:na*ncol))
     allocate(udotps(ndim,0:na*ncol),upoldp(ndim,0:na*ncol))
+    allocate(dups(ndim,0:na*ncol),drl(nfpr))
 
     call mpisbv(ap,par,icp,ndim,uoldps,rds,rlold,rldot,&
          udotps,upoldp,dtm,thu,nllv)
     ap%iid=0
     dum=0
-    if (nllv==0)then
-       allocate(p0(ndim,ndim),p1(ndim,ndim),ev(ap%ndm))
-       p0(:,:) = 0
-       p1(:,:) = 0
-       ev(:) = 0
-       do
-          call stepbv(ap,dsold,par,icp,funi,bcni,icni,fnci,rds, &
-               rlcur,rlold,rldot,ndim,ups,uoldps,udotps,upoldp, &
-               dum1,dtm,dum1,dum1,dum1,thu,nitps,istop,na)
-          call mpibcast1i(mpistate)
-          do itest=1,ap%ntest
-             if(mpistate/=itest)cycle
-             dstest=dsold
-             call lcspbv(ap,dsold,dstest,par,icp,itest,funi,bcni,icni,fnci, &
-                  q,rlcur,rlold,rldot,ndim,ups,uoldps,udotps, &
-                  upoldp,dum1,dtm,p0,p1,ev,dum1,thu,iuz,dum1,nitps,atype, &
-                  stepped,na)
-             call mpibcast1i(mpistate)
-          enddo
-          if(mpistate==CNRLBV_STOP)exit
-          ap%ntot=ap%ntot+1
-          if(ap%iad/=0)then
-             if(mod(ap%ntot,ap%iad)==0)then
-                call mpiadapt(ntst,ncol,ndim,ups,uoldps,dtm)
-             endif
-          endif
-          call contbv(ap,dsold,par,icp,funi,rlcur,rlold,rldot, &
-               ndim,ups,uoldps,udotps,upoldp,dtm,dum1,thu,rds)
-       enddo
-       deallocate(p0,p1,ev)
-    else
-       ifst=1
-       ups(:,:)=uoldps(:,:)
-       allocate(dups(ndim,0:na*ncol),drl(nfpr))
-       call solvbv(ifst,ap,det,par,icp,funi,bcni,icni,dum, &
-            nllv,rlcur,rlold,rldot,ndim,ups,uoldps,udotps,upoldp,dtm, &
-            dups,drl,dum1,dum1,dum1,thu)
-       deallocate(dups,drl)
-    endif
+    ifst=1
+    ups(:,:)=uoldps(:,:)
+    call solvbv(ifst,ap,det,par,icp,funi,bcni,icni,dum, &
+         nllv,rlcur,rlold,rldot,ndim,ups,uoldps,udotps,upoldp,dtm, &
+         dups,drl,dum1,dum1,dum1,thu)
 
     ! free input arrays
-    deallocate(ups,uoldps,dtm,udotps,upoldp,thu,icp,par,rlcur,&
+    deallocate(ups,uoldps,dtm,udotps,upoldp,dups,drl,thu,icp,par,rlcur,&
          rlold,rldot)
 
   end subroutine mpi_setubv_worker
@@ -155,29 +116,32 @@ CONTAINS
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     INTEGER, INTENT(IN) :: ICP(*),ICU(*)
 ! Local
-    INTEGER, ALLOCATABLE :: IUZ(:)
+    INTEGER, ALLOCATABLE :: IUZ(:),NP(:)
     DOUBLE PRECISION, ALLOCATABLE :: PAR(:),VUZ(:),THU(:),THL(:)
     DOUBLE PRECISION, ALLOCATABLE :: RLCUR(:),RLOLD(:),RLDOT(:)
     DOUBLE PRECISION, ALLOCATABLE :: UPS(:,:),UOLDPS(:,:),UPOLDP(:,:)
     DOUBLE PRECISION, ALLOCATABLE :: UDOTPS(:,:),TM(:),TEST(:)
     INTEGER NDIM,IPS,IRS,ILP,NTST,NCOL,IAD,IADS,ISP,ISW,NUZR,ITP,ITPST,NFPR
     INTEGER IBR,IPERP,ISTOP,ITNW,ITEST,I,NITPS,NODIR,NTOP,NTOT,NPAR,NINS,NLLV
-    INTEGER IFOUND,ISTEPPED,MPISTATE
+    INTEGER IFOUND,ISTEPPED,MPISTATE,IAM,KWT,NA,NTSTNA
     INTEGER STOPCNTS(-9:14)
     DOUBLE PRECISION DS,DSMAX,DSOLD,DSTEST,RDS,SP1
     LOGICAL STEPPED
     CHARACTER(4) ATYPE,ATYPEDUM
 
+    INTEGER, PARAMETER :: CNRLBV_CONT=0, CNRLBV_STOP=-1
+
 ! INITIALIZE COMPUTATION OF BRANCH
 
+    IAM=MPIIAM()
     IF(AP%ISW==-2.OR.AP%ISW==-3)THEN
        AP%ILP=0
        AP%ISP=0
        AP%NMX=5
-       WRITE(6,"(/,A,A)")' Generating starting data :', &
+       IF(IAM==0)WRITE(6,"(/,A,A)")' Generating starting data :', &
             ' Restart at EP label below :'
     ENDIF
-    CALL INIT2(AP,ICP,ICU)
+    IF(IAM==0)CALL INIT2(AP,ICP,ICU)
 
     NDIM=AP%NDIM
     IPS=AP%IPS
@@ -198,19 +162,31 @@ CONTAINS
     ! allocate a minimum of NPARX so we can detect overflows 
     ! past NPAR gracefully
     ALLOCATE(PAR(MAX(NPAR,NPARX)),THL(NFPR),THU(NDIM),IUZ(NUZR),VUZ(NUZR))
-    CALL INIT3(AP,ICP,PAR,THL,THU,IUZ,VUZ)
+    IF(IAM==0)CALL INIT3(AP,ICP,PAR,THL,THU,IUZ,VUZ)
+
+    KWT=MPIKWT()
+    ALLOCATE(NP(KWT))
+    CALL PARTITION(NTST,KWT,NP)
+    NA=NP(IAM+1)
+    DEALLOCATE(NP)
+    IF(IAM==0)THEN
+       NTSTNA=NTST
+    ELSE
+       NTSTNA=NA
+       AP%IID=0
+    ENDIF
 
     ALLOCATE(RLCUR(NFPR),RLDOT(NFPR),RLOLD(NFPR))
-    ALLOCATE(UPS(NDIM,0:NTST*NCOL),UOLDPS(NDIM,0:NTST*NCOL))
-    ALLOCATE(UPOLDP(NDIM,0:NTST*NCOL),UDOTPS(NDIM,0:NTST*NCOL))
-    ALLOCATE(TM(0:NTST),DTM(NTST))
+    ALLOCATE(UPS(NDIM,0:NTSTNA*NCOL),UOLDPS(NDIM,0:NTSTNA*NCOL))
+    ALLOCATE(UPOLDP(NDIM,0:NTSTNA*NCOL),UDOTPS(NDIM,0:NTSTNA*NCOL))
+    ALLOCATE(TM(0:NTSTNA),DTM(NTSTNA))
     ALLOCATE(P0(NDIM,NDIM),P1(NDIM,NDIM),TEST(AP%NTEST),EV(AP%NDM))
 
     DS=AP%DS
 
     RDS=DS
     DSOLD=RDS
-    CALL INITSTOPCNTS(ISP,ILP,ITPST,STOPCNTS)
+    IF(IAM==0)CALL INITSTOPCNTS(ISP,ILP,ITPST,STOPCNTS)
     IF(ISP.LT.0)THEN
        ISP=-ISP
        AP%ISP=ISP
@@ -235,11 +211,11 @@ CONTAINS
     UDOTPS(:,:)=0.d0
 
     NODIR=0
-    CALL RSPTBV(AP,PAR,ICP,FUNI,STPNBVI,FNCI,RLCUR,RLOLD,RLDOT, &
+    IF(IAM==0)CALL RSPTBV(AP,PAR,ICP,FUNI,STPNBVI,FNCI,RLCUR,RLOLD,RLDOT, &
          NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THU)
 
 !     don't set global rotations here for homoclinics, but in autlib5.f
-    IF(IPS.NE.9)CALL SETRTN(AP%NDM,NTST*NCOL,NDIM,UPS)
+    IF(IAM==0.AND.IPS.NE.9)CALL SETRTN(AP%NDM,NTST*NCOL,NDIM,UPS)
 
     IPERP=2
     IF(NODIR.EQ.1 .AND. ISW.GT.0)THEN
@@ -254,7 +230,7 @@ CONTAINS
        ! (but not at a Hopf bifurcation)
        IPERP=-1
     ENDIF
-    IF(IPERP/=2)THEN
+    IF(IAM==0.AND.IPERP/=2)THEN
        CALL STDRBV(AP,PAR,ICP,FUNI,BCNI,ICNI,RLCUR,RLOLD,RLDOT, &
             NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,IPERP,P0,P1,THL,THU)
        IF(ISP/=0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12) )THEN
@@ -265,14 +241,14 @@ CONTAINS
 
 ! Store plotting data for restart point :
 
-    CALL STHD(AP,ICP)
+    IF(IAM==0)CALL STHD(AP,ICP)
     IF(IRS.EQ.0) THEN
        ITP=9+10*ITPST
     ELSE
        ITP=0
     ENDIF
     AP%ITP=ITP
-    CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
+    IF(IAM==0)CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
     CALL STPLBV(AP,PAR,ICP,ICU,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,THU,ISTOP)
     NLLV=0
     CALL MPISBV(AP,PAR,ICP,NDIM,UOLDPS,RDS,RLOLD,RLDOT,UDOTPS, &
@@ -284,7 +260,11 @@ CONTAINS
        NINS=AP%NINS
        CALL STEPBV(AP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,FNCI,RDS, &
             RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
-            TM,DTM,P0,P1,THL,THU,NITPS,ISTOP,NTST)
+            TM,DTM,P0,P1,THL,THU,NITPS,ISTOP,NTSTNA)
+
+       IF(IAM>0)THEN
+          CALL MPIBCAST1I(MPISTATE)
+       ENDIF
 
        IFOUND=0
        DSTEST=DSOLD
@@ -294,25 +274,32 @@ CONTAINS
           ISTEPPED=0
           DO ITEST=1,AP%NTEST
              ! Check for special points
+             IF(IAM>0.AND.MPISTATE/=ITEST)CYCLE
              CALL LCSPBV(AP,DSOLD,DSTEST,PAR,ICP,ITEST,FUNI,BCNI,ICNI,FNCI, &
                   TEST(ITEST),RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS, &
-                  UPOLDP,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ATYPE,STEPPED,NTST)
-             IF(STEPPED)ISTEPPED=ITEST
-             IF(LEN_TRIM(ATYPE)>0)THEN
-                IFOUND=ITEST
-                AP%ITP=LBITP(ATYPE,.TRUE.)
-                AP%ITP=AP%ITP+SIGN(10,AP%ITP)*ITPST
+                  UPOLDP,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ATYPE,STEPPED,NTSTNA)
+             IF(IAM==0)THEN
+                IF(STEPPED)ISTEPPED=ITEST
+                IF(LEN_TRIM(ATYPE)>0)THEN
+                   IFOUND=ITEST
+                   AP%ITP=LBITP(ATYPE,.TRUE.)
+                   AP%ITP=AP%ITP+SIGN(10,AP%ITP)*ITPST
+                ENDIF
+             ELSE
+                CALL MPIBCAST1I(MPISTATE)
              ENDIF
           ENDDO
        ENDIF
 
-       DO ITEST=1,ISTEPPED-1
-          ! evaluate the test functions for the next step
-          TEST(ITEST)=FNCS(AP,ICP,UPS,PAR,ATYPEDUM,IUZ,VUZ,ITEST,FNCI)
-       ENDDO
+       IF(IAM==0)THEN
+          DO ITEST=1,ISTEPPED-1
+             ! evaluate the test functions for the next step
+             TEST(ITEST)=FNCS(AP,ICP,UPS,PAR,ATYPEDUM,IUZ,VUZ,ITEST,FNCI)
+          ENDDO
+       ENDIF
 
        ITP=AP%ITP
-       IF(ITP/=0)THEN
+       IF(IAM==0.AND.ITP/=0)THEN
           IF(STOPPED(IUZ,IFOUND,NUZR,ITP,STOPCNTS))THEN
              ISTOP=-1 ! *Stop at the first found bifurcation
           ENDIF
@@ -325,11 +312,13 @@ CONTAINS
 
 ! Store plotting data.
 
-       CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
+       IF(IAM==0)CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
        CALL STPLBV(AP,PAR,ICP,ICU,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,THU,ISTOP)
 
-       IF(ISTOP/=0)MPISTATE=CNRLBV_STOP
-       CALL MPIBCAST1I(MPISTATE)
+       IF(IAM==0)THEN
+          IF(ISTOP/=0)MPISTATE=CNRLBV_STOP
+          CALL MPIBCAST1I(MPISTATE)
+       ENDIF
        IF(MPISTATE==CNRLBV_STOP)EXIT
        NTOT=AP%NTOT
 
@@ -337,7 +326,7 @@ CONTAINS
 
        IF(IAD.NE.0)THEN
           IF(MOD(NTOT,IAD).EQ.0)THEN
-             CALL ADAPT(NTST,NCOL,NDIM,TM,DTM,UPS,UOLDPS, &
+             IF(IAM==0)CALL ADAPT(NTST,NCOL,NDIM,TM,DTM,UPS,UOLDPS, &
                   ((IPS==2.OR.IPS==12) .AND. ABS(ISW)<=1))
              CALL MPIADAPT(NTST,NCOL,NDIM,UPS,UOLDPS,DTM)
           ENDIF
@@ -1279,6 +1268,7 @@ CONTAINS
 
     USE IO
     USE MESH
+    USE AUTOMPI
 
 ! Writes the bifurcation diagram on unit 7 (Differential Equations)
 ! (Also controls the writing of complete solutions on unit 8).
@@ -1337,6 +1327,7 @@ CONTAINS
     NTOT=AP%NTOT
     NTOT=NTOT+1
     AP%NTOT=NTOT
+    IF(MPIIAM()>0)RETURN
 
 ! ITP is set to 4 every NPR steps along a branch of solns and the entire
 ! solution is written on unit 8.

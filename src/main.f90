@@ -91,6 +91,7 @@
          ! autoi eventually calls autobv with the subroutines based on
          ! ap, which eventually calls solvbv;
          ! a return means another init message
+         IF(MPIWFI(.TRUE.))CYCLE
       ENDDO
       END SUBROUTINE MPIWORKER
 

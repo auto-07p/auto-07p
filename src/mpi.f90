@@ -211,15 +211,22 @@ subroutine mpisbv(ap,par,icp,ndim,uoldps,rds,rlold,rldot, &
   double precision :: rds,rlold(ap%nfpr),rldot(ap%nfpr)
 
   integer :: ncol,npar,ierr,ntst,iam,nint,nfpr
-  integer :: pos,bufsize,size_int,size_double
+  integer :: pos,bufsize,size_int,size_double,message
   character*1, allocatable :: buffer(:)
 
   call MPI_Comm_rank(MPI_COMM_WORLD,iam,ierr)
   if(iam==0)then
-     ! Send message to get worker into setubv mode
-     call MPI_Bcast(AUTO_MPI_SETUBV_MESSAGE,1,MPI_INTEGER,0, &
-             MPI_COMM_WORLD,ierr)
-     call mpibcastap(ap)
+     ! Send message to get worker into setubv/init cnrlbv mode
+     if(nllv==1)then
+        message=AUTO_MPI_SETUBV_MESSAGE
+     else
+        message=AUTO_MPI_INIT_MESSAGE
+     endif
+     call MPI_Bcast(message,1,MPI_INTEGER,0, &
+          MPI_COMM_WORLD,ierr)
+     if(nllv==1)then
+        call mpibcastap(ap)
+     endif
   endif
 
   nint=ap%nint
