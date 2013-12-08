@@ -16,8 +16,7 @@ MODULE BVP
   INTEGER, ALLOCATABLE :: NRTN(:)
   INTEGER IRTN
 
-  INTEGER, PARAMETER :: LCSPBV_CHECK=1, LCSPBV_CONVERGED=2, &
-       CNRLBV_CONT=3, CNRLBV_STOP=4
+  INTEGER, PARAMETER :: CNRLBV_CONT=0, CNRLBV_STOP=-1
 
 CONTAINS
 
@@ -102,26 +101,23 @@ CONTAINS
           call stepbv(ap,dsold,par,icp,funi,bcni,icni,fnci,rds, &
                rlcur,rlold,rldot,ndim,ups,uoldps,udotps,upoldp, &
                dum1,dtm,dum1,dum1,dum1,thu,nitps,istop,na)
-          do 
-             call mpibcast1i(mpistate)
-             if(mpistate/=LCSPBV_CHECK)exit
+          call mpibcast1i(mpistate)
+          do itest=1,ap%ntest
+             if(mpistate/=itest)cycle
              dstest=dsold
              call lcspbv(ap,dsold,dstest,par,icp,itest,funi,bcni,icni,fnci, &
                   q,rlcur,rlold,rldot,ndim,ups,uoldps,udotps, &
                   upoldp,dum1,dtm,p0,p1,ev,dum1,thu,iuz,dum1,nitps,atype, &
                   stepped,na)
+             call mpibcast1i(mpistate)
           enddo
-          select case(mpistate)
-             case(CNRLBV_CONT)
-                ap%ntot=ap%ntot+1
-                if(ap%iad/=0)then
-                   if(mod(ap%ntot,ap%iad)==0)then
-                      call mpiadapt(ntst,ncol,ndim,ups,uoldps,dtm)
-                   endif
-                endif
-             case(CNRLBV_STOP)
-                exit
-          end select
+          if(mpistate==CNRLBV_STOP)exit
+          ap%ntot=ap%ntot+1
+          if(ap%iad/=0)then
+             if(mod(ap%ntot,ap%iad)==0)then
+                call mpiadapt(ntst,ncol,ndim,ups,uoldps,dtm)
+             endif
+          endif
           call contbv(ap,dsold,par,icp,funi,rlcur,rlold,rldot, &
                ndim,ups,uoldps,udotps,upoldp,dtm,dum1,thu,rds)
        enddo
@@ -1087,7 +1083,7 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(OUT) :: ATYPE
     LOGICAL, INTENT(OUT) :: STEPPED
 
-    INTEGER I,IAM,IID,ITMX,IBR,NTOT,NTOP,NITSP1,ISTOP,NCOL,NFPR,NTSTNA,NITPSS,MPISTATE
+    INTEGER I,IAM,IID,ITMX,IBR,NTOT,NTOP,NITSP1,ISTOP,NCOL,NFPR,NTSTNA,NITPSS
     DOUBLE PRECISION DS,DSMAX,EPSS,Q0,Q1,DQ,RDS,RRDS,S0,S1
     DOUBLE PRECISION DETS,FLDFS,DSOLDS,DSTESTS
     CHARACTER(4) :: ATYPEDUM
@@ -1168,8 +1164,8 @@ CONTAINS
        RETURN
     ENDIF
 
-    MPISTATE=LCSPBV_CHECK
-    IF(IAM==0)CALL MPIBCAST1I(MPISTATE)
+    I=ITEST
+    IF(IAM==0)CALL MPIBCAST1I(I)
 
     ALLOCATE(UOLDPSS(NDIM,0:NTSTNA*NCOL),RLOLDS(NFPR))
     ALLOCATE(UDOTPSS(NDIM,0:NTSTNA*NCOL),RLDOTS(NFPR))
@@ -1228,14 +1224,13 @@ CONTAINS
 
        RRDS=ABS(RDS)/(1+SQRT(ABS(DS*DSMAX)))
        IF(RRDS.LT.EPSS) THEN
-          MPISTATE=LCSPBV_CONVERGED
+          STEPPED=.TRUE.
        ENDIF
-       CALL MPIBCAST1I(MPISTATE)
-       IF(MPISTATE==LCSPBV_CONVERGED)THEN
+       CALL MPIBCAST1L(STEPPED)
+       IF(STEPPED)THEN
           Q=0.d0
           IF(IID>0)WRITE(9,102)RDS
           DEALLOCATE(UPSS,RLCURS,UOLDPSS,RLOLDS,UDOTPSS,RLDOTS,P0S,P1S)
-          STEPPED=.TRUE.
           RETURN
        ENDIF
 

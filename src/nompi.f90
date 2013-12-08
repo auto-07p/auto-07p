@@ -7,7 +7,7 @@ use auto_constants, only: autoparameters
 implicit none
 private
 public :: mpiini, mpiiap, mpiwfi, mpireduce, mpibcksub, mpisbv, mpicbv, mpibcast
-public :: mpibcasti, mpibcast1i, mpibcastap
+public :: mpibcasti, mpibcast1i, mpibcast1l, mpibcastap
 public :: mpiadapt, mpigat, mpiend, mpitim, mpiiam, mpikwt, partition
 
 contains
@@ -80,6 +80,10 @@ end subroutine mpibcasti
 subroutine mpibcast1i(buf)
   integer, intent(inout) :: buf
 end subroutine mpibcast1i
+
+subroutine mpibcast1l(buf)
+  logical, intent(inout) :: buf
+end subroutine mpibcast1l
 
 subroutine mpibcastap(ap)
   type(autoparameters), intent(inout) :: ap
