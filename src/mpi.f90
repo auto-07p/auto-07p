@@ -200,19 +200,19 @@ subroutine mpisend(a,isize,idest)
        0, MPI_COMM_WORLD, ierr)
 end subroutine mpisend
 
-subroutine mpisbv(ap,par,icp,ndim,uoldps,rds,rlold,rldot, &
+subroutine mpisbv(ap,par,ndim,uoldps,rlold,rldot, &
      udotps,upoldp,dtm,thu,nllv)
 
   type(autoparameters) :: ap
-  integer, intent(in) :: ndim,icp(*)
+  integer, intent(in) :: ndim
   integer, intent(inout) :: nllv
   double precision :: par(*),dtm(*),thu(*)
   double precision :: uoldps(ndim,0:*),udotps(ndim,0:*),upoldp(ndim,0:*)
-  double precision :: rds,rlold(ap%nfpr),rldot(ap%nfpr)
+  double precision :: rlold(ap%nfpr),rldot(ap%nfpr)
 
-  integer :: ncol,npar,ierr,ntst,iam,nint,nfpr
-  integer :: pos,bufsize,size_int,size_double,message
-  character*1, allocatable :: buffer(:)
+  integer :: ncol,npar,ierr,ntst,iam,nfpr
+  integer :: bufsize,message
+  double precision, allocatable :: buffer(:)
 
   call MPI_Comm_rank(MPI_COMM_WORLD,iam,ierr)
   if(iam==0)then
@@ -229,53 +229,25 @@ subroutine mpisbv(ap,par,icp,ndim,uoldps,rds,rlold,rldot, &
      endif
   endif
 
-  nint=ap%nint
   nfpr=ap%nfpr
   npar=ap%npar
-  call MPI_Pack_size(1+nfpr+nint,MPI_INTEGER,MPI_COMM_WORLD,size_int,ierr)
-  call MPI_Pack_size(1+npar+2*nfpr+ndim, &
-                  MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,size_double,ierr)
-  bufsize = size_int + size_double
+  bufsize = npar+2*nfpr+ndim
   allocate(buffer(bufsize))
 
-  pos = 0
-
   if(iam==0)then
-     call MPI_Pack(nllv,1,MPI_INTEGER,buffer,bufsize,pos,MPI_COMM_WORLD,ierr)
-     !**********************************************
-     call MPI_Pack(par    ,npar,MPI_DOUBLE_PRECISION,buffer,bufsize,pos, &
-          MPI_COMM_WORLD,ierr)
-     call MPI_Pack(rds    , 1,MPI_DOUBLE_PRECISION,buffer,bufsize,pos, &
-          MPI_COMM_WORLD,ierr)
-     call MPI_Pack(rlold  ,nfpr,MPI_DOUBLE_PRECISION,buffer,bufsize,pos, &
-          MPI_COMM_WORLD,ierr)
-     call MPI_Pack(rldot  ,nfpr,MPI_DOUBLE_PRECISION,buffer,bufsize,pos, &
-          MPI_COMM_WORLD,ierr)
-     call MPI_Pack(icp    ,nfpr+nint,MPI_INTEGER,buffer,bufsize,pos, &
-          MPI_COMM_WORLD,ierr)
-
-     call MPI_Pack(thu    ,ndim,MPI_DOUBLE_PRECISION,buffer,bufsize,pos, &
-          MPI_COMM_WORLD,ierr)
+     buffer(1:npar)=par(1:npar)
+     buffer(npar+1:npar+nfpr)=rlold(1:nfpr)
+     buffer(npar+nfpr+1:npar+2*nfpr)=rldot(1:nfpr)
+     buffer(npar+2*nfpr+1:npar+2*nfpr+ndim)=thu(1:ndim)
   endif
 
-  call MPI_Bcast(buffer,bufsize,MPI_PACKED,0,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(buffer,bufsize,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 
   if(iam>0)then
-     call MPI_Unpack(buffer,bufsize,pos,nllv  ,1, &
-          MPI_INTEGER,MPI_COMM_WORLD,ierr)
-     ! /***********************************/
-     call MPI_Unpack(buffer,bufsize,pos,par   ,npar, &
-          MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
-     call MPI_Unpack(buffer,bufsize,pos,rds   ,1, &
-          MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
-     call MPI_Unpack(buffer,bufsize,pos,rlold ,nfpr, &
-          MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
-     call MPI_Unpack(buffer,bufsize,pos,rldot ,nfpr, &
-          MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
-     call MPI_Unpack(buffer,bufsize,pos,icp   ,nfpr+nint, &
-          MPI_INTEGER,MPI_COMM_WORLD,ierr)
-     call MPI_Unpack(buffer,bufsize,pos,thu   ,ndim, &
-          MPI_DOUBLE_PRECISION,MPI_COMM_WORLD,ierr)
+     par(1:npar)=buffer(1:npar)
+     rlold(1:nfpr)=buffer(npar+1:npar+nfpr)
+     rldot(1:nfpr)=buffer(npar+nfpr+1:npar+2*nfpr)
+     thu(1:ndim)=buffer(npar+2*nfpr+1:npar+2*nfpr+ndim)
   endif
 
   deallocate(buffer)

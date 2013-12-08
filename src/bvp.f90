@@ -27,7 +27,6 @@ CONTAINS
 
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     INTEGER, INTENT(IN) :: ICP(*),ICU(*)
-    INTEGER NLLV
 
     include 'interfaces.h'
 
@@ -35,7 +34,7 @@ CONTAINS
 !        This is a little trick to tell MPI workers what FUNI and ICNI
 !        are.
        DO WHILE(MPIWFI(.TRUE.))
-          CALL mpi_setubv_worker(FUNI,ICNI,BCNI,FNCI,NLLV)
+          CALL mpi_setubv_worker(ICP,FUNI,ICNI,BCNI,FNCI)
        ENDDO
     ENDIF
     CALL CNRLBV(AP,ICP,ICU,FUNI,BCNI,ICNI,STPNBVI,FNCI)
@@ -43,23 +42,23 @@ CONTAINS
   END SUBROUTINE AUTOBV
 
 ! ---------- -----------------
-  subroutine mpi_setubv_worker(funi,icni,bcni,fnci,nllv)
+  subroutine mpi_setubv_worker(icp,funi,icni,bcni,fnci)
     use autompi
     use solvebv
 
     integer iam,kwt
     include 'interfaces.h'
-    integer, intent(out) :: nllv
+    integer, intent(in) :: icp(*)
 
-    integer :: ndim, ifst, na, ncol, nint, ntst, nfpr, npar
+    integer :: ndim, ifst, na, ncol, nint, ntst, nfpr, npar, nllv
     type(autoparameters) ap
 
     double precision, allocatable :: ups(:,:), uoldps(:,:)
     double precision, allocatable :: rlcur(:),rlold(:),rldot(:)
     double precision, allocatable :: udotps(:,:), upoldp(:,:), thu(:)
     double precision, allocatable :: dups(:,:), drl(:), dtm(:), par(:)
-    integer, allocatable :: np(:),icp(:)
-    double precision :: dum,dum1(1),det,rds
+    integer, allocatable :: np(:)
+    double precision :: dum,dum1(1),det,rdsz
 
     call mpibcastap(ap)
     iam=mpiiam()
@@ -77,24 +76,25 @@ CONTAINS
     na=np(iam+1)
     deallocate(np)
 
-    allocate(icp(nfpr+nint),thu(ndim),dtm(na),par(npar))
+    allocate(thu(ndim),dtm(na),par(npar))
     allocate(rlcur(nfpr),rlold(nfpr),rldot(nfpr))
     allocate(ups(ndim,0:na*ncol),uoldps(ndim,0:na*ncol))
     allocate(udotps(ndim,0:na*ncol),upoldp(ndim,0:na*ncol))
     allocate(dups(ndim,0:na*ncol),drl(nfpr))
 
-    call mpisbv(ap,par,icp,ndim,uoldps,rds,rlold,rldot,&
+    call mpisbv(ap,par,ndim,uoldps,rlold,rldot,&
          udotps,upoldp,dtm,thu,nllv)
     ap%iid=0
-    dum=0
     ifst=1
+    nllv=1
     ups(:,:)=uoldps(:,:)
-    call solvbv(ifst,ap,det,par,icp,funi,bcni,icni,dum, &
+    rdsz=0.d0
+    call solvbv(ifst,ap,det,par,icp,funi,bcni,icni,rdsz, &
          nllv,rlcur,rlold,rldot,ndim,ups,uoldps,udotps,upoldp,dtm, &
          dups,drl,dum1,dum1,dum1,thu)
 
     ! free input arrays
-    deallocate(ups,uoldps,dtm,udotps,upoldp,dups,drl,thu,icp,par,rlcur,&
+    deallocate(ups,uoldps,dtm,udotps,upoldp,dups,drl,thu,par,rlcur,&
          rlold,rldot)
 
   end subroutine mpi_setubv_worker
@@ -251,7 +251,7 @@ CONTAINS
     IF(IAM==0)CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
     CALL STPLBV(AP,PAR,ICP,ICU,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,THU,ISTOP)
     NLLV=0
-    CALL MPISBV(AP,PAR,ICP,NDIM,UOLDPS,RDS,RLOLD,RLDOT,UDOTPS, &
+    CALL MPISBV(AP,PAR,NDIM,UOLDPS,RLOLD,RLDOT,UDOTPS, &
          UPOLDP,DTM,THU,NLLV)
     MPISTATE=CNRLBV_CONT
     DO WHILE(ISTOP==0)
