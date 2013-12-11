@@ -146,10 +146,6 @@
                  AP,PAR,NPAR,ICP,CDBC,FC,UPS,IFST)
          CALL SETFCDD(IFST,D,FC(NBC+1),NFPR,NINT)
          CALL SUBVPSA(NFPR,RDS,D(1,NRC),FC(NFC),RLCUR,RLOLD,RLDOT,THL,IFST)
-         IF(KWT.GT.1.AND.NLLV==1)THEN
-            CALL MPISBV(AP,PAR,NDIM,UOLDPS,RLDOT,UDOTPS, &
-                 UPOLDP,DTM,THU,NLLV)
-         ENDIF
       ENDIF
 !     The matrices D and FC are unused in all nodes except the first.
 

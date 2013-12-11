@@ -940,6 +940,7 @@ CONTAINS
 
     USE MESH
     USE SOLVEBV
+    USE AUTOMPI, ONLY: MPISBV
 
 ! Generates a direction vector (UDOTPS,RLDOT) that is needed to start
 ! the computation of a branch when no direction vector is given.
@@ -974,6 +975,9 @@ CONTAINS
     RDSZ=0.d0
     NLLV=1
     IFST=1
+
+    CALL MPISBV(AP,PAR,NDIM,UOLDPS,RLDOT,UDOTPS,UPOLDP,DTM,THU,NLLV)
+
     ALLOCATE(DUPS(NDIM,0:NCOL*NTST),DRL(NFPR))
     CALL SOLVBV(IFST,AP,DET,PAR,ICP,FUNI,BCNI,ICNI,RDSZ,NLLV, &
          RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,DUPS,DRL, &
@@ -1040,6 +1044,7 @@ CONTAINS
 
     USE MESH
     USE SOLVEBV
+    USE AUTOMPI, ONLY: MPISBV
 
 ! Call SOLVEBV from starting data to obtain second null vector
 ! This is used by BPCONT in periodic.f90 and toolboxbv.f90
@@ -1084,6 +1089,8 @@ CONTAINS
     ! ** unit weights
     THL(1:NFPR)=1.d0
     THU(1:NDIM)=1.d0
+
+    CALL MPISBV(AP,PAR,NDIM,UOLDPS,RLDOT,UDOTPS,UPOLDP,DTM,THU,NLLV)
 
     ! ** call SOLVBV
     RDS=0.d0
