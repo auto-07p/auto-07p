@@ -24,7 +24,7 @@ private
 
 public :: mpiini, mpiiap, mpiwfi, mpireduce, mpibcksub, mpisbv, mpicbv, mpibcast
 public :: mpibcasti, mpibcast1i, mpibcast1l, mpibcastap
-public :: mpiadapt, mpigat, mpiend, mpitim, mpiiam, mpikwt, partition
+public :: mpiadapt, mpigat, mpiscat, mpiend, mpitim, mpiiam, mpikwt, partition
 
 integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
 integer, parameter :: AUTO_MPI_INIT_MESSAGE = 2

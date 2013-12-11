@@ -8,7 +8,7 @@ implicit none
 private
 public :: mpiini, mpiiap, mpiwfi, mpireduce, mpibcksub, mpisbv, mpicbv, mpibcast
 public :: mpibcasti, mpibcast1i, mpibcast1l, mpibcastap
-public :: mpiadapt, mpigat, mpiend, mpitim, mpiiam, mpikwt, partition
+public :: mpiadapt, mpigat, mpiscat, mpiend, mpitim, mpiiam, mpikwt, partition
 
 contains
 
@@ -46,7 +46,7 @@ subroutine mpibcksub(sol,ntst,nov,lo,hi)
   double precision, intent(inout) :: sol(nov,*)
 end subroutine mpibcksub
 
-subroutine mpisbv(ap,par,ndim,uoldps,rlold,rldot, &
+subroutine mpisbv(ap,par,ndim,uoldps,rldot, &
      udotps,upoldp,dtm,thu,nllv)
   type(autoparameters) :: ap
   integer, intent(in) :: ndim
