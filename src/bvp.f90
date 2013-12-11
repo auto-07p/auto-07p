@@ -50,7 +50,7 @@ CONTAINS
     include 'interfaces.h'
     integer, intent(in) :: icp(*)
 
-    integer :: ndim, ifst, na, ncol, nint, ntst, nfpr, npar, nllv
+    integer :: ndim, ifst, na, ncol, nint, ntst, nfpr, npar, nllv, i
     type(autoparameters) ap
 
     double precision, allocatable :: ups(:,:), uoldps(:,:)
@@ -82,12 +82,15 @@ CONTAINS
     allocate(udotps(ndim,0:na*ncol),upoldp(ndim,0:na*ncol))
     allocate(dups(ndim,0:na*ncol),drl(nfpr))
 
-    call mpisbv(ap,par,ndim,uoldps,rlold,rldot,&
-         udotps,upoldp,dtm,thu,nllv)
+    call mpisbv(ap,par,ndim,uoldps,rldot,udotps,upoldp,dtm,thu,nllv)
     ap%iid=0
     ifst=1
     nllv=1
     ups(:,:)=uoldps(:,:)
+    do i=1,nfpr
+       rlcur(i)=par(icp(i))
+       rlold(i)=rlcur(i)
+    enddo
     rdsz=0.d0
     call solvbv(ifst,ap,det,par,icp,funi,bcni,icni,rdsz, &
          nllv,rlcur,rlold,rldot,ndim,ups,uoldps,udotps,upoldp,dtm, &
@@ -251,8 +254,12 @@ CONTAINS
     IF(IAM==0)CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
     CALL STPLBV(AP,PAR,ICP,ICU,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,THU,ISTOP)
     NLLV=0
-    CALL MPISBV(AP,PAR,NDIM,UOLDPS,RLOLD,RLDOT,UDOTPS, &
-         UPOLDP,DTM,THU,NLLV)
+    CALL MPISBV(AP,PAR,NDIM,UOLDPS,RLDOT,UDOTPS,UPOLDP,DTM,THU,NLLV)
+    IF(IAM>0)THEN
+       DO I=1,NFPR
+          RLOLD(I)=PAR(ICP(I))
+       ENDDO
+    ENDIF
     MPISTATE=CNRLBV_CONT
     DO WHILE(ISTOP==0)
        ITP=0

@@ -200,7 +200,7 @@ subroutine mpisend(a,isize,idest)
        0, MPI_COMM_WORLD, ierr)
 end subroutine mpisend
 
-subroutine mpisbv(ap,par,ndim,uoldps,rlold,rldot, &
+subroutine mpisbv(ap,par,ndim,uoldps,rldot, &
      udotps,upoldp,dtm,thu,nllv)
 
   type(autoparameters) :: ap
@@ -208,7 +208,7 @@ subroutine mpisbv(ap,par,ndim,uoldps,rlold,rldot, &
   integer, intent(inout) :: nllv
   double precision :: par(*),dtm(*),thu(*)
   double precision :: uoldps(ndim,0:*),udotps(ndim,0:*),upoldp(ndim,0:*)
-  double precision :: rlold(ap%nfpr),rldot(ap%nfpr)
+  double precision :: rldot(ap%nfpr)
 
   integer :: ncol,npar,ierr,ntst,iam,nfpr
   integer :: bufsize,message
@@ -231,23 +231,21 @@ subroutine mpisbv(ap,par,ndim,uoldps,rlold,rldot, &
 
   nfpr=ap%nfpr
   npar=ap%npar
-  bufsize = npar+2*nfpr+ndim
+  bufsize = npar+nfpr+ndim
   allocate(buffer(bufsize))
 
   if(iam==0)then
      buffer(1:npar)=par(1:npar)
-     buffer(npar+1:npar+nfpr)=rlold(1:nfpr)
-     buffer(npar+nfpr+1:npar+2*nfpr)=rldot(1:nfpr)
-     buffer(npar+2*nfpr+1:npar+2*nfpr+ndim)=thu(1:ndim)
+     buffer(npar+1:npar+nfpr)=rldot(1:nfpr)
+     buffer(npar+nfpr+1:npar+nfpr+ndim)=thu(1:ndim)
   endif
 
   call MPI_Bcast(buffer,bufsize,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 
   if(iam>0)then
      par(1:npar)=buffer(1:npar)
-     rlold(1:nfpr)=buffer(npar+1:npar+nfpr)
-     rldot(1:nfpr)=buffer(npar+nfpr+1:npar+2*nfpr)
-     thu(1:ndim)=buffer(npar+2*nfpr+1:npar+2*nfpr+ndim)
+     rldot(1:nfpr)=buffer(npar+1:npar+nfpr)
+     thu(1:ndim)=buffer(npar+nfpr+1:npar+nfpr+ndim)
   endif
 
   deallocate(buffer)
