@@ -21,8 +21,6 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE AUTOBV(AP,ICP,ICU,FUNI,BCNI,ICNI,STPNBVI,FNCI)
 
-    USE AUTOMPI
-
 ! THIS IS THE ENTRY ROUTINE FOR GENERAL BOUNDARY VALUE PROBLEMS.
 
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
@@ -30,13 +28,6 @@ CONTAINS
 
     include 'interfaces.h'
 
-    IF(MPIIAM()>0)THEN
-!        This is a little trick to tell MPI workers what FUNI and ICNI
-!        are.
-       DO WHILE(MPIWFI(.TRUE.))
-          CALL mpi_setubv_worker(FUNI,ICNI,BCNI)
-       ENDDO
-    ENDIF
     CALL CNRLBV(AP,ICP,ICU,FUNI,BCNI,ICNI,STPNBVI,FNCI)
 
   END SUBROUTINE AUTOBV
@@ -145,6 +136,7 @@ CONTAINS
             ' Restart at EP label below :'
     ENDIF
     IF(IAM==0)CALL INIT2(AP,ICP,ICU)
+    CALL MPIBCASTAP(AP)
 
     NDIM=AP%NDIM
     IPS=AP%IPS
@@ -216,6 +208,14 @@ CONTAINS
     NODIR=0
     IF(IAM==0)CALL RSPTBV(AP,PAR,ICP,FUNI,STPNBVI,FNCI,RLCUR,RLOLD,RLDOT, &
          NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,TM,DTM,NODIR,THU)
+
+    IF(IAM>0)THEN
+       ! RSPTBV calls STPNBVI which sometimes calls SOLVBV so we need
+       ! to check if parallel work needs to be done
+       DO WHILE(MPIWFI(.TRUE.))
+          CALL MPI_SETUBV_WORKER(FUNI,ICNI,BCNI)
+       ENDDO
+    ENDIF
 
     NLLV=0
     CALL MPISBV(AP,PAR,NDIM,UOLDPS,RLDOT,UDOTPS,UPOLDP,DTM,THU,NLLV)
