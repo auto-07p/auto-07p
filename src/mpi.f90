@@ -231,13 +231,14 @@ subroutine mpisbv(ap,par,ndim,uoldps,rldot, &
 
   nfpr=ap%nfpr
   npar=ap%npar
-  bufsize = npar+nfpr+ndim
+  bufsize = npar+nfpr
+  if(nllv/=1)bufsize=bufsize+ndim
   allocate(buffer(bufsize))
 
   if(iam==0)then
      buffer(1:npar)=par(1:npar)
      buffer(npar+1:npar+nfpr)=rldot(1:nfpr)
-     buffer(npar+nfpr+1:npar+nfpr+ndim)=thu(1:ndim)
+     if(nllv/=1)buffer(npar+nfpr+1:npar+nfpr+ndim)=thu(1:ndim)
   endif
 
   call MPI_Bcast(buffer,bufsize,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
@@ -245,17 +246,17 @@ subroutine mpisbv(ap,par,ndim,uoldps,rldot, &
   if(iam>0)then
      par(1:npar)=buffer(1:npar)
      rldot(1:nfpr)=buffer(npar+1:npar+nfpr)
-     thu(1:ndim)=buffer(npar+nfpr+1:npar+nfpr+ndim)
+     if(nllv/=1)thu(1:ndim)=buffer(npar+nfpr+1:npar+nfpr+ndim)
   endif
 
   deallocate(buffer)
 
   ntst=ap%ntst
   ncol=ap%ncol
-  call mpiscat(dtm,1,ntst,0)
+  call mpiscat(dtm,1,ntst,nllv)
   call mpiscat(uoldps,ndim*ncol,ntst,ndim)
   call mpiscat(udotps,ndim*ncol,ntst,ndim)
-  call mpiscat(upoldp,ndim*ncol,ntst,ndim)
+  if(nllv/=1)call mpiscat(upoldp,ndim*ncol,ntst,ndim)
 
   ! Worker runs here
 

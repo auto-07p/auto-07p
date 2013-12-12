@@ -40,15 +40,12 @@ CONTAINS
     integer iam,kwt
     include 'interfaces.h'
 
-    integer :: ndim, ifst, na, ncol, nint, ntst, nfpr, npar, nllv, i
+    integer :: ndim, na, ncol, ntst, nfpr, npar
     type(autoparameters) ap
 
-    double precision, allocatable :: ups(:,:), uoldps(:,:)
-    double precision, allocatable :: rlcur(:),rlold(:),rldot(:)
-    double precision, allocatable :: udotps(:,:), upoldp(:,:), thu(:)
-    double precision, allocatable :: dups(:,:), drl(:), dtm(:), par(:)
+    double precision, allocatable :: ups(:,:), udotps(:,:), rldot(:)
+    double precision, allocatable :: dups(:,:), drl(:), par(:), tm(:)
     integer, allocatable :: icp(:),np(:)
-    double precision :: dum,dum1(1),det,rdsz
 
     call mpibcastap(ap)
     iam=mpiiam()
@@ -57,7 +54,6 @@ CONTAINS
     ndim=ap%ndim
     ntst=ap%ntst
     ncol=ap%ncol
-    nint=ap%nint
     nfpr=ap%nfpr
     npar=ap%npar
 
@@ -66,30 +62,16 @@ CONTAINS
     na=np(iam+1)
     deallocate(np)
 
-    allocate(icp(nfpr),thu(ndim),dtm(na),par(npar))
-    allocate(rlcur(nfpr),rlold(nfpr),rldot(nfpr))
-    allocate(ups(ndim,0:na*ncol),uoldps(ndim,0:na*ncol))
-    allocate(udotps(ndim,0:na*ncol),upoldp(ndim,0:na*ncol))
+    allocate(icp(nfpr),rldot(nfpr),par(npar),tm(0:na))
+    allocate(ups(ndim,0:na*ncol),udotps(ndim,0:na*ncol))
     allocate(dups(ndim,0:na*ncol),drl(nfpr))
 
-    call mpisbv(ap,par,ndim,uoldps,rldot,udotps,upoldp,dtm,thu,nllv)
-    call mpibcasti(icp,nfpr)
     ap%iid=0
-    ifst=1
-    nllv=1
-    ups(:,:)=uoldps(:,:)
-    do i=1,nfpr
-       rlcur(i)=par(icp(i))
-       rlold(i)=rlcur(i)
-    enddo
-    rdsz=0.d0
-    call solvbv(ifst,ap,det,par,icp,funi,bcni,icni,rdsz, &
-         nllv,rlcur,rlold,rldot,ndim,ups,uoldps,udotps,upoldp,dtm, &
-         dups,drl,dum1,dum1,dum1,thu)
+    call stsdrbv(ap,par,icp,funi,bcni,icni, &
+         rldot,ups,udotps,tm,dups,drl)
 
     ! free input arrays
-    deallocate(ups,uoldps,dtm,udotps,upoldp,dups,drl,thu,par,rlcur,&
-         rlold,rldot,icp)
+    deallocate(ups,udotps,tm,dups,drl,par,rldot,icp)
 
   end subroutine mpi_setubv_worker
 
@@ -1051,7 +1033,7 @@ CONTAINS
 
     USE MESH
     USE SOLVEBV
-    USE AUTOMPI, ONLY: MPISBV, MPIBCASTI
+    USE AUTOMPI, ONLY: MPISBV, MPIBCASTI, MPIIAM, MPIKWT, PARTITION
 
 ! Call SOLVEBV from starting data to obtain second null vector
 ! This is used by BPCONT in periodic.f90 and toolboxbv.f90
@@ -1060,16 +1042,16 @@ CONTAINS
     TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
     INTEGER ICP(*)
     DOUBLE PRECISION PAR(*),RLDOT(AP%NFPR),DRL(AP%NFPR)
-    DOUBLE PRECISION UPS(AP%NDIM,0:AP%NTST*AP%NCOL)
-    DOUBLE PRECISION UDOTPS(AP%NDIM,0:AP%NTST*AP%NCOL)
-    DOUBLE PRECISION TM(0:AP%NTST),DUPS(AP%NDIM,0:AP%NTST*AP%NCOL)
+    DOUBLE PRECISION UPS(AP%NDIM,0:*),UDOTPS(AP%NDIM,0:*)
+    DOUBLE PRECISION TM(0:*),DUPS(AP%NDIM,0:*)
 
     ! Local
     DOUBLE PRECISION, ALLOCATABLE :: RLOLD(:),RLCUR(:)
     DOUBLE PRECISION, ALLOCATABLE :: UOLDPS(:,:),UPOLDP(:,:)
     DOUBLE PRECISION, ALLOCATABLE :: THU(:),THL(:),DTM(:)
     DOUBLE PRECISION, ALLOCATABLE :: P0(:,:),P1(:,:)
-    INTEGER NDIM,NFPR,NCOL,NTST,I,IFST,NLLV
+    INTEGER, ALLOCATABLE :: NP(:)
+    INTEGER IAM,KWT,NDIM,NFPR,NCOL,NTST,NA,NTSTNA,I,IFST,NLLV
     DOUBLE PRECISION DET,RDS
 
     NDIM=AP%NDIM
@@ -1077,29 +1059,41 @@ CONTAINS
     NCOL=AP%NCOL
     NTST=AP%NTST
 
+    IAM=MPIIAM()
+    KWT=MPIKWT()
+    ALLOCATE(NP(KWT))
+    CALL PARTITION(NTST,KWT,NP)
+    NA=NP(IAM+1)
+    DEALLOCATE(NP)
+    IF(IAM==0)THEN
+       NTSTNA=NTST
+    ELSE
+       NTSTNA=NA
+    ENDIF
+
     ALLOCATE(THU(NDIM),THL(NFPR))
     ALLOCATE(P0(NDIM,NDIM),P1(NDIM,NDIM))
-    ALLOCATE(UPOLDP(NDIM,0:NTST*NCOL),UOLDPS(NDIM,0:NTST*NCOL))
-    ALLOCATE(DTM(NTST),RLCUR(NFPR),RLOLD(NFPR))
+    ALLOCATE(UPOLDP(NDIM,0:NA*NCOL),UOLDPS(NDIM,0:NTSTNA*NCOL))
+    ALLOCATE(DTM(NTSTNA),RLCUR(NFPR),RLOLD(NFPR))
 
-    DTM(1:NTST)=TM(1:NTST)-TM(0:NTST-1)
+    NLLV=1
+    CALL MPISBV(AP,PAR,NDIM,UPS,RLDOT,UDOTPS,UPOLDP,TM,THU,NLLV)
+    CALL MPIBCASTI(ICP,NFPR)
+
+    DTM(1:NTSTNA)=TM(1:NTSTNA)-TM(0:NTSTNA-1)
 
     DO I=1,NFPR
        RLCUR(I)=PAR(ICP(I))
        RLOLD(I)=RLCUR(I)
     ENDDO
 
-    UOLDPS(:,:)=UPS(:,:)
+    UOLDPS(:,0:NTSTNA*NCOL)=UPS(:,0:NTSTNA*NCOL)
     ! ** compute UPOLDP
-    CALL STUPBV(AP,PAR,ICP,FUNI,NDIM,UPS,UPOLDP,NTST)
+    CALL STUPBV(AP,PAR,ICP,FUNI,NDIM,UPS,UPOLDP,NA)
 
     ! ** unit weights
     THL(1:NFPR)=1.d0
     THU(1:NDIM)=1.d0
-
-    NLLV=1
-    CALL MPISBV(AP,PAR,NDIM,UOLDPS,RLDOT,UDOTPS,UPOLDP,DTM,THU,NLLV)
-    CALL MPIBCASTI(ICP,NFPR)
 
     ! ** call SOLVBV
     RDS=0.d0
@@ -1110,9 +1104,11 @@ CONTAINS
          NLLV,RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM, &
          DUPS,DRL,P0,P1,THL,THU)
 
-    ! ** normalization
-    CALL SCALEB(NTST,NCOL,NDIM,NFPR,UDOTPS,RLDOT,DTM,THL,THU)
-    CALL SCALEB(NTST,NCOL,NDIM,NFPR,DUPS,DRL,DTM,THL,THU)
+    IF(IAM==0)THEN
+       ! ** normalization
+       CALL SCALEB(NTST,NCOL,NDIM,NFPR,UDOTPS,RLDOT,DTM,THL,THU)
+       CALL SCALEB(NTST,NCOL,NDIM,NFPR,DUPS,DRL,DTM,THL,THU)
+    ENDIF
 
     DEALLOCATE(THU,THL,P0,P1,UPOLDP,UOLDPS,DTM,RLCUR,RLOLD)
 
