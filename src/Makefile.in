@@ -62,7 +62,7 @@ compile: $(OBJ)
 ../lib/ae.o: ae.f90 ../lib/io.o ../lib/interfaces.o
 	$(FC) $(FFLAGS) $(OPT) -c ae.f90 -o $@
 #
-../lib/bvp.o: bvp.f90 ../lib/solvebv.o ../lib/io.o
+../lib/bvp.o: bvp.f90 ../lib/solvebv.o ../lib/io.o ../lib/interfaces.o
 	$(FC) $(FFLAGS) $(OPT) -c bvp.f90 -o $@
 #
 ../lib/support.o: support.f90 ../lib/mpi.o ../lib/mesh.o
