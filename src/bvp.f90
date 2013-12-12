@@ -34,7 +34,7 @@ CONTAINS
 !        This is a little trick to tell MPI workers what FUNI and ICNI
 !        are.
        DO WHILE(MPIWFI(.TRUE.))
-          CALL mpi_setubv_worker(ICP,FUNI,ICNI,BCNI,FNCI)
+          CALL mpi_setubv_worker(FUNI,ICNI,BCNI)
        ENDDO
     ENDIF
     CALL CNRLBV(AP,ICP,ICU,FUNI,BCNI,ICNI,STPNBVI,FNCI)
@@ -42,13 +42,12 @@ CONTAINS
   END SUBROUTINE AUTOBV
 
 ! ---------- -----------------
-  subroutine mpi_setubv_worker(icp,funi,icni,bcni,fnci)
+  subroutine mpi_setubv_worker(funi,icni,bcni)
     use autompi
     use solvebv
 
     integer iam,kwt
     include 'interfaces.h'
-    integer, intent(in) :: icp(*)
 
     integer :: ndim, ifst, na, ncol, nint, ntst, nfpr, npar, nllv, i
     type(autoparameters) ap
@@ -57,7 +56,7 @@ CONTAINS
     double precision, allocatable :: rlcur(:),rlold(:),rldot(:)
     double precision, allocatable :: udotps(:,:), upoldp(:,:), thu(:)
     double precision, allocatable :: dups(:,:), drl(:), dtm(:), par(:)
-    integer, allocatable :: np(:)
+    integer, allocatable :: icp(:),np(:)
     double precision :: dum,dum1(1),det,rdsz
 
     call mpibcastap(ap)
@@ -76,13 +75,14 @@ CONTAINS
     na=np(iam+1)
     deallocate(np)
 
-    allocate(thu(ndim),dtm(na),par(npar))
+    allocate(icp(nfpr),thu(ndim),dtm(na),par(npar))
     allocate(rlcur(nfpr),rlold(nfpr),rldot(nfpr))
     allocate(ups(ndim,0:na*ncol),uoldps(ndim,0:na*ncol))
     allocate(udotps(ndim,0:na*ncol),upoldp(ndim,0:na*ncol))
     allocate(dups(ndim,0:na*ncol),drl(nfpr))
 
     call mpisbv(ap,par,ndim,uoldps,rldot,udotps,upoldp,dtm,thu,nllv)
+    call mpibcasti(icp,nfpr)
     ap%iid=0
     ifst=1
     nllv=1
@@ -98,7 +98,7 @@ CONTAINS
 
     ! free input arrays
     deallocate(ups,uoldps,dtm,udotps,upoldp,dups,drl,thu,par,rlcur,&
-         rlold,rldot)
+         rlold,rldot,icp)
 
   end subroutine mpi_setubv_worker
 
@@ -1051,7 +1051,7 @@ CONTAINS
 
     USE MESH
     USE SOLVEBV
-    USE AUTOMPI, ONLY: MPISBV
+    USE AUTOMPI, ONLY: MPISBV, MPIBCASTI
 
 ! Call SOLVEBV from starting data to obtain second null vector
 ! This is used by BPCONT in periodic.f90 and toolboxbv.f90
@@ -1097,7 +1097,9 @@ CONTAINS
     THL(1:NFPR)=1.d0
     THU(1:NDIM)=1.d0
 
+    NLLV=1
     CALL MPISBV(AP,PAR,NDIM,UOLDPS,RLDOT,UDOTPS,UPOLDP,DTM,THU,NLLV)
+    CALL MPIBCASTI(ICP,NFPR)
 
     ! ** call SOLVBV
     RDS=0.d0
