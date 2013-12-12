@@ -201,13 +201,13 @@ subroutine mpisend(a,isize,idest)
 end subroutine mpisend
 
 subroutine mpisbv(ap,par,ndim,uoldps,rldot, &
-     udotps,upoldp,dtm,thu,nllv)
+     udotps,dtm,thu,nllv)
 
   type(autoparameters) :: ap
   integer, intent(in) :: ndim
   integer, intent(inout) :: nllv
   double precision :: par(*),dtm(*),thu(*)
-  double precision :: uoldps(ndim,0:*),udotps(ndim,0:*),upoldp(ndim,0:*)
+  double precision :: uoldps(ndim,0:*),udotps(ndim,0:*)
   double precision :: rldot(ap%nfpr)
 
   integer :: ncol,npar,ierr,ntst,iam,nfpr
@@ -256,7 +256,6 @@ subroutine mpisbv(ap,par,ndim,uoldps,rldot, &
   call mpiscat(dtm,1,ntst,nllv)
   call mpiscat(uoldps,ndim*ncol,ntst,ndim)
   call mpiscat(udotps,ndim*ncol,ntst,ndim)
-  if(nllv/=1)call mpiscat(upoldp,ndim*ncol,ntst,ndim)
 
   ! Worker runs here
 
