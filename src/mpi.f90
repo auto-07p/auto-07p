@@ -26,7 +26,7 @@ public :: mpiini, mpiiap, mpiwfi, mpireduce, mpibcksub, mpisbv, mpicbv, mpibcast
 public :: mpibcasti, mpibcast1i, mpibcast1l, mpibcastap
 public :: mpiadapt, mpigat, mpiscat, mpiend, mpitim, mpiiam, mpikwt, partition
 
-integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SETUBV_MESSAGE = 1
+integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SOLVBV_MESSAGE = 1
 integer, parameter :: AUTO_MPI_INIT_MESSAGE = 2
 
 include 'mpif.h'
@@ -95,7 +95,7 @@ logical function mpiwfi(autobv)
      stop
   case(AUTO_MPI_INIT_MESSAGE)
      ! do nothing
-  case(AUTO_MPI_SETUBV_MESSAGE) ! The setubv message
+  case(AUTO_MPI_SOLVBV_MESSAGE) ! The solvbv message
      mpiwfi = .true.
   case default
      print *,'Unknown message recieved: ', message_type
@@ -200,64 +200,21 @@ subroutine mpisend(a,isize,idest)
        0, MPI_COMM_WORLD, ierr)
 end subroutine mpisend
 
-subroutine mpisbv(ap,par,ndim,uoldps,rldot, &
-     udotps,dtm,thu,nllv)
+subroutine mpisbv(solvbv)
 
-  type(autoparameters) :: ap
-  integer, intent(in) :: ndim
-  integer, intent(inout) :: nllv
-  double precision :: par(*),dtm(*),thu(*)
-  double precision :: uoldps(ndim,0:*),udotps(ndim,0:*)
-  double precision :: rldot(ap%nfpr)
+  logical, intent(in) :: solvbv
 
-  integer :: ncol,npar,ierr,ntst,iam,nfpr
-  integer :: bufsize,message
-  double precision, allocatable :: buffer(:)
+  integer :: ierr
+  integer :: message
 
-  call MPI_Comm_rank(MPI_COMM_WORLD,iam,ierr)
-  if(iam==0)then
-     ! Send message to get worker into setubv/init cnrlbv mode
-     if(nllv==1)then
-        message=AUTO_MPI_SETUBV_MESSAGE
-     else
-        message=AUTO_MPI_INIT_MESSAGE
-     endif
-     call MPI_Bcast(message,1,MPI_INTEGER,0, &
-          MPI_COMM_WORLD,ierr)
-     if(nllv==1)then
-        call mpibcastap(ap)
-     endif
+  ! Send message to get worker into solvbv/init cnrlbv mode
+  if(solvbv)then
+     message=AUTO_MPI_SOLVBV_MESSAGE
+  else
+     message=AUTO_MPI_INIT_MESSAGE
   endif
-
-  nfpr=ap%nfpr
-  npar=ap%npar
-  bufsize = npar+nfpr
-  if(nllv/=1)bufsize=bufsize+ndim
-  allocate(buffer(bufsize))
-
-  if(iam==0)then
-     buffer(1:npar)=par(1:npar)
-     buffer(npar+1:npar+nfpr)=rldot(1:nfpr)
-     if(nllv/=1)buffer(npar+nfpr+1:npar+nfpr+ndim)=thu(1:ndim)
-  endif
-
-  call MPI_Bcast(buffer,bufsize,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-
-  if(iam>0)then
-     par(1:npar)=buffer(1:npar)
-     rldot(1:nfpr)=buffer(npar+1:npar+nfpr)
-     if(nllv/=1)thu(1:ndim)=buffer(npar+nfpr+1:npar+nfpr+ndim)
-  endif
-
-  deallocate(buffer)
-
-  ntst=ap%ntst
-  ncol=ap%ncol
-  call mpiscat(dtm,1,ntst,nllv)
-  call mpiscat(uoldps,ndim*ncol,ntst,ndim)
-  call mpiscat(udotps,ndim*ncol,ntst,ndim)
-
-  ! Worker runs here
+  call MPI_Bcast(message,1,MPI_INTEGER,0, &
+       MPI_COMM_WORLD,ierr)
 
 end subroutine mpisbv
 
