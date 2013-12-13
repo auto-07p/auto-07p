@@ -776,11 +776,8 @@ CONTAINS
              READ(TY(3:),'(I5)')I
              PAR(11)=PAR(I)
           ENDIF
-          ! call PVLS here the first time so the parameters can be initialized
-          CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
           ! Hopf bifurcation
-          CALL STHOPF(AP,U,PAR,ICP,NTST,NCOL,NFPR,RLDOT, &
-               NDIM,UDOTPS,UPOLDP,NODIR,THU,FUNI)
+          NODIR=-1
        ELSE
           ! else we just use the uniform mesh with no direction given
           NODIR=1
@@ -798,9 +795,7 @@ CONTAINS
        ENDDO
     ENDIF
 
-    CALL MPIBCAST(RLDOT,NFPR)
     CALL MPISCAT(UPS,NDIM*NCOL,NTST,NDIM)
-    CALL MPISCAT(UDOTPS,NDIM*NCOL,NTST,NDIM)
     CALL MPISCAT(TM,1,NTST,1)
     CALL MPIBCAST1I(NODIR)
 
@@ -816,7 +811,7 @@ CONTAINS
 
 ! Set UOLDPS, RLOLD.
 
-    IF(IAM==0.AND.NODIR.NE.-1)THEN
+    IF(IAM==0)THEN
        ! call PVLS here the first time so the parameters can be initialized
        CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
     ENDIF
@@ -836,17 +831,28 @@ CONTAINS
 !      ** Restart from a Hopf bifurcation.
        NODIR=0
        AP%ISW=1
+       IF(IAM==0)THEN
+          CALL STHOPF(AP,U,PAR,ICP,NTST,NCOL,NFPR,RLDOT, &
+               NDIM,UDOTPS,UPOLDP,THU,FUNI)
+       ENDIF
+       CALL MPISCAT(UDOTPS,NDIM*NCOL,NTST,NDIM)
        CALL MPISCAT(UPOLDP,NDIM*NCOL,NTST,NDIM)
     ELSE
 !      ** Restart from orbit.
        CALL STUPBV(AP,PAR,ICP,FUNI,NDIM,UPS,UPOLDP,NA)
+       IF(NODIR==0.OR.AP%ISW<=0)THEN
+          ! Distribute direction vector if it was given
+          ! or a branch switch is needed
+          CALL MPISCAT(UDOTPS,NDIM*NCOL,NTST,NDIM)
+          CALL MPIBCAST(RLDOT,NFPR)
+       ENDIF
     ENDIF
 
   END SUBROUTINE RSPTBV
 
 ! ---------- ------
   SUBROUTINE STHOPF(AP,U,PAR,ICP,NTST,NCOL, &
-       NFPR,RLDOT,NDIM,UDOTPS,UPOLDP,NODIR,THU,FUNI)
+       NFPR,RLDOT,NDIM,UDOTPS,UPOLDP,THU,FUNI)
 
     USE IO
     USE MESH
@@ -856,7 +862,7 @@ CONTAINS
 !  bifurcation point (for waves or periodic orbits)
 
     TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
-    INTEGER ICP(*),NDIM,NTST,NCOL,NFPR,NODIR
+    INTEGER ICP(*),NDIM,NTST,NCOL,NFPR
     DOUBLE PRECISION U(NDIM),PAR(*),RLDOT(AP%NFPR),THU(*)
     DOUBLE PRECISION UDOTPS(NDIM,0:*),UPOLDP(NDIM,0:*)
     include 'interfaces.h'
@@ -903,8 +909,6 @@ CONTAINS
     DTM(:)=1.d0/NTST
 
     CALL SCALEB(NTST,NCOL,NDIM,NFPR,UDOTPS,RLDOT,DTM,THL,THU)
-
-    NODIR=-1
 
     DEALLOCATE(DFU,F,RNLLV,SMAT,DTM)
   END SUBROUTINE STHOPF
