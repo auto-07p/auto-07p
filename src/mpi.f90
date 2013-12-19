@@ -172,9 +172,9 @@ subroutine mpireduce(a1,a2,bb,cc,c2,dd,faa,fcfc,ntst,nov,ncb,nrc,ifst,nllv,&
   endif
 end subroutine mpireduce
 
-subroutine mpibcksub(sol,ntst,nov,lo,hi,level)
-  integer, intent(in) :: ntst,nov,lo,hi,level
-  double precision, intent(inout) :: sol(nov,*)
+subroutine mpibcksub(sol,fc,ntst,nov,ncb,lo,hi,level)
+  integer, intent(in) :: ntst,nov,ncb,lo,hi,level
+  double precision, intent(inout) :: sol(nov,*),fc(*)
   integer :: iam,kwt,mid,nlo,nmid1,hi1,mid1,base,na
 
   iam=mpiiam()
@@ -195,9 +195,11 @@ subroutine mpibcksub(sol,ntst,nov,lo,hi,level)
   if(nmid1==iam.and.nlo<iam)then
      call mpirecv(sol(1,mid1+1),nov,nlo)
      call mpirecv(sol(1,hi1+1),nov,nlo)
+     call mpirecv(fc,nov+ncb,nlo)
   elseif(nmid1>iam.and.nlo==iam)then
      call mpisend(sol(1,mid1+1),nov,nmid1)
      call mpisend(sol(1,hi1+1),nov,nmid1)
+     call mpisend(fc,nov+ncb,nmid1)
   endif
 end subroutine mpibcksub
 

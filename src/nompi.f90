@@ -41,9 +41,9 @@ subroutine mpireduce(a1,a2,bb,cc,c2,dd,faa,fcfc,ntst,nov,ncb,nrc,ifst,nllv,&
   double precision, intent(inout) :: fcfc(nrc,*)
 end subroutine mpireduce
 
-subroutine mpibcksub(sol,ntst,nov,lo,hi,level)
-  integer, intent(in) :: ntst,nov,lo,hi,level
-  double precision, intent(inout) :: sol(nov,*)
+subroutine mpibcksub(sol,fc,ntst,nov,ncb,lo,hi,level)
+  integer, intent(in) :: ntst,nov,ncb,lo,hi,level
+  double precision, intent(inout) :: sol(nov,*),fc(*)
 end subroutine mpibcksub
 
 subroutine mpisbv(solvbv)

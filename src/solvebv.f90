@@ -1543,9 +1543,6 @@
             SOL(I,NTSTNA+1) = FC(I)
          ENDDO
       ENDIF
-      IF(KWT>1)THEN
-         CALL MPIBCAST(FC,NOV+NCB)
-      ENDIF
       IF(NT>1)THEN
          PLO = MPLO
          PHI = MPHI
@@ -1593,7 +1590,7 @@
                NOV,NCB,IPC(1,I))
        ENDIF
        IF(DOMPI)THEN
-          CALL MPIBCKSUB(SOL,NTST,NOV,LO,HI,LEVEL)
+          CALL MPIBCKSUB(SOL,FC,NTST,NOV,NCB,LO,HI,LEVEL)
        ENDIF
        ! For MPI and ghost elements there are two possibilities:
        ! 1. HI and MID are both beyond the end. In that case the
