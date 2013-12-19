@@ -57,7 +57,7 @@
       INTEGER, ALLOCATABLE :: NP(:)
       INTEGER IAM,KWT,NTST,NCOL,NBC,NINT,IID,NFPR,NPAR
       INTEGER NRC,NFC,NROW,NCLM
-      INTEGER NA,IT,NT,MNT,I,BASE
+      INTEGER NA,IT,NT,MNT,I,BASE,NA2
       INTEGER ISHAPE(8)
 
 ! Most of the required memory is allocated below
@@ -100,6 +100,16 @@
 !     NTST is the global one, NA is the local one.
 !     The value of NTST may be different in different nodes.
       NA=NP(IAM+1)
+      IF(KWT>1)THEN
+         ! used "ghost" entries past NA+1 are stored close, in order
+         ! of the furthest distance, for example for node 0,
+         ! NA+2 stores the entries at NTST+1 (from node KWT-1)
+         ! NA+3 stores the entries at (NTST+1)/2+1 (from node (KWT+1)/2-1)
+         ! and so on, following the left recursion level in BCKSUB
+         NA2=NA+CEILING(LOG(DBLE(NTST+1))/LOG(2.d0))
+      ELSE
+         NA2=NTST
+      ENDIF
 
       ALLOCATE(FC(NFC))
       MNT = 1
@@ -149,7 +159,7 @@
       ENDIF
 !     The matrices D and FC are unused in all nodes except the first.
 
-      ALLOCATE(FCFC(NRC,NTST),FAA(NDIM,NTST),SOL(NDIM,NTST+1))
+      ALLOCATE(FCFC(NRC,NTST),FAA(NDIM,NTST),SOL(NDIM,NA2+1))
       BASE=(IAM*NTST+KWT-1)/KWT
 
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(I,IT,NT)
@@ -182,7 +192,7 @@
       IF(IAM.EQ.0)THEN
          DUPS(:,NTST*NCOL)=FC(1:NDIM)
       ELSE
-         DUPS(:,NA*NCOL)=SOL(:,BASE+NA+1)
+         DUPS(:,NA*NCOL)=SOL(:,NA+1)
       ENDIF
       DRL(:)=FC(NDIM+1:)
 
@@ -760,7 +770,7 @@
 ! Backsubstitution in the condensation of parameters process.
 
       ALLOCATE(X(NOV+1:NRA))
-      CALL INFPAR(A,B,FA,SOL(1,I),FC,N,NOV,NRA,NCA,NCB,ICF,X)
+      CALL INFPAR(A,B,FA,SOL(1,I-BASE),FC,N,NOV,NRA,NCA,NCB,ICF,X)
       DEALLOCATE(X)
 
       END SUBROUTINE BRBD
@@ -1506,7 +1516,7 @@
       DOUBLE PRECISION, INTENT(OUT) :: SOL(NOV,*)
 
 ! Local
-      INTEGER I,PLO,PHI,NA,MPLO,MPHI
+      INTEGER I,PLO,PHI,NA,MPLO,MPHI,NTSTNA
       LOGICAL DOMPI
 
       MPLO = (IAM*NTST+KWT-1)/KWT+1
@@ -1515,8 +1525,13 @@
 !$OMP MASTER
 ! do global backsubsitution until there is no overlap left
       IF(IAM==0)THEN
+         IF(NTST==NA)THEN
+            NTSTNA=NTST
+         ELSE
+            NTSTNA=NA+1
+         ENDIF 
          DO I=1,NOV
-            SOL(I,NTST+1) = FC(I)
+            SOL(I,NTSTNA+1) = FC(I)
          ENDDO
       ENDIF
       IF(KWT>1)THEN
@@ -1526,26 +1541,26 @@
          PLO = MPLO
          PHI = MPHI
          DOMPI = KWT>1
-         CALL BCKSUBR(1,NTST)
+         CALL BCKSUBR(1,NTST,1)
       ENDIF
 !$OMP END MASTER
 !$OMP BARRIER
       PLO = MPLO+(IT*NA+NT-1)/NT
       PHI = MPLO+((IT+1)*NA+NT-1)/NT-1
       DOMPI = KWT>1.AND.NT==1
-      CALL BCKSUBR(1,NTST)
+      CALL BCKSUBR(1,NTST,1)
 
       CONTAINS
 
 !      Back substitution within the interval [MPLO,MPHI]; LO is in [PLO,PHI]
 !      --------- ---------- -------
-       RECURSIVE SUBROUTINE BCKSUBR(LO,HI)
+       RECURSIVE SUBROUTINE BCKSUBR(LO,HI,LEVEL)
 
 ! Arguments
-       INTEGER, INTENT(IN) :: LO,HI
+       INTEGER, INTENT(IN) :: LO,HI,LEVEL
 
 ! Local
-       INTEGER MID,I,I0,I1
+       INTEGER MID,I,I0,I1,IS
 
        IF(LO>=HI.OR.HI<PLO.OR.LO>PHI)RETURN
 ! This is a check for the master reduction so it will stop as soon
@@ -1555,18 +1570,38 @@
        ENDIF
        MID=(LO+HI)/2
        I=MID
-       I0=LO
-       I1=HI
+       IS=MID-MPLO+1
+       I0=LO-MPLO+1
+       I1=HI-MPLO+1
        IF((PHI-PLO==NA-1.OR.HI<=PHI).AND.LO>=PLO)THEN
+          IF(DOMPI.AND.I1>NA)THEN
+             I1=NA+LEVEL
+             IF(I>NA)THEN
+                I=NA+LEVEL+1
+             ENDIF
+          ENDIF
           CALL BCKSUB1(S1(1,1,I),A2(1,1,I),S2(1,1,I),BB(1,1,I),     &
-               FAA(1,I),SOL(1,I0),SOL(1,I+1),SOL(1,I1+1),FC(NOV+1), &
+               FAA(1,I),SOL(1,I0),SOL(1,IS+1),SOL(1,I1+1),FC(NOV+1),&
                NOV,NCB,IPC(1,I))
        ENDIF
        IF(DOMPI)THEN
-          CALL MPIBCKSUB(SOL,NTST,NOV,LO,HI)
+          CALL MPIBCKSUB(SOL,NTST,NOV,LO,HI,LEVEL)
        ENDIF
-       CALL BCKSUBR(MID+1,HI)
-       CALL BCKSUBR(LO,MID)
+       ! For MPI and ghost elements there are two possibilities:
+       ! 1. HI and MID are both beyond the end. In that case the
+       !    (MID+1,HI) recursion applies to a different process,
+       !    so the level can be the same.
+       !    The (LO,MID) recursion increases the level so the new
+       !    HI ghost refers to the old MID ghost.
+       ! 2. Only HI is beyond the end. In that case the
+       !    (MID+1,HI) recursion is in the same process and should
+       !    not increase the level, because the new HI ghost is the
+       !    same as the old HI ghost, and the old MID ghost does not
+       !    exist.
+       !    The (LO,MID) recursion is local so does not need ghost
+       !    elements.
+       CALL BCKSUBR(MID+1,HI,LEVEL)
+       CALL BCKSUBR(LO,MID,LEVEL+1)
 
        END SUBROUTINE BCKSUBR
 
