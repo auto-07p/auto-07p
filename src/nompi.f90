@@ -32,6 +32,11 @@ logical function mpiwfi(autobv)
   mpiwfi = .false.
 end function mpiwfi
 
+subroutine mpireducemax(u,n)
+  integer, intent(in) :: n
+  double precision, intent(inout) :: u
+end subroutine mpireducemax
+
 subroutine mpireduce(a1,a2,bb,cc,c2,dd,faa,fcfc,ntst,nov,ncb,nrc,ifst,nllv,&
      lo,hi,level)
   integer, intent(in) :: ntst,nov,ncb,nrc,ifst,nllv,lo,hi,level
@@ -92,6 +97,11 @@ subroutine mpigat(buf,ndx,n)
   integer, intent(in) :: ndx,n
   double precision, intent(inout) :: buf(ndx,*)
 end subroutine mpigat
+
+subroutine mpireducemax(buf,n)
+  integer, intent(in) :: n
+  double precision, intent(inout) :: buf(n)
+end subroutine mpireducemax
 
 subroutine mpiend()
 end subroutine mpiend

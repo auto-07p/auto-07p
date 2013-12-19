@@ -23,7 +23,7 @@ implicit none
 private
 
 public :: mpiini, mpiiap, mpiwfi, mpireduce, mpibcksub, mpisbv, mpicbv, mpibcast
-public :: mpibcasti, mpibcast1i, mpibcast1l, mpibcastap
+public :: mpibcasti, mpibcast1i, mpibcast1l, mpibcastap, mpireducemax
 public :: mpiadapt, mpigat, mpiscat, mpiend, mpitim, mpiiam, mpikwt, partition
 
 integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SOLVBV_MESSAGE = 1
@@ -394,6 +394,21 @@ subroutine mpigat(buf,ndx,n)
   deallocate(np)
   if(iam==0)deallocate(counts,displacements)
 end subroutine mpigat
+
+subroutine mpireducemax(buf,n)
+  integer, intent(in) :: n
+  double precision, intent(inout) :: buf(n)
+
+  integer ierr
+
+  if (mpiiam()==0)then
+     call MPI_Reduce(MPI_IN_PLACE, buf, 2, MPI_DOUBLE_PRECISION, &
+          MPI_MAX, 0, MPI_COMM_WORLD, ierr)
+  else
+     call MPI_Reduce(buf, buf, 2, MPI_DOUBLE_PRECISION, &
+          MPI_MAX, 0, MPI_COMM_WORLD, ierr)
+  endif
+end subroutine mpireducemax
 
 subroutine mpiend()
   integer ierr

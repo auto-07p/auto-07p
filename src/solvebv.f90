@@ -183,15 +183,14 @@
 
       DEALLOCATE(FCFC,FAA)
 
-      IF(KWT.GT.1)THEN
+      IF(NLLV/=0)THEN
 !        Global concatenation of the solution from each node.
         CALL MPIGAT(DUPS,NDIM*NCOL,NTST)
       ENDIF
 
-      IF(IAM.EQ.0)THEN
+      DUPS(:,NA*NCOL)=SOL(:,NA+1)
+      IF(IAM==0.AND.NTST>NA)THEN
          DUPS(:,NTST*NCOL)=FC(1:NDIM)
-      ELSE
-         DUPS(:,NA*NCOL)=SOL(:,NA+1)
       ENDIF
       DRL(:)=FC(NDIM+1:)
 
