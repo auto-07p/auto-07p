@@ -157,8 +157,8 @@ subroutine mpireduce(a1,a2,bb,cc,c2,dd,faa,fcfc,ntst,nov,ncb,nrc,ifst,nllv,&
         call mpirecv(faa(1,hi1),nov,nmid1)
         call mpirecv(fcfc(1,hi1),nrc,nmid1)
      else
-        faa(:,hi)=0
-        fcfc(:,hi)=0
+        faa(:,hi1)=0
+        fcfc(:,hi1)=0
      endif
      if(ifst.eq.1)then
         ! receive hi
