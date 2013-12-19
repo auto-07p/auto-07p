@@ -33,8 +33,8 @@ logical function mpiwfi(autobv)
 end function mpiwfi
 
 subroutine mpireduce(a1,a2,bb,cc,c2,dd,faa,fcfc,ntst,nov,ncb,nrc,ifst,nllv,&
-     lo,hi)
-  integer, intent(in) :: ntst,nov,ncb,nrc,ifst,nllv,lo,hi
+     lo,hi,level)
+  integer, intent(in) :: ntst,nov,ncb,nrc,ifst,nllv,lo,hi,level
   double precision, intent(inout) :: a1(nov,nov,*),a2(nov,nov,*),bb(ncb,nov,*)
   double precision, intent(inout) :: cc(nov,nrc,*),c2(nov,nrc,*)
   double precision, intent(inout) :: dd(ncb,nrc,*),faa(nov,*)

@@ -57,7 +57,7 @@
       INTEGER, ALLOCATABLE :: NP(:)
       INTEGER IAM,KWT,NTST,NCOL,NBC,NINT,IID,NFPR,NPAR
       INTEGER NRC,NFC,NROW,NCLM
-      INTEGER NA,IT,NT,MNT,I,BASE,NA2
+      INTEGER NA,IT,NT,MNT,I,NA2
       INTEGER ISHAPE(8)
 
 ! Most of the required memory is allocated below
@@ -125,7 +125,7 @@
             ISHAPE(4:6)=SHAPE(CC)
             ISHAPE(7:8)=SHAPE(CDBC)
             IF(ISHAPE(1)/=NCLM.OR.ISHAPE(2)/=NROW.OR.ISHAPE(3)/=NA    &
-           .OR.ISHAPE(4)/=NDIM.OR.ISHAPE(5)/=NRC.OR.ISHAPE(6)/=NTST &
+           .OR.ISHAPE(4)/=NDIM.OR.ISHAPE(5)/=NRC.OR.ISHAPE(6)/=NA2 &
            .OR.ISHAPE(7)/=2*NDIM+NFPR.OR.ISHAPE(8)/=NBC)THEN
 !              Free floating point arrays
                DEALLOCATE(A,B,C,D,A1,A2,S1,S2,BB,CC,C2,CDBC,DD)
@@ -137,14 +137,14 @@
          IF(.NOT.ALLOCATED(A))THEN
             ALLOCATE(A(NCLM,NROW,NA),B(NFPR,NROW,NA))
             ALLOCATE(C(NCLM,NRC,NA),D(NFPR,NRC))
-            ALLOCATE(A1(NDIM,NDIM,NTST),A2(NDIM,NDIM,NTST))
-            ALLOCATE(S1(NDIM,NDIM,NTST-1),S2(NDIM,NDIM,NTST-1))
-            ALLOCATE(BB(NFPR,NDIM,NTST),CC(NDIM,NRC,NTST))
-            ALLOCATE(C2(NDIM,NRC,NTST),CDBC(2*NDIM+NFPR,NBC))
-            ALLOCATE(DD(NFPR,NRC,NTST))
+            ALLOCATE(A1(NDIM,NDIM,NA2),A2(NDIM,NDIM,NA2))
+            ALLOCATE(S1(NDIM,NDIM,NA2-1),S2(NDIM,NDIM,NA2-1))
+            ALLOCATE(BB(NFPR,NDIM,NA2),CC(NDIM,NRC,NA2))
+            ALLOCATE(C2(NDIM,NRC,NA2),CDBC(2*NDIM+NFPR,NBC))
+            ALLOCATE(DD(NFPR,NRC,NA2))
 
-            ALLOCATE(ICF(NCLM,NA),IRF(NROW,NA),IPR(NDIM,NTST-1))
-            ALLOCATE(IPC(NDIM,NTST-1))
+            ALLOCATE(ICF(NCLM,NA),IRF(NROW,NA),IPR(NDIM,NA2-1))
+            ALLOCATE(IPC(NDIM,NA2-1))
          ENDIF
       ENDIF
 
@@ -159,8 +159,7 @@
       ENDIF
 !     The matrices D and FC are unused in all nodes except the first.
 
-      ALLOCATE(FCFC(NRC,NTST),FAA(NDIM,NTST),SOL(NDIM,NA2+1))
-      BASE=(IAM*NTST+KWT-1)/KWT
+      ALLOCATE(FCFC(NRC,NA2),FAA(NDIM,NA2),SOL(NDIM,NA2+1))
 
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(I,IT,NT)
 
@@ -170,8 +169,8 @@
 !$    NT = OMP_GET_NUM_THREADS()
       IF(NLLV>=0.OR.IFST==1) &
         CALL SETUBV(NDIM,NA,NCOL,NINT,NFPR,NRC,NROW,NCLM,                &
-         FUNI,ICNI,AP,PAR,NPAR,ICP,A,B,C,DD(1,1,BASE+1),DUPS,            &
-         FCFC(1,BASE+1),UPS,UOLDPS,RLOLD,UDOTPS,UPOLDP,DTM,THU,          &
+         FUNI,ICNI,AP,PAR,NPAR,ICP,A,B,C,DD,DUPS,                        &
+         FCFC,UPS,UOLDPS,RLOLD,UDOTPS,UPOLDP,DTM,THU,                    &
          IFST,IAM,IT,NT,IRF,ICF,IID,NLLV)
 
       I = (IT*NA+NT-1)/NT+1
@@ -686,14 +685,13 @@
       INTEGER   IPR(*),IPC(*),IRF(NRA,*),ICF(NCA,*)
 
 ! Local
-      INTEGER I,J,K,II,N,NRC,BASE
+      INTEGER I,J,K,II,N,NRC,NTSTNA
       INTEGER, ALLOCATABLE :: IAMAX(:)
       DOUBLE PRECISION, ALLOCATABLE :: FCC(:),E(:,:),X(:)
 
       NRC=NFC-NBC
-      BASE=(IAM*NTST+KWT-1)/KWT
-      I = BASE+(IT*NA+NT-1)/NT+1
-      N = BASE+((IT+1)*NA+NT-1)/NT+1-I
+      I = (IT*NA+NT-1)/NT+1
+      N = ((IT+1)*NA+NT-1)/NT+1-I
 
       IF(IDB.GT.4.and.IAM.EQ.0)THEN
 !$OMP BARRIER
@@ -743,19 +741,24 @@
 !$OMP MASTER
       IF(IAM.EQ.0)THEN
          ! This is where we sum into the global copy of the d array
+         IF(KWT>1)THEN
+            NTSTNA=NA+1
+         ELSE
+            NTSTNA=NTST
+         ENDIF
          DO J=1,NRC
             IF(IFST.EQ.1)THEN
                DO K=1,NCB
-                  D(K,J)=D(K,J)+DD(K,J,NTST)
+                  D(K,J)=D(K,J)+DD(K,J,NTSTNA)
                ENDDO
             ENDIF
             IF(NLLV.EQ.0)THEN
-               FC(NBC+J)=FC(NBC+J)+FCFC(J,NTST)
+               FC(NBC+J)=FC(NBC+J)+FCFC(J,NTSTNA)
             ENDIF
          ENDDO
          ALLOCATE(FCC(NOV+NFC),E(NOV+NFC,NOV+NFC))
          CALL DIMRGE(E,CC,C2,CDBC,D,FC,                               &
-           NTST,NFC,NBC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,A1,A2,FAA,BB)
+           NTSTNA,NFC,NBC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,A1,A2,FAA,BB)
          DO II=1,NOV
             SOL(II,1)=FCC(II)
          ENDDO
@@ -770,7 +773,7 @@
 ! Backsubstitution in the condensation of parameters process.
 
       ALLOCATE(X(NOV+1:NRA))
-      CALL INFPAR(A,B,FA,SOL(1,I-BASE),FC,N,NOV,NRA,NCA,NCB,ICF,X)
+      CALL INFPAR(A,B,FA,SOL(1,I),FC,N,NOV,NRA,NCA,NCB,ICF,X)
       DEALLOCATE(X)
 
       END SUBROUTINE BRBD
@@ -1058,7 +1061,7 @@
       PHI = MPLO+((IT+1)*NA+NT-1)/NT-1
       DOMPI = KWT>1.AND.NT==1
 !     Reduce non-overlapping pieces
-      CALL REDUCER(1,NTST)
+      CALL REDUCER(1,NTST,1)
 
 !$OMP BARRIER
 !$OMP MASTER
@@ -1068,7 +1071,7 @@
          DOMPI = KWT>1
          PLO = MPLO
          PHI = MPHI
-         CALL REDUCER(1,NTST)
+         CALL REDUCER(1,NTST,1)
       ENDIF
 !$OMP END MASTER
 
@@ -1077,10 +1080,10 @@
       CONTAINS
 
 !      --------- ---------- -------
-       RECURSIVE SUBROUTINE REDUCER(LO,HI)
+       RECURSIVE SUBROUTINE REDUCER(LO,HI,LEVEL)
 
 ! Arguments
-       INTEGER, INTENT(IN) :: LO,HI
+       INTEGER, INTENT(IN) :: LO,HI,LEVEL
 
 ! Local 
        INTEGER IR,IC,I0,I1,I2,MID
@@ -1098,14 +1101,14 @@
        MID=(LO+HI)/2
 
        IF(LO<MID) &
-            CALL REDUCER(LO,MID)
+            CALL REDUCER(LO,MID,LEVEL+1)
 
        IF(MID+1<HI) &
-            CALL REDUCER(MID+1,HI)
+            CALL REDUCER(MID+1,HI,LEVEL)
 
        IF(DOMPI)THEN
           CALL MPIREDUCE(A1,A2,BB,CC,C2,DD,FAA,FCFC,NTST,NOV,NCB,NRC,IFST,&
-               NLLV,LO,HI)
+               NLLV,LO,HI,LEVEL)
        ELSE
           ! OpenMP parallel section without overlap
           IF(NT>1.AND.PHI-PLO<NA-1.AND.HI>PHI)RETURN
@@ -1114,9 +1117,15 @@
 
 ! Initialization
 
-       I0=LO
-       I1=MID
-       I2=HI
+       I0=LO-MPLO+1
+       I1=MID-MPLO+1
+       I2=HI-MPLO+1
+       IF(DOMPI.AND.I2>NA)THEN
+          I2=NA+LEVEL
+          IF(I1>NA)THEN
+             I1=NA+LEVEL+1
+          ENDIF
+       ENDIF
        IF(NLLV==0)THEN
           DO IR=1,NRC
              FCFC(IR,I2)=FCFC(IR,I2)+FCFC(IR,I1)
@@ -1560,7 +1569,7 @@
        INTEGER, INTENT(IN) :: LO,HI,LEVEL
 
 ! Local
-       INTEGER MID,I,I0,I1,IS
+       INTEGER MID,I,I0,I1
 
        IF(LO>=HI.OR.HI<PLO.OR.LO>PHI)RETURN
 ! This is a check for the master reduction so it will stop as soon
@@ -1569,8 +1578,7 @@
           IF((LO-PLO)*NT/NA==(HI-PLO)*NT/NA)RETURN
        ENDIF
        MID=(LO+HI)/2
-       I=MID
-       IS=MID-MPLO+1
+       I=MID-MPLO+1
        I0=LO-MPLO+1
        I1=HI-MPLO+1
        IF((PHI-PLO==NA-1.OR.HI<=PHI).AND.LO>=PLO)THEN
@@ -1581,7 +1589,7 @@
              ENDIF
           ENDIF
           CALL BCKSUB1(S1(1,1,I),A2(1,1,I),S2(1,1,I),BB(1,1,I),     &
-               FAA(1,I),SOL(1,I0),SOL(1,IS+1),SOL(1,I1+1),FC(NOV+1),&
+               FAA(1,I),SOL(1,I0),SOL(1,I+1),SOL(1,I1+1),FC(NOV+1), &
                NOV,NCB,IPC(1,I))
        ENDIF
        IF(DOMPI)THEN

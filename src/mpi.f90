@@ -114,50 +114,60 @@ subroutine partition(n,kwt,m)
 end subroutine partition
 
 subroutine mpireduce(a1,a2,bb,cc,c2,dd,faa,fcfc,ntst,nov,ncb,nrc,ifst,nllv,&
-     lo,hi)
-  integer, intent(in) :: ntst,nov,ncb,nrc,ifst,nllv,lo,hi
+     lo,hi,level)
+  integer, intent(in) :: ntst,nov,ncb,nrc,ifst,nllv,lo,hi,level
   double precision, intent(inout) :: a1(nov,nov,*),a2(nov,nov,*),bb(ncb,nov,*)
   double precision, intent(inout) :: cc(nov,nrc,*),c2(nov,nrc,*)
   double precision, intent(inout) :: dd(ncb,nrc,*),faa(nov,*)
   double precision, intent(inout) :: fcfc(nrc,*)
 
-  integer :: iam,kwt,mid,nlo,nmid1
+  integer :: iam,kwt,mid,nlo,nmid1,hi1,mid1,base,na
 
   iam=mpiiam()
   kwt=mpikwt()
   mid=(lo+hi)/2
   nlo=(lo-1)*kwt/ntst
   nmid1=mid*kwt/ntst
+  base=(iam*ntst+kwt-1)/kwt
+  na=((iam+1)*ntst+kwt-1)/kwt-base
+  mid1=mid-base
+  if(mid1>na)then
+     mid1=na+level+1
+  endif
+  hi1=hi-base
+  if(hi1>na)then
+     hi1=na+level
+  endif
   if(nmid1==iam.and.nlo<iam)then
      if(nllv.eq.0)then
-        call mpisend(faa(1,hi),nov,nlo)
-        call mpisend(fcfc(1,hi),nrc,nlo)
+        call mpisend(faa(1,hi1),nov,nlo)
+        call mpisend(fcfc(1,hi1),nrc,nlo)
      endif
      if(ifst.eq.1)then
         ! send hi to lo
-        call mpisend(a1(1,1,mid+1),nov*nov,nlo)
-        call mpisend(a2(1,1,hi),nov*nov,nlo)
-        call mpisend(bb(1,1,hi),nov*ncb,nlo)
-        call mpisend(cc(1,1,mid+1),nov*nrc,nlo)
-        call mpisend(c2(1,1,hi),nov*nrc,nlo)
-        call mpisend(dd(1,1,hi),ncb*nrc,nlo)
+        call mpisend(a1(1,1,mid1+1),nov*nov,nlo)
+        call mpisend(a2(1,1,hi1),nov*nov,nlo)
+        call mpisend(bb(1,1,hi1),nov*ncb,nlo)
+        call mpisend(cc(1,1,mid1+1),nov*nrc,nlo)
+        call mpisend(c2(1,1,hi1),nov*nrc,nlo)
+        call mpisend(dd(1,1,hi1),ncb*nrc,nlo)
      endif
   elseif(nmid1>iam.and.nlo==iam)then
      if(nllv.eq.0)then
-        call mpirecv(faa(1,hi),nov,nmid1)
-        call mpirecv(fcfc(1,hi),nrc,nmid1)
+        call mpirecv(faa(1,hi1),nov,nmid1)
+        call mpirecv(fcfc(1,hi1),nrc,nmid1)
      else
         faa(:,hi)=0
         fcfc(:,hi)=0
      endif
      if(ifst.eq.1)then
         ! receive hi
-        call mpirecv(a1(1,1,mid+1),nov*nov,nmid1)
-        call mpirecv(a2(1,1,hi),nov*nov,nmid1)
-        call mpirecv(bb(1,1,hi),nov*ncb,nmid1)
-        call mpirecv(cc(1,1,mid+1),nov*nrc,nmid1)
-        call mpirecv(c2(1,1,hi),nov*nrc,nmid1)
-        call mpirecv(dd(1,1,hi),ncb*nrc,nmid1)
+        call mpirecv(a1(1,1,mid1+1),nov*nov,nmid1)
+        call mpirecv(a2(1,1,hi1),nov*nov,nmid1)
+        call mpirecv(bb(1,1,hi1),nov*ncb,nmid1)
+        call mpirecv(cc(1,1,mid1+1),nov*nrc,nmid1)
+        call mpirecv(c2(1,1,hi1),nov*nrc,nmid1)
+        call mpirecv(dd(1,1,hi1),ncb*nrc,nmid1)
      endif
   endif
 end subroutine mpireduce
