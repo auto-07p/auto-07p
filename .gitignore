@@ -1,0 +1,11 @@
+*.o
+*.mod
+*.pyc
+Makefile
+/bin/
+!/bin/auto
+!/bin/autox
+/lib/
+/config.log
+/config.status
+include/config.h
