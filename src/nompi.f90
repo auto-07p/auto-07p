@@ -6,8 +6,9 @@ use auto_constants, only: autoparameters
 
 implicit none
 private
+
 public :: mpiini, mpiiap, mpiwfi, mpireduce, mpibcksub, mpisbv, mpicbv, mpibcast
-public :: mpibcasti, mpibcast1i, mpibcastap
+public :: mpibcasti, mpibcast1i, mpibcastap, mpireducemax
 public :: mpiadapt, mpigat, mpiscat, mpiend, mpitim, mpiiam, mpikwt, partition
 
 contains
@@ -32,10 +33,10 @@ logical function mpiwfi(autobv)
   mpiwfi = .false.
 end function mpiwfi
 
-subroutine mpireducemax(u,n)
-  integer, intent(in) :: n
-  double precision, intent(inout) :: u
-end subroutine mpireducemax
+subroutine partition(n,kwt,m)
+  integer n,kwt,m(kwt)
+  m(1) = n
+end subroutine partition
 
 subroutine mpireduce(a1,a2,bb,cc,c2,dd,faa,fcfc,ntst,nov,ncb,nrc,ifst,nllv,&
      lo,hi,level)
@@ -106,10 +107,5 @@ end subroutine mpiend
 subroutine mpitim(tim)
   double precision tim
 end subroutine mpitim  
-
-subroutine partition(n,kwt,m)
-  integer n,kwt,m(kwt)
-  m(1) = n
-end subroutine partition
 
 end module autompi
