@@ -240,49 +240,47 @@ subroutine mpisbv(solvbv)
 
 end subroutine mpisbv
 
-subroutine mpiadapt(ntst,ncol,ndim,ups,dtm)
+subroutine mpiadapt(ntst,ncol,ndim,ups,uoldps,dtm)
 
   integer, intent(in) :: ntst,ncol,ndim
-  double precision :: ups(ndim,0:*),dtm(0:*)
+  double precision :: ups(ndim,0:*),uoldps(ndim,0:*),dtm(0:*)
 
   call mpiscat(ups,ndim*ncol,ntst,ndim)
+  call mpiscat(uoldps,ndim*ncol,ntst,ndim)
   call mpiscat(dtm,1,ntst,0)
 
   ! Worker runs here
 
 end subroutine mpiadapt
 
-subroutine mpicbv(npar,par,nfpr,rldot,rds,ntst,ncol,ndim,udotps)
+subroutine mpicbv(npar,par,rds,ss)
 
-  integer, intent(in) :: npar,nfpr,ntst,ncol,ndim
-  double precision :: udotps(ndim,0:*)
-  double precision :: par(npar),rldot(nfpr)
-  double precision :: rds
+  integer, intent(in) :: npar
+  double precision :: par(npar)
+  double precision :: rds,ss
 
   integer :: iam,bufsize
   double precision, allocatable :: buffer(:)
 
   iam=mpiiam()
-  bufsize = npar+nfpr+1
+  bufsize = npar+2
   allocate(buffer(bufsize))
 
   if(iam==0)then
      buffer(1:npar)=par(:)
-     buffer(npar+1:npar+nfpr)=rldot(:)
-     buffer(npar+nfpr+1)=rds
+     buffer(npar+1)=rds
+     buffer(npar+2)=ss
   endif
 
   call mpibcast(buffer,bufsize)
 
   if(iam>0)then
-     par(:)=buffer(1:npar)
-     rldot(:)=buffer(npar+1:npar+nfpr)
-     rds=buffer(npar+nfpr+1)
+     par(1:npar)=buffer(1:npar)
+     rds=buffer(npar+1)
+     ss=buffer(npar+2)
   endif
 
   deallocate(buffer)
-
-  call mpiscat(udotps,ndim*ncol,ntst,ndim)
 
   ! Worker runs here
 
