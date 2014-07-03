@@ -8,7 +8,7 @@ implicit none
 private
 
 public :: mpiini, mpiiap, mpiwfi, mpireduce, mpibcksub, mpisbv, mpicbv, mpibcast
-public :: mpibcasti, mpibcast1i, mpibcastap, mpireducemax
+public :: mpibcasti, mpibcast1i, mpibcastap, mpireducemax, mpireducemin
 public :: mpiadapt, mpigat, mpiscat, mpiend, mpitim, mpiiam, mpikwt, partition
 
 contains
@@ -99,6 +99,11 @@ subroutine mpireducemax(buf,n)
   integer, intent(in) :: n
   double precision, intent(inout) :: buf(n)
 end subroutine mpireducemax
+
+subroutine mpireducemin(buf,n)
+  integer, intent(in) :: n
+  double precision, intent(inout) :: buf(n)
+end subroutine mpireducemin
 
 subroutine mpiend()
 end subroutine mpiend
