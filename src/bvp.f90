@@ -1137,11 +1137,11 @@ CONTAINS
     INTEGER ICP(*),NDIM,IPERP
     DOUBLE PRECISION UDOTPS(NDIM,0:AP%NTST*AP%NCOL),DTM(*)
     DOUBLE PRECISION PAR(*),RLCUR(AP%NFPR),RLOLD(AP%NFPR),RLDOT(AP%NFPR)
-    DOUBLE PRECISION THL(*),THU(*),UPS(NDIM,0:AP%NTST*AP%NCOL)
+    DOUBLE PRECISION THL(AP%NFPR),THU(*),UPS(NDIM,0:AP%NTST*AP%NCOL)
     DOUBLE PRECISION UOLDPS(*),UPOLDP(*),P0(*),P1(*)
 
     INTEGER NTST,NCOL,IID,NFPR,NLLV,IFST,I
-    DOUBLE PRECISION RDSZ,DET
+    DOUBLE PRECISION RDSZ,DET,SS
     DOUBLE PRECISION, ALLOCATABLE :: DUPS(:,:),DRL(:)
 
 ! Generate the Jacobian matrix with zero direction vector.
@@ -1184,31 +1184,33 @@ CONTAINS
 
 ! Scale the starting direction.
 
-    CALL SCALEB(NTST,NCOL,NDIM,NFPR,UDOTPS,RLDOT,DTM,THL,THU)
+    SS=RNRMSQ(NTST,NCOL,NDIM,NDIM,UDOTPS,DTM,THU)
+    SS=SQRT(SS+DOT_PRODUCT(THL(:),RLDOT(:)**2))
 
 ! Make sure that RLDOT(1) is positive (unless practically zero: then look
 ! at other variables).
 
     DO I=1,NFPR
-       IF(ABS(RLDOT(I))/(1.d0+ABS(RLCUR(I)))>AP%EPSL)THEN
+       IF(ABS(RLDOT(I)/SS)/(1.d0+ABS(RLCUR(I)))>AP%EPSL)THEN
           IF(RLDOT(I)<0.d0)THEN
-             RLDOT(:)=-RLDOT(:)
-             UDOTPS(:,:)=-UDOTPS(:,:)
+             SS=-SS
           ENDIF
           EXIT
        ENDIF
     ENDDO
     IF(I>NFPR)THEN
        DO I=1,NDIM
-          IF(ABS(UDOTPS(I,NTST*NCOL))/(1.d0+ABS(UPS(I,NTST*NCOL)))>AP%EPSU)THEN
+          IF(ABS(UDOTPS(I,NTST*NCOL)/SS)/(1.d0+ABS(UPS(I,NTST*NCOL)))>AP%EPSU)THEN
              IF(UDOTPS(I,NTST*NCOL)<0.d0)THEN
-                RLDOT(:)=-RLDOT(:)
-                UDOTPS(:,:)=-UDOTPS(:,:)
+                SS=-SS
              ENDIF
              EXIT
           ENDIF
        ENDDO
     ENDIF
+
+    RLDOT(:)=RLDOT(:)/SS
+    UDOTPS(:,:)=UDOTPS(:,:)/SS
 
     CALL MPIBCAST(RLDOT,NFPR)
     CALL MPISCAT(UDOTPS,NDIM*NCOL,NTST,NDIM)
