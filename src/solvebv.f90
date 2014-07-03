@@ -183,7 +183,7 @@
 
       DEALLOCATE(FCFC,FAA)
 
-      IF(NLLV/=0)THEN
+      IF(NLLV==1)THEN
 !        Global concatenation of the solution from each node.
         CALL MPIGAT(DUPS,NDIM*NCOL,NTST)
       ENDIF
