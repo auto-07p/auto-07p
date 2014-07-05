@@ -240,14 +240,14 @@ subroutine mpisbv(solvbv)
 
 end subroutine mpisbv
 
-subroutine mpiadapt(ntst,ncol,ndim,ups,uoldps,dtm)
+subroutine mpiadapt(ntst,ncol,ndim,ups,uoldps,tm)
 
   integer, intent(in) :: ntst,ncol,ndim
-  double precision :: ups(ndim,0:*),uoldps(ndim,0:*),dtm(0:*)
+  double precision :: ups(ndim,0:*),uoldps(ndim,0:*),tm(0:*)
 
   call mpiscat(ups,ndim*ncol,ntst,ndim)
   call mpiscat(uoldps,ndim*ncol,ntst,ndim)
-  call mpiscat(dtm,1,ntst,0)
+  call mpiscat(tm,1,ntst,1)
 
   ! Worker runs here
 

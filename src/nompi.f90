@@ -56,9 +56,9 @@ subroutine mpisbv(solvbv)
   logical, intent(in) :: solvbv
 end subroutine mpisbv
 
-subroutine mpiadapt(ntst,ncol,ndim,ups,uoldps,dtm)
+subroutine mpiadapt(ntst,ncol,ndim,ups,uoldps,tm)
   integer, intent(in) :: ntst,ncol,ndim
-  double precision :: ups(ndim,0:*),uoldps(ndim,0:*),dtm(0:*)
+  double precision :: ups(ndim,0:*),uoldps(ndim,0:*),tm(0:*)
 end subroutine mpiadapt
 
 subroutine mpicbv(npar,par,rds,ss)
