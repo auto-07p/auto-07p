@@ -1687,19 +1687,19 @@ CONTAINS
 ! Write plotting and restart data on unit 8.
 
     IF(MOD(ITP,10).NE.0)THEN
-       CALL MPIGAT(UDOTPS,NDIM*NCOL,NTST)
-       IF(IAM==0)CALL WRTBV8(AP,PAR,ICP,RLDOT,NDIM,UPS,UDOTPS,TM,DTM)
+       CALL WRTBV8(AP,PAR,ICP,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,NA)
        AP%LAB=AP%LAB+1
     ENDIF
 
   END SUBROUTINE STPLBV
 
 ! ---------- ------
-  SUBROUTINE WRTBV8(AP,PAR,ICP,RLDOT,NDIM,UPS,UDOTPS,TM,DTM)
+  SUBROUTINE WRTBV8(AP,PAR,ICP,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,NA)
 
     USE COMPAT
     USE SUPPORT, ONLY: DIRECTION
     USE AUTO_CONSTANTS, ONLY: IPS, NDIMU => NDIM
+    USE AUTOMPI
 
 ! Writes plotting and restart data on unit 8, viz.:
 ! (1) data identifying the corresponding point on unit 7,
@@ -1748,18 +1748,21 @@ CONTAINS
 !  Above, RL-dot(.) and U-dot(.) specify the direction of the branch.
 
     TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
-    INTEGER ICP(*),NDIM
+    INTEGER ICP(*),NDIM,NA
     DOUBLE PRECISION UPS(NDIM,0:*),UDOTPS(NDIM,0:*),TM(0:*),DTM(*)
     DOUBLE PRECISION PAR(*),RLDOT(AP%NFPR)
 
     INTEGER NTST,NCOL,ISW,ITP,NFPR,IBR,NPAR,NTOT,LAB,NTPL,NAR,NROWPR
-    INTEGER MTOT,I,J,NPARI
+    INTEGER NROW,MTOT,I,J,K,NPARI,IAM
     DOUBLE PRECISION T
     LOGICAL DIR
+    CHARACTER(137), ALLOCATABLE :: S(:)
 !xxx====================================================================
 !xxx Test problem: compute the error
 !    err(x,t)=x - 2*DATAN(1.d0)*PAR(2)*DSIN(4*DATAN(1.d0)*t)
 !xxx====================================================================
+
+    IAM=MPIIAM()
 
     NTST=AP%NTST
     NCOL=AP%NCOL
@@ -1783,7 +1786,7 @@ CONTAINS
        NROWPR=NROWPR + (NFPR+19)/20 + (NFPR+6)/7 + ((NDIM+6)/7)*NTPL
     ENDIF
     MTOT=MOD(NTOT-1,9999)+1
-    WRITE(8,101)IBR,MTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NROWPR,NTST,NCOL,NPAR, &
+    IF(IAM==0)WRITE(8,101)IBR,MTOT,ITP,LAB,NFPR,ISW,NTPL,NAR,NROWPR,NTST,NCOL,NPAR, &
          NPARI,NDIMU,IPS,0
 
 ! Write the entire solution on unit 8 :
@@ -1793,9 +1796,15 @@ CONTAINS
     !xxx eg=0.d0
     !xxx em=0.d0
 !xxx====================================================================
-    DO J=0,NTST*NCOL-1
+    NROW=NDIM/7+1
+    ! each worker writes to a line string, the lines are then gathered
+    ALLOCATE(S(0:NTST*NCOL*NROW-1))
+    DO J=0,NA*NCOL-1
        T=TM(J/NCOL)+MOD(J,NCOL)*DTM(J/NCOL+1)/NCOL
-       WRITE(8,102)T,UPS(:,J)
+       WRITE(S(J*NROW),102)T,UPS(:MIN(NDIM,6),J)
+       DO K=1,NROW-1
+          WRITE(S(J*NROW+K),102)UPS(K*7:MIN(NDIM,K*7+6),J)
+       ENDDO
 !xxx====================================================================
 !xxx Test problem
        !xxx er = err(ups(1,j),T)
@@ -1803,13 +1812,37 @@ CONTAINS
        !xxx if(i.eq.1 .and. dabs(er).gt.em)em=dabs(er)
 !xxx====================================================================
     ENDDO
-    WRITE(8,102)1.0d0,UPS(:,NTST*NCOL)
+    CALL MPIGATS(S,NCOL*NROW,NTST)
+
+    IF(IAM==0)THEN
+       DO J=0,NTST*NCOL*NROW-1
+          WRITE(8,'(A)')TRIM(S(J))
+       ENDDO
+       WRITE(8,102)1.0d0,UPS(:,NTST*NCOL)
+    ENDIF
+
 !xxx====================================================================
 !xxx Test problem
 ! Write global error and mesh error
 !xxx       write(10,100)ncol,ntst,eg,em
 !xxx 100   FORMAT(4X,I2,I4,7ES11.3)
 !xxx====================================================================
+
+    IF(DIR)THEN
+! Write the direction of the branch:
+       NROW=(NDIM+6)/7
+       DO J=0,NA*NCOL-1
+          DO K=0,NROW-1
+             WRITE(S(J*NROW+K),102)UDOTPS(K*7+1:MIN(NDIM,K*7+7),J)
+          ENDDO
+       ENDDO
+       CALL MPIGATS(S,NCOL*NROW,NTST)
+    ENDIF
+
+    IF(IAM/=0)THEN
+       DEALLOCATE(S)
+       RETURN
+    ENDIF
 
     IF(DIR)THEN
 ! Write the free parameter indices:
@@ -1819,10 +1852,12 @@ CONTAINS
 ! Write the direction of the branch:
 
        WRITE(8,102)(RLDOT(I),I=1,NFPR)
-       DO J=0,NTST*NCOL
-          WRITE(8,102)UDOTPS(:,J)
+       DO J=0,NTST*NCOL*NROW-1
+          WRITE(8,'(A)')TRIM(S(J))
        ENDDO
+       WRITE(8,102)UDOTPS(:,NTST*NCOL)
     ENDIF
+    DEALLOCATE(S)
 
 ! Write the parameter values.
 
