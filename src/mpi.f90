@@ -322,12 +322,27 @@ subroutine mpibcastap(ap)
 
 end subroutine mpibcastap
 
+subroutine mpicounts(np,kwt,ndx,add,counts,displacements)
+  integer, intent(in) :: np(kwt), kwt, ndx, add
+  integer, intent(out) :: counts(kwt), displacements(kwt)
+  
+  integer i, loop_start
+
+  loop_start = 0
+  do i=1,kwt
+     counts(i) = ndx*np(i)+add
+     displacements(i) = ndx*loop_start
+     loop_start = loop_start + np(i)
+  enddo
+
+end subroutine mpicounts
+
 subroutine mpiscat(buf,ndx,n,add)
   integer, intent(in) :: ndx,n,add
   double precision, intent(inout) :: buf(*)
 
   integer, allocatable :: counts(:), displacements(:), np(:)
-  integer i, ierr, loop_start, iam, kwt, na0
+  integer ierr, iam, kwt, na0
 
   call MPI_Comm_size(MPI_COMM_WORLD,kwt,ierr)
   allocate(np(kwt))
@@ -336,22 +351,17 @@ subroutine mpiscat(buf,ndx,n,add)
   call MPI_Comm_rank(MPI_COMM_WORLD,iam,ierr)
   if(iam==0)then
      allocate(counts(kwt),displacements(kwt))
-     loop_start = 0
-     do i=1,kwt
-        counts(i) = ndx*np(i)+add
-        displacements(i) = ndx*loop_start
-        loop_start = loop_start + np(i)
-     enddo
-     counts(1) = 0
+     call mpicounts(np,kwt,ndx,add,counts,displacements)
+     call MPI_Scatterv(buf,counts,displacements,MPI_DOUBLE_PRECISION, &
+          MPI_IN_PLACE,0,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+     deallocate(counts,displacements)
+  else
+     na0=np(iam+1)*ndx+add
+     call MPI_Scatterv(buf,counts,displacements,MPI_DOUBLE_PRECISION, &
+          buf,na0,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   endif
 
-  na0=np(iam+1)*ndx+add
-  if(iam==0)na0=0
-  call MPI_Scatterv(buf,counts,displacements,MPI_DOUBLE_PRECISION, &
-       buf,na0,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-
   deallocate(np)
-  if(iam==0)deallocate(counts,displacements)
 end subroutine mpiscat
 
 subroutine mpigat(buf,ndx,n)
@@ -359,7 +369,7 @@ subroutine mpigat(buf,ndx,n)
   double precision, intent(inout) :: buf(ndx,*)
 
   integer, allocatable :: counts(:), displacements(:), np(:)
-  integer i, ierr, loop_start, iam, kwt, na0
+  integer ierr, iam, kwt, na0
 
   call MPI_Comm_size(MPI_COMM_WORLD,kwt,ierr)
   allocate(np(kwt))
@@ -368,23 +378,19 @@ subroutine mpigat(buf,ndx,n)
   call MPI_Comm_rank(MPI_COMM_WORLD,iam,ierr)
   if(iam==0)then
      allocate(counts(kwt),displacements(kwt))
-     loop_start = 0
-     do i=1,kwt
-        counts(i) = ndx*np(i)
-        displacements(i) = ndx*loop_start
-        loop_start = loop_start + np(i)
-     enddo
-     counts(1) = 0
+     call mpicounts(np,kwt,ndx,0,counts,displacements)
+     call MPI_Gatherv(MPI_IN_PLACE,0,MPI_DOUBLE_PRECISION, &
+          buf,counts,displacements,MPI_DOUBLE_PRECISION, &
+          0,MPI_COMM_WORLD,ierr)
+     deallocate(counts,displacements)
+  else
+     na0=np(iam+1)*ndx
+     call MPI_Gatherv(buf,na0,MPI_DOUBLE_PRECISION, &
+          buf,counts,displacements,MPI_DOUBLE_PRECISION, &
+          0,MPI_COMM_WORLD,ierr)
   endif
 
-  na0=np(iam+1)*ndx
-  if(iam==0)na0=0
-  call MPI_Gatherv(buf,na0,MPI_DOUBLE_PRECISION, &
-       buf,counts,displacements,MPI_DOUBLE_PRECISION, &
-       0,MPI_COMM_WORLD,ierr)
-
   deallocate(np)
-  if(iam==0)deallocate(counts,displacements)
 end subroutine mpigat
 
 subroutine mpireducemax(buf,n)
