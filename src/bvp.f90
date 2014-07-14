@@ -1812,7 +1812,7 @@ CONTAINS
        !xxx if(i.eq.1 .and. dabs(er).gt.em)em=dabs(er)
 !xxx====================================================================
     ENDDO
-    CALL MPIGATS(S,NCOL*NROW,NTST)
+    CALL MPIGATS(S,NCOL*NROW,NTST,4+7*19)
 
     IF(IAM==0)THEN
        DO J=0,NTST*NCOL*NROW-1
@@ -1836,7 +1836,7 @@ CONTAINS
              WRITE(S(J*NROW+K),102)UDOTPS(K*7+1:MIN(NDIM,K*7+7),J)
           ENDDO
        ENDDO
-       CALL MPIGATS(S,NCOL*NROW,NTST)
+       CALL MPIGATS(S,NCOL*NROW,NTST,4+7*19)
     ENDIF
 
     IF(IAM/=0)THEN

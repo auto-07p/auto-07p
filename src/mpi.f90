@@ -394,33 +394,33 @@ subroutine mpigat(buf,ndx,n)
   deallocate(np)
 end subroutine mpigat
 
-subroutine mpigats(buf,ndx,n)
+subroutine mpigats(buf,ndx,n,linelen)
   ! gather line strings from each worker for output to fort.8/s.*
-  integer, intent(in) :: ndx,n
-  character(137), intent(inout) :: buf(*)
+  integer, intent(in) :: ndx,n,linelen
+  character(linelen), intent(inout) :: buf(*)
 
   integer, allocatable :: counts(:), displacements(:), np(:)
-  integer ierr, iam, kwt, na0, s137
+  integer ierr, iam, kwt, na0, line
 
   call MPI_Comm_size(MPI_COMM_WORLD,kwt,ierr)
   allocate(np(kwt))
   call partition(n,kwt,np)
 
   call MPI_Comm_rank(MPI_COMM_WORLD,iam,ierr)
-  call MPI_Type_contiguous(137,MPI_CHARACTER,s137,ierr)
-  call MPI_Type_commit(s137,ierr)
+  call MPI_Type_contiguous(linelen,MPI_CHARACTER,line,ierr)
+  call MPI_Type_commit(line,ierr)
   if(iam==0)then
      allocate(counts(kwt),displacements(kwt))
      call mpicounts(np,kwt,ndx,0,counts,displacements)
-     call MPI_Gatherv(MPI_IN_PLACE,0,s137,buf,counts,displacements, &
-          s137,0,MPI_COMM_WORLD,ierr)
+     call MPI_Gatherv(MPI_IN_PLACE,0,line,buf,counts,displacements, &
+          line,0,MPI_COMM_WORLD,ierr)
      deallocate(counts,displacements)
   else
      na0=np(iam+1)*ndx
-     call MPI_Gatherv(buf,na0,s137,buf,counts,displacements, &
-          s137,0,MPI_COMM_WORLD,ierr)
+     call MPI_Gatherv(buf,na0,line,buf,counts,displacements, &
+          line,0,MPI_COMM_WORLD,ierr)
   endif
-  call MPI_Type_free(s137,ierr)
+  call MPI_Type_free(line,ierr)
 
   deallocate(np)
 end subroutine mpigats

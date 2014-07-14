@@ -96,9 +96,9 @@ subroutine mpigat(buf,ndx,n)
   double precision, intent(inout) :: buf(ndx,*)
 end subroutine mpigat
 
-subroutine mpigats(buf,ndx,n)
-  integer, intent(in) :: ndx,n
-  character(137), intent(inout) :: buf(*)
+subroutine mpigats(buf,ndx,n,linelen)
+  integer, intent(in) :: ndx,n,linelen
+  character(linelen), intent(inout) :: buf(*)
 end subroutine mpigats
 
 subroutine mpireducemax(buf,n)
