@@ -10,6 +10,7 @@ private
 public :: mpiini, mpiiap, mpiwfi, mpireduce, mpibcksub, mpisbv, mpicbv, mpibcast
 public :: mpibcasti, mpibcast1i, mpibcastap, mpireducemax, mpireducemin
 public :: mpiadapt, mpigat, mpiscat, mpiend, mpitim, mpiiam, mpikwt, partition
+public :: mpigats
 
 contains
 
@@ -94,6 +95,11 @@ subroutine mpigat(buf,ndx,n)
   integer, intent(in) :: ndx,n
   double precision, intent(inout) :: buf(ndx,*)
 end subroutine mpigat
+
+subroutine mpigats(buf,ndx,n)
+  integer, intent(in) :: ndx,n
+  character(137), intent(inout) :: buf(*)
+end subroutine mpigats
 
 subroutine mpireducemax(buf,n)
   integer, intent(in) :: n
