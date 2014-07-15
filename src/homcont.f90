@@ -990,21 +990,16 @@ CONTAINS
 
     ! Local
 
-    INTEGER I,L,JJ,K
-    DOUBLE PRECISION D,Z,X(0:NCOLRS),W(0:NCOLRS)
+    INTEGER I,JJ,K
+    DOUBLE PRECISION W(0:NCOLRS)
 
     ! Finds interpolant (TM(.) , UPS(.), UDOTPS(.) ) on the new mesh
     ! at times TM,TM+DTM using the old mesh at times T,T+DT.
 
     ! Used by TRANHO to initiate branch switching to n-homoclinic orbits.
 
-    D=DTM/NCOLRS
-    DO L=0,NCOLRS
-       X(L)=TM+L*D
-    ENDDO
     DO I=0,NCOLRS-1
-       Z=T+DT*I/NCOLRS
-       CALL INTWTS(NCOLRS,Z,X,W)
+       CALL INTWTS(NCOLRS,(NCOLRS*(T-TM)+DT*I)/DTM,W)
        JJ=J1+I
        DO K=1,NDM
           UPS(N+K,JJ)=DOT_PRODUCT(W(:),UPS(N+K,J:J+NCOLRS))

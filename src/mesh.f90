@@ -350,26 +350,23 @@ CONTAINS
     DOUBLE PRECISION, INTENT(IN) :: TM(0:N),TM1(0:N1)
     DOUBLE PRECISION, INTENT(OUT) :: UPS1(NDIM,0:N1*NC1)
 ! Local
-    INTEGER I,J,J1,K,L,NDM
-    DOUBLE PRECISION X(0:NC),W(0:NC),Z,D
+    INTEGER I,J,J1,K,NDM
+    DOUBLE PRECISION W(0:NC),Z,D,DT
 
     J=1
     NDM=MIN(NDIM,NDOLD)
     DO J1=0,N1-1
+       DT=TM1(J1+1)-TM1(J1)
        DO I=0,NC1-1
-          D=DBLE(I)/NC1
-          Z=TM1(J1)+D*( TM1(J1+1)-TM1(J1) )
+          Z=TM1(J1)+I*DT/NC1
           DO
              IF(J>N)EXIT
              IF(TM(J)>Z)EXIT
              J=J+1
           ENDDO
           J=J-1
-          D=( TM(J+1)-TM(J) )/NC
-          DO L=0,NC
-             X(L)=TM(J)+L*D
-          ENDDO
-          CALL INTWTS(NC,Z,X,W)
+          D=TM(J+1)-TM(J)
+          CALL INTWTS(NC,NC*(Z-TM(J))/D,W)
           DO K=1,NDM
              UPS1(K,J1*NC1+I)=DOT_PRODUCT(W(:),UPS(K,J*NC:J*NC+NC))
           ENDDO
@@ -433,12 +430,12 @@ CONTAINS
   END SUBROUTINE NEWMSH
 
 ! ---------- ------
-  SUBROUTINE INTWTS(N,Z,X,WTS)
+  SUBROUTINE INTWTS(N,DT1DT,WTS)
 
 ! Generates weights for Lagrange interpolation.
 
     INTEGER, INTENT(IN) :: N
-    DOUBLE PRECISION, INTENT(IN) :: Z, X(0:N)
+    DOUBLE PRECISION, INTENT(IN) :: DT1DT
     DOUBLE PRECISION, INTENT(OUT) :: WTS(0:N)
 
     INTEGER IB,K
@@ -448,7 +445,7 @@ CONTAINS
        P=1.d0
        DO K=0,N
           IF(K/=IB)THEN
-             P=P*( Z-X(K) )/( X(IB)-X(K) )
+             P=P*( DT1DT-K )/( IB-K )
           ENDIF
        ENDDO
        WTS(IB)=P
