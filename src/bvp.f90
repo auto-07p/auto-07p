@@ -88,6 +88,7 @@ CONTAINS
 
     USE AUTO_CONSTANTS, ONLY: NPARX
     USE SOLVEBV
+    USE MESH
     USE AUTOMPI
 
 ! Controls the computation of solution branches.
@@ -187,7 +188,7 @@ CONTAINS
           IF(AP%IAD/=0)THEN
              IF(MOD(AP%NTOT,AP%IAD)==0)THEN
                 ! Master adapted the mesh to the solution.
-                CALL MPIADAPT(NTST,NCOL,NDIM,UPS,UOLDPS,TM)
+                CALL ADAPT(NTST,NCOL,NDIM,TM,DTM,UPS,UOLDPS,.FALSE.)
                 DTM(:)=TM(1:NA)-TM(0:NA-1)
              ENDIF
           ENDIF
@@ -418,7 +419,6 @@ CONTAINS
           IF(MOD(NTOT,IAD).EQ.0)THEN
              CALL ADAPT(NTST,NCOL,NDIM,TM,DTM,UPS,UOLDPS, &
                   ((IPS==2.OR.IPS==12) .AND. ABS(ISW)<=1))
-             CALL MPIADAPT(NTST,NCOL,NDIM,UPS,UOLDPS,TM)
           ENDIF
        ENDIF
 

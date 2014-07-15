@@ -9,7 +9,7 @@ private
 
 public :: mpiini, mpiiap, mpiwfi, mpireduce, mpibcksub, mpisbv, mpicbv, mpibcast
 public :: mpibcasti, mpibcast1i, mpibcastap, mpireducemax, mpireducemin
-public :: mpiadapt, mpigat, mpiscat, mpiend, mpitim, mpiiam, mpikwt, partition
+public :: mpigat, mpiscat, mpiend, mpitim, mpiiam, mpikwt, partition
 public :: mpigats
 
 contains
@@ -56,11 +56,6 @@ end subroutine mpibcksub
 subroutine mpisbv(solvbv)
   logical, intent(in) :: solvbv
 end subroutine mpisbv
-
-subroutine mpiadapt(ntst,ncol,ndim,ups,uoldps,tm)
-  integer, intent(in) :: ntst,ncol,ndim
-  double precision :: ups(ndim,0:*),uoldps(ndim,0:*),tm(0:*)
-end subroutine mpiadapt
 
 subroutine mpicbv(npar,par,rds,ss)
   integer, intent(in) :: npar

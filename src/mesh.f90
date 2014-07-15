@@ -258,6 +258,8 @@ CONTAINS
 ! ---------- -----
   SUBROUTINE ADAPT(NTST,NCOL,NDIM,TM,DTM,UPS,VPS,IPER)
 
+    USE AUTOMPI
+
 ! Adapts the distribution of the mesh points so that the increase of the
 ! monotone function EQDF becomes approximately equidistributed over the
 ! intervals. The functions UPS and VPS are interpolated on new mesh.
@@ -268,27 +270,42 @@ CONTAINS
     DOUBLE PRECISION, INTENT(INOUT) :: UPS(NDIM,0:NTST*NCOL), &
          VPS(NDIM,0:NTST*NCOL),TM(0:NTST),DTM(NTST)
 ! Local
+    INTEGER :: IAM
     DOUBLE PRECISION, ALLOCATABLE :: TINT(:),UINT(:,:),VINT(:,:)
-
-    ALLOCATE(TINT(0:NTST),UINT(NDIM,0:NTST*NCOL),VINT(NDIM,0:NTST*NCOL))
 
 ! Generate the new mesh :
 
-    CALL NEWMSH(NDIM,NDIM,UPS,NTST,NCOL,TM,DTM,NTST,TINT,IPER)
+    IAM=MPIIAM()
+    IF(IAM==0)THEN
+       ALLOCATE(TINT(0:NTST),UINT(NDIM,0:NTST*NCOL),VINT(NDIM,0:NTST*NCOL))
+
+       CALL NEWMSH(NDIM,NDIM,UPS,NTST,NCOL,TM,DTM,NTST,TINT,IPER)
+
+       CALL MPISCAT(TINT,1,NTST,1)
 
 ! Replace UPS/VPS by their interpolants on the new mesh :
 
-    CALL INTERP(NDIM,NTST,NCOL,TM,UPS,VPS,NDIM,NTST,NCOL,TINT, &
+       CALL INTERP(NDIM,NTST,NCOL,TM,UPS,VPS,NDIM,NTST,NCOL,TINT, &
          UINT,VINT)
-    UPS(:,:)=UINT(:,:)
-    VPS(:,:)=VINT(:,:)
+
+       CALL MPISCAT(UINT,NDIM*NCOL,NTST,NDIM)
+       CALL MPISCAT(VINT,NDIM*NCOL,NTST,NDIM)
+
+       UPS(:,:)=UINT(:,:)
+       VPS(:,:)=VINT(:,:)
 
 ! Replace old mesh :
 
-    DTM(:)=TINT(1:NTST)-TINT(0:NTST-1)
-    TM(:)=TINT(:)
+       DTM(:)=TINT(1:NTST)-TINT(0:NTST-1)
+       TM(:)=TINT(:)
 
-    DEALLOCATE(TINT,UINT)
+       DEALLOCATE(TINT,UINT)
+    ELSE
+       CALL MPISCAT(TM,1,NTST,1)
+       CALL MPISCAT(UPS,NDIM*NCOL,NTST,NDIM)
+       CALL MPISCAT(VPS,NDIM*NCOL,NTST,NDIM)
+    ENDIF
+
   END SUBROUTINE ADAPT
 
 ! ---------- ------

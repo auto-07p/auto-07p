@@ -24,7 +24,7 @@ private
 
 public :: mpiini, mpiiap, mpiwfi, mpireduce, mpibcksub, mpisbv, mpicbv, mpibcast
 public :: mpibcasti, mpibcast1i, mpibcastap, mpireducemax, mpireducemin
-public :: mpiadapt, mpigat, mpiscat, mpiend, mpitim, mpiiam, mpikwt, partition
+public :: mpigat, mpiscat, mpiend, mpitim, mpiiam, mpikwt, partition
 public :: mpigats
 
 integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SOLVBV_MESSAGE = 1
@@ -240,19 +240,6 @@ subroutine mpisbv(solvbv)
        MPI_COMM_WORLD,ierr)
 
 end subroutine mpisbv
-
-subroutine mpiadapt(ntst,ncol,ndim,ups,uoldps,tm)
-
-  integer, intent(in) :: ntst,ncol,ndim
-  double precision :: ups(ndim,0:*),uoldps(ndim,0:*),tm(0:*)
-
-  call mpiscat(ups,ndim*ncol,ntst,ndim)
-  call mpiscat(uoldps,ndim*ncol,ntst,ndim)
-  call mpiscat(tm,1,ntst,1)
-
-  ! Worker runs here
-
-end subroutine mpiadapt
 
 subroutine mpicbv(npar,par,rds,ss)
 
