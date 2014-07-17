@@ -449,17 +449,22 @@ CONTAINS
     DOUBLE PRECISION, INTENT(IN) :: DT1DT
     DOUBLE PRECISION, INTENT(OUT) :: WTS(0:N)
 
-    INTEGER IB,K
+    INTEGER IB,K,DENOM
     DOUBLE PRECISION P
 
+    DENOM=1
+    DO K=2,N
+       DENOM=DENOM*K
+    ENDDO
     DO IB=0,N
        P=1.d0
        DO K=0,N
           IF(K/=IB)THEN
-             P=P*( DT1DT-K )/( IB-K )
+             P=P*( K-DT1DT )
           ENDIF
        ENDDO
-       WTS(IB)=P
+       WTS(IB)=P/DENOM
+       IF(IB<N)DENOM=DENOM/(N-IB)*(-1-IB)
     ENDDO
 
   END SUBROUTINE INTWTS
