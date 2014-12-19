@@ -3,6 +3,10 @@
 
 #include <sstream>
 
+#if defined(__APPLE__) && defined(__MACH__)
+#include <sys/utsname.h>
+#endif
+
 #include <Inventor/Qt/SoQt.h>
 #include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
 
@@ -870,6 +874,19 @@ MainWindow::buildMenu()
     if (useR3B) menubar->insertItem("&Center", pulldown2);
     menubar->insertItem("&Options", pulldown5);
     menubar->insertItem("&Help", pulldown6);
+
+#if defined(__APPLE__) && defined(__MACH__)
+    // Workaround: do not use native menu bar of Mac OS X Mavericks and later
+    struct utsname info;
+    if (uname(&info) >= 0) {
+        char * dot_position = strchr(info.release, '.');
+        if (dot_position) {
+	    *dot_position = 0;
+	    if (atoi(info.release) >= 13)
+	        menubar->setNativeMenuBar(false);
+	}
+    }
+#endif
 }
 
 
