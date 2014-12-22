@@ -122,16 +122,41 @@ public:
 
 public slots:
     void quit();
-    void fileMenuPick(int which);
-    void typeMenuPick(int which);
+    void open();
+    void save();
+    void print();
+    void editMenuRotating();
+    void editMenuBary();
+    void editMenuBig();
+    void editMenuSmall();
     void typeMenuDisplay();
-    void styleMenuPick(int which);
+    void typeMenuBifurcation();
+    void typeMenuSolution();
     void styleMenuDisplay();
-    void coordMenuPick(int which);
+    void styleMenuLine();
+    void styleMenuTube();
+    void styleMenuSurface();
+    void styleMenuMesh();
+    void styleMenuAll();
+    void coordMenuNone();
+    void coordMenuCenter();
+    void coordMenuLA();
+    void coordMenuLB();
+    void coordMenuOrigin();
+    void coordMenuScale();
     void coordMenuDisplay();
-    void optMenuPick(int which);
+    void optMenuPeriod();
+    void optMenuSat();
+    void optMenuPlane();
+    void optMenuSphere();
+    void optMenuPrimaries();
+    void optMenuLibration();
+    void optMenuLabels();
+    void optMenuNumbers();
+    void optMenuBackground();
+    void optMenuLegend();
+    void optMenuNormalize();
     void optMenuDisplay();
-    void editMenuPick(int which);
     void centerMenuDisplay();
     void showAboutDialog();
     void showHelp();
@@ -159,6 +184,11 @@ private:
     QPopupMenu *buildCenterMenu();
 
     void getFileName(int);
+    void editMenuPick(int which);
+    void typeMenuPick(int which);
+    void styleMenuPick(int which);
+    void coordMenuPick(int which);
+    void optMenuPick(int which);
 
     QComboBox *xAxisList, *yAxisList, *zAxisList, *labelsList,
               *colorMethodSeletionList;

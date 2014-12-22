@@ -161,6 +161,11 @@ MainWindow::lineWidthCB(int position)
     updateScene();
 }
 
+////////////////////////////////////////////////////////////////////////
+//
+//  These are called by Qt when a menu item is picked from the File menu.
+//
+
 // Common quit function
 void
 MainWindow::quit()
@@ -170,35 +175,29 @@ MainWindow::quit()
     qApp->exit(0);
 }
 
-////////////////////////////////////////////////////////////////////////
-//
-//  This is called by Qt when a menu item is picked from the File menu.
-//
 void
-MainWindow::fileMenuPick(int which)
+MainWindow::open()
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    switch (which)
-    {
-        case SAVE_ITEM:
-            getFileName(SAVE_ITEM);
-            break;
-
-        case QUIT_ITEM:
-            quit();
-            break;
-        case PRINT_ITEM:
-            getFileName(PRINT_ITEM);
-            break;
-        case OPEN_ITEM:
-            getFileName(OPEN_ITEM);
-            break;
-        default:
-            printf("UNKNOWN file menu item!!!\n"); break;
-    }
+    getFileName(OPEN_ITEM);
 }
 
+void
+MainWindow::save()
+//
+////////////////////////////////////////////////////////////////////////
+{
+    getFileName(SAVE_ITEM);
+}
+
+void
+MainWindow::print()
+//
+////////////////////////////////////////////////////////////////////////
+{
+    getFileName(PRINT_ITEM);
+}
 
 ////////////////////////////////////////////////////////////////////////
 //
@@ -216,6 +215,38 @@ MainWindow::editMenuPick(int which)
     whichCoordSystemOld = whichCoordSystem;
 
     updateScene();
+}
+
+void
+MainWindow::editMenuRotating()
+//
+////////////////////////////////////////////////////////////////////////
+{
+    editMenuPick(ROTATING_F);
+}
+
+void
+MainWindow::editMenuBary()
+//
+////////////////////////////////////////////////////////////////////////
+{
+    editMenuPick(INERTIAL_B);
+}
+
+void
+MainWindow::editMenuBig()
+//
+////////////////////////////////////////////////////////////////////////
+{
+    editMenuPick(INERTIAL_S);
+}
+
+void
+MainWindow::editMenuSmall()
+//
+////////////////////////////////////////////////////////////////////////
+{
+    editMenuPick(INERTIAL_E);
 }
 
 
@@ -268,6 +299,21 @@ MainWindow::typeMenuPick(int which)
     updateScene();
 }
 
+void
+MainWindow::typeMenuSolution()
+//
+////////////////////////////////////////////////////////////////////////
+{
+    typeMenuPick(SOLUTION);
+}
+
+void
+MainWindow::typeMenuBifurcation()
+//
+////////////////////////////////////////////////////////////////////////
+{
+    typeMenuPick(BIFURCATION);
+}
 
 ////////////////////////////////////////////////////////////////////////
 //
@@ -298,6 +344,94 @@ MainWindow::optMenuPick(int which)
     }
 
     updateScene();
+}
+
+void
+MainWindow::optMenuPeriod()
+//
+////////////////////////////////////////////////////////////////////////
+{
+    optMenuPick(OPT_PERIOD_ANI);
+}
+
+void
+MainWindow::optMenuSat()
+//
+////////////////////////////////////////////////////////////////////////
+{
+    optMenuPick(OPT_SAT_ANI);
+}
+
+void
+MainWindow::optMenuPlane()
+//
+////////////////////////////////////////////////////////////////////////
+{
+    optMenuPick(OPT_REF_PLAN);
+}
+
+void
+MainWindow::optMenuSphere()
+//
+////////////////////////////////////////////////////////////////////////
+{
+    optMenuPick(OPT_REF_SPHERE);
+}
+
+void
+MainWindow::optMenuPrimaries()
+//
+////////////////////////////////////////////////////////////////////////
+{
+    optMenuPick(OPT_PRIMARY);
+}
+
+void
+MainWindow::optMenuLibration()
+//
+////////////////////////////////////////////////////////////////////////
+{
+    optMenuPick(OPT_LIB_POINTS);
+}
+
+void
+MainWindow::optMenuLabels()
+//
+////////////////////////////////////////////////////////////////////////
+{
+    optMenuPick(OPT_DRAW_LABELS);
+}
+
+void
+MainWindow::optMenuNumbers()
+//
+////////////////////////////////////////////////////////////////////////
+{
+    optMenuPick(OPT_LABEL_NUMBERS);
+}
+
+void
+MainWindow::optMenuBackground()
+//
+////////////////////////////////////////////////////////////////////////
+{
+    optMenuPick(OPT_BACKGROUND);
+}
+
+void
+MainWindow::optMenuLegend()
+//
+////////////////////////////////////////////////////////////////////////
+{
+    optMenuPick(OPT_LEGEND);
+}
+
+void
+MainWindow::optMenuNormalize()
+//
+////////////////////////////////////////////////////////////////////////
+{
+    optMenuPick(OPT_NORMALIZE_DATA);
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -417,6 +551,35 @@ MainWindow::styleMenuPick(int which)
     updateScene();
 }
 
+void
+MainWindow::styleMenuLine()
+{
+    styleMenuPick(LINE);
+}
+
+void
+MainWindow::styleMenuTube()
+{
+    styleMenuPick(TUBE);
+}
+
+void
+MainWindow::styleMenuSurface()
+{
+    styleMenuPick(SURFACE);
+}
+
+void
+MainWindow::styleMenuMesh()
+{
+    styleMenuPick(MESH_POINTS);
+}
+
+void
+MainWindow::styleMenuAll()
+{
+    styleMenuPick(ALL_POINTS);
+}
 
 ////////////////////////////////////////////////////////////////////////
 //
@@ -443,6 +606,41 @@ MainWindow::coordMenuPick(int which)
     updateScene();
 }
 
+void
+MainWindow::coordMenuNone()
+{
+    coordMenuPick(NO_COORD);
+}
+
+void
+MainWindow::coordMenuCenter()
+{
+    coordMenuPick(COORDORIGIN);
+}
+
+void
+MainWindow::coordMenuLB()
+{
+    coordMenuPick(LEFTBACK);
+}
+
+void
+MainWindow::coordMenuLA()
+{
+    coordMenuPick(LEFTAHEAD);
+}
+
+void
+MainWindow::coordMenuOrigin()
+{
+    coordMenuPick(COORD_AT_ORIGIN);
+}
+
+void
+MainWindow::coordMenuScale()
+{
+    coordMenuPick(DRAW_TICKER);
+}
 
 ////////////////////////////////////////////////////////////////////////
 //
@@ -620,15 +818,15 @@ MainWindow::buildFileMenu()
     QPopupMenu *pulldown;
 
     pulldown = new QPopupMenu(this);
-    pulldown->insertItem("&Open...", this, SLOT(fileMenuPick(int)),
-                         Qt::CTRL+Qt::Key_O, OPEN_ITEM);
-    pulldown->insertItem("&Export...", this, SLOT(fileMenuPick(int)),
-                         Qt::CTRL+Qt::Key_S, SAVE_ITEM);
-    pulldown->insertItem("&Print...", this, SLOT(fileMenuPick(int)),
-                         Qt::CTRL+Qt::Key_P, PRINT_ITEM);
+    pulldown->insertItem("&Open...", this, SLOT(open()),
+                         Qt::CTRL+Qt::Key_O);
+    pulldown->insertItem("&Export...", this, SLOT(save()),
+                         Qt::CTRL+Qt::Key_S);
+    pulldown->insertItem("&Print...", this, SLOT(print()),
+                         Qt::CTRL+Qt::Key_P);
     pulldown->insertSeparator();
-    pulldown->insertItem("&Quit", this, SLOT(fileMenuPick(int)),
-                         Qt::CTRL+Qt::Key_Q, QUIT_ITEM);
+    pulldown->insertItem("&Quit", this, SLOT(quit()),
+                         Qt::CTRL+Qt::Key_Q);
     return pulldown;
 }
 
@@ -670,36 +868,36 @@ MainWindow::buildOptionMenu()
     optMenuItems = menuItems;
     if (!useR3B)
     {
-        pulldown->insertItem("&Highlight Orbit", this, SLOT(optMenuPick(int)),
+        pulldown->insertItem("&Highlight Orbit", this, SLOT(optMenuPeriod()),
                          0, OPT_PERIOD_ANI);
-        pulldown->insertItem("&Orbit Animation", this, SLOT(optMenuPick(int)),
+        pulldown->insertItem("&Orbit Animation", this, SLOT(optMenuSat()),
                          0, OPT_SAT_ANI);
     }
-    pulldown->insertItem("Draw &Reference Plane", this, SLOT(optMenuPick(int)),
+    pulldown->insertItem("Draw &Reference Plane", this, SLOT(optMenuPlane()),
                          0, OPT_REF_PLAN);
-    pulldown->insertItem("Draw R&eference Sphere", this, SLOT(optMenuPick(int)),
+    pulldown->insertItem("Draw R&eference Sphere", this, SLOT(optMenuSphere()),
                          0, OPT_REF_SPHERE);
     if (useR3B)
     {
-        pulldown->insertItem("Draw &Primaries", this, SLOT(optMenuPick(int)),
+        pulldown->insertItem("Draw &Primaries", this, SLOT(optMenuPrimaries()),
                          0, OPT_PRIMARY);
-        pulldown->insertItem("Draw &Libration Pts", this, SLOT(optMenuPick(int)),
+        pulldown->insertItem("Draw &Libration Pts", this, SLOT(optMenuLibration()),
                          0, OPT_LIB_POINTS);
         pulldown->insertSeparator();
-        pulldown->insertItem("&Orbit Animation", this, SLOT(optMenuPick(int)),
+        pulldown->insertItem("&Orbit Animation", this, SLOT(optMenuPeriod()),
                          0, OPT_PERIOD_ANI);
-        pulldown->insertItem("&Satellite Animation", this, SLOT(optMenuPick(int)),
+        pulldown->insertItem("&Satellite Animation", this, SLOT(optMenuSat()),
                          0, OPT_SAT_ANI);
     }
-    pulldown->insertItem("&Draw Labels", this, SLOT(optMenuPick(int)),
+    pulldown->insertItem("&Draw Labels", this, SLOT(optMenuLabels()),
                          0, OPT_DRAW_LABELS);
-    pulldown->insertItem("Sho&w Label Numbers", this, SLOT(optMenuPick(int)),
+    pulldown->insertItem("Sho&w Label Numbers", this, SLOT(optMenuNumbers()),
                          0, OPT_LABEL_NUMBERS);
-    pulldown->insertItem("Draw &Background", this, SLOT(optMenuPick(int)),
+    pulldown->insertItem("Draw &Background", this, SLOT(optMenuBackground()),
                          0, OPT_BACKGROUND);
-    pulldown->insertItem("&Add Legend", this, SLOT(optMenuPick(int)),
+    pulldown->insertItem("&Add Legend", this, SLOT(optMenuLegend()),
                          0, OPT_LEGEND);
-    pulldown->insertItem("&Normalize Data", this, SLOT(optMenuPick(int)),
+    pulldown->insertItem("&Normalize Data", this, SLOT(optMenuNormalize()),
                          0, OPT_NORMALIZE_DATA);
     pulldown->insertSeparator();
     preferDialog = NULL;
@@ -729,14 +927,14 @@ MainWindow::buildCenterMenu()
     coordSystemMenuItems->which = whichCoordSystem;
 
     pulldown->insertItem("&Rotating Frame", this,
-                         SLOT(editMenuPick(int)), 0, ROTATING_F);
+                         SLOT(editMenuRotating()), 0, ROTATING_F);
     pulldown->insertSeparator();
     pulldown->insertItem("Bary &Centered", this,
-                         SLOT(editMenuPick(int)), 0, INERTIAL_B);
+                         SLOT(editMenuCentered()), 0, INERTIAL_B);
     pulldown->insertItem("&Big Primary Centered", this,
-                         SLOT(editMenuPick(int)), 0, INERTIAL_S);
+                         SLOT(editMenuBig()), 0, INERTIAL_S);
     pulldown->insertItem("&Small Primary Centered", this,
-                         SLOT(editMenuPick(int)), 0, INERTIAL_E);
+                         SLOT(editMenuSmall()), 0, INERTIAL_E);
     return pulldown;
 }
 
@@ -759,13 +957,13 @@ MainWindow::buildStyleMenu()
     connect(pulldown, SIGNAL(aboutToShow()), this, SLOT(styleMenuDisplay()));
 
     pulldown->setCheckable(true);
-    pulldown->insertItem("&Line", this, SLOT(styleMenuPick(int)), 0, LINE);
-    pulldown->insertItem("&Tube", this, SLOT(styleMenuPick(int)), 0, TUBE);
-    pulldown->insertItem("&Surface", this, SLOT(styleMenuPick(int)),
+    pulldown->insertItem("&Line", this, SLOT(styleMenuLine()), 0, LINE);
+    pulldown->insertItem("&Tube", this, SLOT(styleMenuTube()), 0, TUBE);
+    pulldown->insertItem("&Surface", this, SLOT(styleMenuSurface()),
                          0, SURFACE);
-    pulldown->insertItem("&Mesh Points", this, SLOT(styleMenuPick(int)),
+    pulldown->insertItem("&Mesh Points", this, SLOT(styleMenuMesh()),
                          0, MESH_POINTS);
-    pulldown->insertItem("&All Points", this, SLOT(styleMenuPick(int)),
+    pulldown->insertItem("&All Points", this, SLOT(styleMenuAll()),
                          0, ALL_POINTS);
     return pulldown;
 }
@@ -790,17 +988,17 @@ MainWindow::buildCoordMenu()
     connect(pulldown, SIGNAL(aboutToShow()), this, SLOT(coordMenuDisplay()));
 
     pulldown->setCheckable(true);
-    pulldown->insertItem("&NONE", this, SLOT(coordMenuPick(int)), 0, NO_COORD);
-    pulldown->insertItem("&Coord Center", this, SLOT(coordMenuPick(int)),
+    pulldown->insertItem("&NONE", this, SLOT(coordMenuNone()), 0, NO_COORD);
+    pulldown->insertItem("&Coord Center", this, SLOT(coordMenuCenter()),
                          0, COORDORIGIN);
-    pulldown->insertItem("Left and &Back", this, SLOT(coordMenuPick(int)),
+    pulldown->insertItem("Left and &Back", this, SLOT(coordMenuLB()),
                          0, LEFTBACK);
-    pulldown->insertItem("Left and &Ahead", this, SLOT(coordMenuPick(int)),
+    pulldown->insertItem("Left and &Ahead", this, SLOT(coordMenuLA()),
                          0, LEFTAHEAD);
-    pulldown->insertItem("At &Origin", this, SLOT(coordMenuPick(int)),
+    pulldown->insertItem("At &Origin", this, SLOT(coordMenuOrigin()),
                          0, COORD_AT_ORIGIN);
     pulldown->insertSeparator();
-    pulldown->insertItem("&Draw Scale", this, SLOT(coordMenuPick(int)),
+    pulldown->insertItem("&Draw Scale", this, SLOT(coordMenuScale()),
                          0, DRAW_TICKER);
     return pulldown;
 }
@@ -826,9 +1024,9 @@ MainWindow::buildTypeMenu()
 
     connect(pulldown, SIGNAL(aboutToShow()), this, SLOT(typeMenuDisplay()));
 
-    pulldown->insertItem("&Solution", this, SLOT(typeMenuPick(int)),
+    pulldown->insertItem("&Solution", this, SLOT(typeMenuSolution()),
                          0, SOLUTION);
-    pulldown->insertItem("&Bifurcation", this, SLOT(typeMenuPick(int)),
+    pulldown->insertItem("&Bifurcation", this, SLOT(typeMenuBifurcation()),
                          0, BIFURCATION);
 
     return pulldown;
