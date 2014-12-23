@@ -28,6 +28,11 @@
 #include <qbuttongroup.h>
 #if QT_VERSION < 0x40000
 #define addButton insert
+#define setObjectName setName
+#define setMinimum setMinValue
+#define setMaximum setMaxValue
+#define setSingleStep setLineStep
+#define setCaption setWindowTitle
 #endif
 
 #include "gplaut04.h"
@@ -55,8 +60,12 @@ static MainWindow *mainWindow;
 
 DecSpinBox::DecSpinBox(int minValue, int maxValue, int step, QWidget * parent,
                        const char *name)
-      : QSpinBox(minValue, maxValue, step, parent, name)
+      : QSpinBox(parent)
 {
+      setMinimum(minValue);
+      setMaximum(maxValue);
+      setSingleStep(step);
+      setObjectName(name);
 }
 
 #if QT_VERSION >= 0x40000
@@ -1186,7 +1195,9 @@ MainWindow::MainWindow() : QMainWindow()
     QLabel *xLbl = new QLabel( "  X", listCarrier );
     ADD_LISTCARRIER_WIDGET(xLbl);
     // Create an editable Combobox
-    xAxisList = new QComboBox(true, listCarrier, "xAxis");
+    xAxisList = new QComboBox(listCarrier);
+    xAxisList->setObjectName("xAxis");
+    xAxisList->setEditable(true);
     ADD_LISTCARRIER_WIDGET(xAxisList);
     for ( std::vector<std::string>::size_type i = 0; i < xAxis.size(); i++ )
         xAxisList->insertItem( xAxis[i].c_str() );
@@ -1203,7 +1214,9 @@ MainWindow::MainWindow() : QMainWindow()
     // Create a editable Combobox
     QLabel *yLbl = new QLabel("  Y", listCarrier);
     ADD_LISTCARRIER_WIDGET(yLbl);
-    yAxisList = new QComboBox(true, listCarrier, "yAxis");
+    yAxisList = new QComboBox(listCarrier);
+    yAxisList->setObjectName("yAxis");
+    yAxisList->setEditable(true);
     ADD_LISTCARRIER_WIDGET(yAxisList);
     for ( std::vector<std::string>::size_type i = 0; i < yAxis.size(); i++ )
         yAxisList->insertItem( yAxis[i].c_str() );
@@ -1220,7 +1233,9 @@ MainWindow::MainWindow() : QMainWindow()
     // Create a editable Combobox
     QLabel *zLbl = new QLabel("  Z", listCarrier);
     ADD_LISTCARRIER_WIDGET(zLbl);
-    zAxisList = new QComboBox(true, listCarrier, "zAxis");
+    zAxisList = new QComboBox(listCarrier);
+    zAxisList->setObjectName("zAxis");
+    zAxisList->setEditable(true);
     ADD_LISTCARRIER_WIDGET(zAxisList);
     for ( std::vector<std::string>::size_type i = 0; i < zAxis.size(); i++ )
         zAxisList->insertItem( zAxis[i].c_str() );
@@ -1236,7 +1251,9 @@ MainWindow::MainWindow() : QMainWindow()
 // build the LABELs drop down list
     QLabel *lLbl = new QLabel("  Label", listCarrier);
     ADD_LISTCARRIER_WIDGET(lLbl);
-    labelsList = new QComboBox(true, listCarrier, "Labels");
+    labelsList = new QComboBox(listCarrier);
+    labelsList->setObjectName("Labels");
+    labelsList->setEditable(true);
     ADD_LISTCARRIER_WIDGET(labelsList);
     for ( std::vector<std::string>::size_type i = 0; i < labels.size(); i++ )
         labelsList->insertItem( labels[i].c_str() );
@@ -1254,8 +1271,9 @@ MainWindow::MainWindow() : QMainWindow()
 // build the COLORING Method drop down list
     QLabel *colorLbl = new QLabel("  Color", listCarrier);
     ADD_LISTCARRIER_WIDGET(colorLbl);
-    colorMethodSeletionList = new QComboBox(true, listCarrier,
-                                            "coloringMethodlist");
+    colorMethodSeletionList = new QComboBox(listCarrier);
+    colorMethodSeletionList->setObjectName("ColorMethodlist");
+    colorMethodSeletionList->setEditable(true);
     ADD_LISTCARRIER_WIDGET(colorMethodSeletionList);
     for ( std::vector<std::string>::size_type i = 0;
           i < coloringMethodList.size(); i++ )
@@ -1275,7 +1293,9 @@ MainWindow::MainWindow() : QMainWindow()
     int nItems = 7;
     int iam = 1;
 
-    QComboBox *numPeriodAnimatedList = new QComboBox(true, listCarrier, "list");
+    QComboBox *numPeriodAnimatedList = new QComboBox(listCarrier);
+    numPeriodAnimatedList->setObjectName("list");
+    numPeriodAnimatedList->setEditable(true);
     ADD_LISTCARRIER_WIDGET(numPeriodAnimatedList);
     for ( int j = 0; j < nItems; j++ ) {
         QString numberP;
@@ -1330,8 +1350,12 @@ MainWindow::MainWindow() : QMainWindow()
 // Create slider to control speed
     QLabel *satSldLbl = new QLabel(useR3B ? "  Sat " : "  Anim", listCarrier);
     ADD_LISTCARRIER_WIDGET(satSldLbl);
-    satAniSpeedSlider = new QSlider(MIN_SAT_SPEED, MAX_SAT_SPEED, 1,
-        (int)(satSpeed*100), Qt::Horizontal, listCarrier, "Speed");
+    satAniSpeedSlider = new QSlider(Qt::Horizontal, listCarrier);
+    satAniSpeedSlider->setObjectName("Speed");
+    satAniSpeedSlider->setMinimum(MIN_SAT_SPEED);
+    satAniSpeedSlider->setMaximum(MAX_SAT_SPEED);
+    satAniSpeedSlider->setPageStep(1);
+    satAniSpeedSlider->setValue((int)(satSpeed*100));
     ADD_LISTCARRIER_WIDGET(satAniSpeedSlider);
     satAniSpeedSlider->setEnabled(options[OPT_SAT_ANI]);
 
@@ -1345,8 +1369,12 @@ MainWindow::MainWindow() : QMainWindow()
 
     QLabel *orbitSldLbl = new QLabel("  Orbit", listCarrier);
     ADD_LISTCARRIER_WIDGET(orbitSldLbl);
-    orbitAniSpeedSlider = new QSlider(MIN_ORBIT_SPEED, MAX_ORBIT_SPEED, 1,
-        (int)(orbitSpeed*50), Qt::Horizontal, listCarrier, "Speed2");
+    orbitAniSpeedSlider = new QSlider(Qt::Horizontal, listCarrier);
+    orbitAniSpeedSlider->setObjectName("Speed2");
+    orbitAniSpeedSlider->setMinimum(MIN_ORBIT_SPEED);
+    orbitAniSpeedSlider->setMaximum(MAX_ORBIT_SPEED);
+    orbitAniSpeedSlider->setPageStep(1);
+    orbitAniSpeedSlider->setValue((int)(orbitSpeed*50));
     ADD_LISTCARRIER_WIDGET(orbitAniSpeedSlider);
     orbitAniSpeedSlider->setEnabled(options[OPT_PERIOD_ANI]);
 
@@ -1443,7 +1471,7 @@ LineColorSpinBox::valueChangedCB(int value)
 //
 LinePatternComboBox::LinePatternComboBox(bool rw, QWidget * parent,
                                          const char *name, int id)
-      : QComboBox(rw, parent, name)
+      : QComboBox(parent)
 //
 ////////////////////////////////////////////////////////////////////////
 {
@@ -1454,6 +1482,8 @@ LinePatternComboBox::LinePatternComboBox(bool rw, QWidget * parent,
         "NULL "
     };
 
+    setEditable(rw);
+    setObjectName(name);
     which = id;
     int lengthOfSysPatternArray = LENGTH( systemLinePatternLookAndFeel );
     for (int i = 0; i < lengthOfSysPatternArray; i++)
@@ -1560,7 +1590,12 @@ PreferDialog::createPreferActionFormControls(QWidget *parent)
 ////////////////////////////////////////////////////////////////////////
 {
     QPushButton *saveBtn, *closeBtn, *applyBtn, *cancelBtn;
-    QHBoxLayout *form = new QHBoxLayout(parent, 5, -1, "control form");
+#if QT_VERSION < 0x40000
+    QHBoxLayout *form = new QHBoxLayout(parent, 5, -1);
+#else
+    QHBoxLayout *form = new QHBoxLayout(parent);
+#endif
+    form->setObjectName("control form");
 
     saveBtn = new QPushButton(" &Save ", parent);
     connect(saveBtn, SIGNAL(clicked()),
@@ -1761,8 +1796,7 @@ PreferDialog::createOptionFrameGuts(QGroupBox *frame)
 // create default selections
 
 #if QT_VERSION >= 0x40000
-    QGridLayout *layout = new QGridLayout(frame,
-                                          (LENGTH(graphWidgetItems)+1)/2, 2);
+    QGridLayout *layout = new QGridLayout(frame);
 #endif
     QButtonGroup *group = new QButtonGroup;
     group->setExclusive(false);
@@ -1889,7 +1923,11 @@ PreferDialog::createLineAttPages(QWidget *parent)
         "Color 13"
     };
 
+#if QT_VERSION < 0x40000
     QGridLayout *layout = new QGridLayout(parent, 8, 18);
+#else
+    QGridLayout *layout = new QGridLayout(parent);
+#endif
     createColorAndLinePrefSheetHeader(parent, layout, 0);
     createColorAndLinePrefSheetHeader(parent, layout, 9);
     if(coloringMethod == CL_BRANCH_NUMBER || coloringMethod == CL_CURVE_NUMBER)
@@ -1910,12 +1948,14 @@ PreferDialog::createPreferNotebookPages(QTabWidget *notebook)
     const char *tabName[] = { "Menu Item Preferences", "Line Attributes" };
 
 // create the first page.
-    QWidget *pageForm0 = new QWidget(notebook, "pageForm0");
+    QWidget *pageForm0 = new QWidget(notebook);
+    pageForm0->setObjectName("pageForm0");
     createPreferDefaultPages(pageForm0);
     notebook->addTab(pageForm0, tabName[0]);
 
 // create the second page.
-    QWidget *pageForm1 = new QWidget(notebook, "pageForm1");
+    QWidget *pageForm1 = new QWidget(notebook);
+    pageForm1->setObjectName("pageForm1");
     createLineAttPages(pageForm1);
     notebook->addTab(pageForm1, tabName[1]);
 }
@@ -1942,20 +1982,27 @@ MainWindow::createPreferDialog()
 ////////////////////////////////////////////////////////////////////////
 //
 PreferDialog::PreferDialog(QWidget * parent, const char *name) :
-  QDialog(parent, name)
+  QDialog(parent)
 //
 ////////////////////////////////////////////////////////////////////////
 {
+    setObjectName(name);
     setCaption("Preference Dialog");
-
-    QVBoxLayout *panedWin = new QVBoxLayout(this, 5, -1, "pane");
+#if QT_VERSION < 0x40000
+    QVBoxLayout *panedWin = new QVBoxLayout(this, 5, -1);
+#else
+    QVBoxLayout *panedWin = new QVBoxLayout(this);
+#endif
+    panedWin->setObjectName("pane");
 
     // create notebook to hold all the pages
-    QTabWidget *notebook = new QTabWidget(this, "Options");
+    QTabWidget *notebook = new QTabWidget(this);
+    notebook->setObjectName("Options");
     createPreferNotebookPages(notebook);
     panedWin->addWidget(notebook);
 
-    QWidget *actionForm = new QWidget(this, "action form");
+    QWidget *actionForm = new QWidget(this);
+    actionForm->setObjectName("action form");
     createPreferActionFormControls(actionForm);
     panedWin->addWidget(actionForm);
     setModal(false);
@@ -2429,7 +2476,7 @@ class FmDrawingArea : public QWidget
 {
 public:
     FmDrawingArea( QWidget *parent, const char *name, int nFM )
-        : QWidget( parent, name ) { numFM = nFM; }
+        : QWidget( parent ) { setObjectName(name); numFM = nFM; }
 
 protected:
     void paintEvent( QPaintEvent * );
@@ -2543,21 +2590,31 @@ void popupFloquetMultiplierDialog(float data[], int size, int numFM)
     {
         FmDrawingArea *fmDrawingArea;
 
-        dialog_shell = new QDialog(mainWindow, "Dialog", false);
+        dialog_shell = new QDialog(mainWindow);
+        dialog_shell->setModal(false);
+        dialog_shell->setObjectName("Dialog");
         dialog_shell->setCaption("Dialog");
 
-        pane = new QVBoxLayout(dialog_shell, 5, -1, "pane");
+#if QT_VERSION < 0x40000
+        pane = new QVBoxLayout(dialog_shell, 5, -1);
+#else
+        pane = new QVBoxLayout(dialog_shell);
+#endif
+        pane->setObjectName("pane");
 
         fmDrawingArea = new FmDrawingArea(dialog_shell, "fmDrawingArea",
                                           numFM);
         fmDrawingArea->setMinimumSize(450,450);
         pane->addWidget(fmDrawingArea);
 
-        QWidget *form = new QWidget(dialog_shell, "form");
+        QWidget *form = new QWidget(dialog_shell);
+        form->setObjectName("form");
         QHBoxLayout *layout = new QHBoxLayout(form);
         layout->setSpacing(5);
-        QLabel *label3 = new QLabel(str, form, "label");
-        QLabel *label2 = new QLabel(tmpstr, form, "label");
+        QLabel *label3 = new QLabel(str, form);
+        label3->setObjectName("label");
+        QLabel *label2 = new QLabel(tmpstr, form);
+        label2->setObjectName("label");
         label2->setAlignment(Qt::AlignLeft);
         layout->addWidget(label3);
         layout->addWidget(label2);
