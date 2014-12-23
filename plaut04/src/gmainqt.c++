@@ -27,6 +27,7 @@
 #include <qtoolbar.h>
 #include <qbuttongroup.h>
 #if QT_VERSION < 0x40000
+#define toLocal8Bit local8Bit
 #define addButton insert
 #define setObjectName setName
 #define setMinimum setMinValue
@@ -122,13 +123,13 @@ MainWindow::numPeriodAnimatedCB(const QString &myChoice)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    if ( strcmp(myChoice, "inf") == 0 )
+    if ( myChoice == "inf" )
     {
        numPeriodAnimated = -1; 
     } 
     else 
     {
-       numPeriodAnimated = atof(myChoice);
+       numPeriodAnimated = myChoice.toFloat();
     }
 
 //cout <<" Num Period Animated "<<myChoice<<"   "<<numPeriodAnimated;
@@ -140,11 +141,12 @@ MainWindow::numPeriodAnimatedCB(const QString &myChoice)
 ////////////////////////////////////////////////////////////////////////
 //
 void
-MainWindow::colorMethodSelectionCB(const QString &myChoice)
+MainWindow::colorMethodSelectionCB(const QString &myChoic)
 //
 ////////////////////////////////////////////////////////////////////////
 {
     int choice = colorMethodSeletionList->currentItem();
+    const char *myChoice = myChoic.toLocal8Bit();
 
     coloringMethod = (strcasecmp(myChoice,"COMP")==0) ?  CL_COMPONENT:
     ((strcasecmp(myChoice,"TYPE")==0) ?  CL_ORBIT_TYPE :
@@ -2277,15 +2279,15 @@ MainWindow::getFileName(int fileMode)
     if(filename == QString::null)
         return;
     if(fileMode == SAVE_ITEM)
-        writeToFile(filename);
+        writeToFile(filename.toLocal8Bit());
     else if(fileMode == PRINT_ITEM)
     {
-	printToPostScript(root,filename,renderArea,100);
+	printToPostScript(root,filename.toLocal8Bit(),renderArea,100);
     }
     else if(fileMode == OPEN_ITEM)
     {
         deleteScene();
-        readFile(filename);
+        readFile(filename.toLocal8Bit());
     }
 }
 
@@ -2333,7 +2335,7 @@ MainWindow::xListCallBack(const QString &str)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    char *manyChoice = strdup(str);
+    char *manyChoice = strdup(str.toLocal8Bit());
 
     char * tmp;
     tmp = strtok(manyChoice, ",");
@@ -2361,7 +2363,7 @@ MainWindow::yListCallBack(const QString &str)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    char *manyChoice = strdup(str);
+    char *manyChoice = strdup(str.toLocal8Bit());
 
     char * tmp;
     tmp = strtok(manyChoice, ",");
@@ -2389,7 +2391,7 @@ MainWindow::zListCallBack(const QString &str)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    char *manyChoice = strdup(str);
+    char *manyChoice = strdup(str.toLocal8Bit());
 
     char * tmp;
     tmp = strtok(manyChoice, ",");
@@ -2417,7 +2419,7 @@ MainWindow::lblListCallBack(const QString &str)
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    char *manyChoice = strdup(str);
+    char *manyChoice = strdup(str.toLocal8Bit());
     int choice = labelsList->currentItem();
     int nItems = (whichType != BIFURCATION) ? mySolNode->totalLabels() : myBifNode->totalLabels();
     char * tmp;
