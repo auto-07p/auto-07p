@@ -29,6 +29,7 @@
 #if QT_VERSION < 0x40000
 #define toLocal8Bit local8Bit
 #define addButton insert
+#define addItem insertItem
 #define setObjectName setName
 #define setMinimum setMinValue
 #define setMaximum setMaxValue
@@ -482,9 +483,9 @@ MainWindow::setListValue()
     yAxisList->clear();
     zAxisList->clear();
     for (std::vector<std::string>::size_type i = 0; i < xAxis.size(); i++) {
-        xAxisList->insertItem(xAxis[i].c_str());
-        yAxisList->insertItem(yAxis[i].c_str());
-        zAxisList->insertItem(zAxis[i].c_str());
+        xAxisList->addItem(xAxis[i].c_str());
+        yAxisList->addItem(yAxis[i].c_str());
+        zAxisList->addItem(zAxis[i].c_str());
     }
 
     coloringMethodList.clear();
@@ -520,10 +521,10 @@ MainWindow::setListValue()
     }
     colorMethodSeletionList->clear();
     for (std::vector<std::string>::size_type i = 0; i < coloringMethodList.size(); i++) 
-        colorMethodSeletionList->insertItem(coloringMethodList[i].c_str());
+        colorMethodSeletionList->addItem(coloringMethodList[i].c_str());
     labelsList->clear();
     for (std::vector<std::string>::size_type i = 0; i < labels.size(); i++) 
-        labelsList->insertItem(labels[i].c_str());
+        labelsList->addItem(labels[i].c_str());
     xAxisList->setCurrentItem(xCoordIndices[0]);
     yAxisList->setCurrentItem(yCoordIndices[0]);
     zAxisList->setCurrentItem(zCoordIndices[0]);
@@ -1202,7 +1203,7 @@ MainWindow::MainWindow() : QMainWindow()
     xAxisList->setEditable(true);
     ADD_LISTCARRIER_WIDGET(xAxisList);
     for ( std::vector<std::string>::size_type i = 0; i < xAxis.size(); i++ )
-        xAxisList->insertItem( xAxis[i].c_str() );
+        xAxisList->addItem( xAxis[i].c_str() );
     xAxisList->setCurrentItem(xCoordIndices[0]);
     // Connect the activated SIGNALs of the Comboboxes with SLOTs
     connect(xAxisList, SIGNAL(activated(const QString &)),
@@ -1221,7 +1222,7 @@ MainWindow::MainWindow() : QMainWindow()
     yAxisList->setEditable(true);
     ADD_LISTCARRIER_WIDGET(yAxisList);
     for ( std::vector<std::string>::size_type i = 0; i < yAxis.size(); i++ )
-        yAxisList->insertItem( yAxis[i].c_str() );
+        yAxisList->addItem( yAxis[i].c_str() );
     yAxisList->setCurrentItem(yCoordIndices[0]);
     // Connect the activated SIGNALs of the Comboboxes with SLOTs
     connect(yAxisList, SIGNAL(activated(const QString &)),
@@ -1240,7 +1241,7 @@ MainWindow::MainWindow() : QMainWindow()
     zAxisList->setEditable(true);
     ADD_LISTCARRIER_WIDGET(zAxisList);
     for ( std::vector<std::string>::size_type i = 0; i < zAxis.size(); i++ )
-        zAxisList->insertItem( zAxis[i].c_str() );
+        zAxisList->addItem( zAxis[i].c_str() );
     zAxisList->setCurrentItem(zCoordIndices[0]);
     // Connect the activated SIGNALs of the Comboboxes with SLOTs
     connect(zAxisList, SIGNAL(activated(const QString &)),
@@ -1258,7 +1259,7 @@ MainWindow::MainWindow() : QMainWindow()
     labelsList->setEditable(true);
     ADD_LISTCARRIER_WIDGET(labelsList);
     for ( std::vector<std::string>::size_type i = 0; i < labels.size(); i++ )
-        labelsList->insertItem( labels[i].c_str() );
+        labelsList->addItem( labels[i].c_str() );
     labelsList->setCurrentItem(lblChoice[0]+LBL_OFFSET); //lblIndices[0]
 
 // Add Callback function for the LABELs drop down list
@@ -1279,7 +1280,7 @@ MainWindow::MainWindow() : QMainWindow()
     ADD_LISTCARRIER_WIDGET(colorMethodSeletionList);
     for ( std::vector<std::string>::size_type i = 0;
           i < coloringMethodList.size(); i++ )
-        colorMethodSeletionList->insertItem(coloringMethodList[i].c_str());
+        colorMethodSeletionList->addItem(coloringMethodList[i].c_str());
     colorMethodSeletionList->setCurrentItem(coloringMethod < 0 ?
        coloringMethod+CL_SP_ITEMS : coloringMethod+specialColorItems);
 
@@ -1313,7 +1314,7 @@ MainWindow::MainWindow() : QMainWindow()
 	}
 	else
 	    numberP = "inf";
-	numPeriodAnimatedList->insertItem(numberP);
+	numPeriodAnimatedList->addItem(numberP);
     }
 
     int i;
@@ -1489,7 +1490,7 @@ LinePatternComboBox::LinePatternComboBox(bool rw, QWidget * parent,
     which = id;
     int lengthOfSysPatternArray = LENGTH( systemLinePatternLookAndFeel );
     for (int i = 0; i < lengthOfSysPatternArray; i++)
-        insertItem(systemLinePatternLookAndFeel[i]);
+        addItem(systemLinePatternLookAndFeel[i]);
     connect(this, SIGNAL(activated(int)), this, SLOT(valueChangedCB(int)));
 }
 
