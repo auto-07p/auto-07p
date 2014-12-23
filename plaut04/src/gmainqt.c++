@@ -35,6 +35,9 @@
 #define setMaximum setMaxValue
 #define setSingleStep setLineStep
 #define setCaption setWindowTitle
+#else
+#define getSaveFileName(dir,filter,parent,name,caption) getSaveFileName(parent,caption,dir,filter)
+#define getOpenFileName(dir,filter,parent) getOpenFileName(parent,QString::null,dir,filter)
 #endif
 
 #include "gplaut04.h"
@@ -2269,7 +2272,8 @@ MainWindow::getFileName(int fileMode)
 
     if(fileMode == SAVE_ITEM)
         filename = QFileDialog::getSaveFileName(QString::null,
-                          "Inventor files (*.iv);;Any files (*)", this );
+                          "Inventor files (*.iv);;Any files (*)",
+                     this, 0, QString::null);
     else if(fileMode == PRINT_ITEM)
         filename = QFileDialog::getSaveFileName(QString::null,
 			  "PostScript files (*.ps *.eps);;Any files (*)",
