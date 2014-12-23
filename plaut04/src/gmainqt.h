@@ -1,6 +1,3 @@
-#ifndef QT3_SUPPORT
-#define QT3_SUPPORT
-#endif
 #include <qwidget.h>
 #include <qspinbox.h>
 #include <qcombobox.h>
@@ -189,6 +186,7 @@ private:
     void styleMenuPick(int which);
     void coordMenuPick(int which);
     void optMenuPick(int which);
+    unsigned optItem(unsigned i);
 
     QComboBox *xAxisList, *yAxisList, *zAxisList, *labelsList,
               *colorMethodSeletionList;

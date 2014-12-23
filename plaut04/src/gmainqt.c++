@@ -1,4 +1,3 @@
-#define QT3_SUPPORT
 #define LENGTH(arr) ((sizeof(arr) / sizeof(arr[0])))
 
 #include <sstream>
@@ -34,10 +33,26 @@
 #define setMinimum setMinValue
 #define setMaximum setMaxValue
 #define setSingleStep setLineStep
-#define setCaption setWindowTitle
+#define KEYSEQUENCE_OPEN Qt::CTRL+Qt::Key_O
+#define KEYSEQUENCE_SAVE Qt::CTRL+Qt::Key_S
+#define KEYSEQUENCE_PRINT Qt::CTRL+Qt::Key_P
+#define KEYSEQUENCE_QUIT Qt::CTRL+Qt::Key_Q
 #else
+#define setCaption setWindowTitle
+#define insertItem(a,b,c,d,e) addAction(a,b,c,d)
+#define insertSeparator addSeparator
+#define setCurrentItem setCurrentIndex
+#define currentItem currentIndex
+#define QPopupMenu QMenu
+#define setItemChecked(i,x) actions()[i]->setChecked(x)
+#define setItemEnabled(i,x) actions()[i]->setEnabled(x)
+#define setItemVisible(i,x) actions()[i]->setVisible(x)
 #define getSaveFileName(dir,filter,parent,name,caption) getSaveFileName(parent,caption,dir,filter)
 #define getOpenFileName(dir,filter,parent) getOpenFileName(parent,QString::null,dir,filter)
+#define KEYSEQUENCE_OPEN QKeySequence::Open
+#define KEYSEQUENCE_SAVE QKeySequence::Save
+#define KEYSEQUENCE_PRINT QKeySequence::Print
+#define KEYSEQUENCE_QUIT QKeySequence::Quit
 #endif
 
 #include "gplaut04.h"
@@ -731,7 +746,11 @@ MainWindow::coordMenuDisplay()
 
     if(menuItems->which == DRAW_TICKER)
     {
+#if QT_VERSION < 0x40000
         menuItems->items->setItemChecked(DRAW_TICKER, blDrawTicker);
+#else
+        menuItems->items->setItemChecked(DRAW_TICKER+1, blDrawTicker);
+#endif
     }
     else
     {
@@ -740,7 +759,11 @@ MainWindow::coordMenuDisplay()
         menuItems->items->setItemChecked(LEFTBACK, false);
         menuItems->items->setItemChecked(LEFTAHEAD, false);
         menuItems->items->setItemChecked(COORD_AT_ORIGIN, false);
+#if QT_VERSION < 0x40000
         menuItems->items->setItemChecked(DRAW_TICKER, blDrawTicker);
+#else
+        menuItems->items->setItemChecked(DRAW_TICKER+1, blDrawTicker);
+#endif
         menuItems->items->setItemChecked(menuItems->which, true);
     }
 }
@@ -775,6 +798,31 @@ MainWindow::centerMenuDisplay()
 //
 //  This is called by Qt just before the TYPE menu is displayed.
 //
+
+#if QT_VERSION >= 0x40000
+#undef setItemChecked
+#undef setItemEnabled
+#undef setItemVisible
+#define setItemChecked(i,x) actions()[optItem(i)]->setChecked(x)
+#define setItemEnabled(i,x) actions()[optItem(i)]->setEnabled(x)
+#define setItemVisible(i,x) actions()[optItem(i)]->setVisible(x)
+#endif
+
+unsigned
+MainWindow::optItem(unsigned i)
+{
+    unsigned j = i;
+    if (useR3B) {
+        if (i > OPT_LIB_POINTS) j = i+1;
+    }
+    else {
+        if (i <= OPT_REF_SPHERE) j += 2;   // 0,1=>2,3
+        else if (i <= OPT_SAT_ANI) j -= 4; // 4,5=>0,1
+        else j -= 2;                       // 6..=>4..
+    }
+    return j;
+}
+
 void 
 MainWindow::optMenuDisplay()
 //
@@ -832,16 +880,21 @@ MainWindow::buildFileMenu()
 {
     QPopupMenu *pulldown;
 
+#if QT_VERSION < 0x40000
     pulldown = new QPopupMenu(this);
+#else
+    pulldown = menuBar()->addMenu(tr("&File"));
+#endif
+
     pulldown->insertItem("&Open...", this, SLOT(open()),
-                         Qt::CTRL+Qt::Key_O);
+                         KEYSEQUENCE_OPEN, -1);
     pulldown->insertItem("&Export...", this, SLOT(save()),
-                         Qt::CTRL+Qt::Key_S);
+                         KEYSEQUENCE_SAVE, -1);
     pulldown->insertItem("&Print...", this, SLOT(print()),
-                         Qt::CTRL+Qt::Key_P);
+                         KEYSEQUENCE_PRINT, -1);
     pulldown->insertSeparator();
     pulldown->insertItem("&Quit", this, SLOT(quit()),
-                         Qt::CTRL+Qt::Key_Q);
+                         KEYSEQUENCE_QUIT, -1);
     return pulldown;
 }
 
@@ -855,10 +908,15 @@ MainWindow::buildHelpMenu()
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    QPopupMenu *pulldown = new QPopupMenu(this);
-    pulldown->insertItem("&About", this, SLOT(showAboutDialog()));
+    QPopupMenu *pulldown;
+#if QT_VERSION < 0x40000
+    pulldown = new QPopupMenu(this);
+#else
+    pulldown = menuBar()->addMenu(tr("&Help"));
+#endif
+    pulldown->insertItem("&About", this, SLOT(showAboutDialog()), 0, -1);
     pulldown->insertSeparator();
-    pulldown->insertItem("&HELP", this, SLOT(showHelp()));
+    pulldown->insertItem("&HELP", this, SLOT(showHelp()), 0, -1);
     return pulldown;
 }
 
@@ -873,8 +931,12 @@ MainWindow::buildOptionMenu()
 ////////////////////////////////////////////////////////////////////////
 {
     QPopupMenu *pulldown;
+#if QT_VERSION < 0x40000
     pulldown = new QPopupMenu(this);
     pulldown->setCheckable(true);
+#else
+    pulldown = menuBar()->addMenu(tr("&Options"));
+#endif
 
     connect(pulldown, SIGNAL(aboutToShow()), this, SLOT(optMenuDisplay()));
 
@@ -916,8 +978,12 @@ MainWindow::buildOptionMenu()
                          0, OPT_NORMALIZE_DATA);
     pulldown->insertSeparator();
     preferDialog = NULL;
-    pulldown->insertItem("&PREFERENCES", this, SLOT(createPreferDialog()));
+    pulldown->insertItem("&PREFERENCES", this, SLOT(createPreferDialog()), 0, -1);
 
+#if QT_VERSION >= 0x40000
+    for (int j = 0; j < pulldown->actions().size() - 2; ++j)
+        pulldown->actions()[j]->setCheckable(true);
+#endif
     return pulldown;
 }
 
@@ -932,8 +998,12 @@ MainWindow::buildCenterMenu()
 ////////////////////////////////////////////////////////////////////////
 {
     QPopupMenu *pulldown;
+#if QT_VERSION < 0x40000
     pulldown = new QPopupMenu(this);
     pulldown->setCheckable(true);
+#else
+    pulldown = menuBar()->addMenu(tr("&Center"));
+#endif
 
     connect(pulldown, SIGNAL(aboutToShow()), this, SLOT(centerMenuDisplay()));
 
@@ -950,6 +1020,10 @@ MainWindow::buildCenterMenu()
                          SLOT(editMenuBig()), 0, INERTIAL_S);
     pulldown->insertItem("&Small Primary Centered", this,
                          SLOT(editMenuSmall()), 0, INERTIAL_E);
+#if QT_VERSION >= 0x40000
+    for (int i = ROTATING_F; i <= INERTIAL_E; i++)
+         pulldown->actions()[i]->setCheckable(true);
+#endif
     return pulldown;
 }
 
@@ -964,14 +1038,20 @@ MainWindow::buildStyleMenu()
 ////////////////////////////////////////////////////////////////////////
 {
     QPopupMenu *pulldown;
+#if QT_VERSION < 0x40000
     pulldown = new QPopupMenu(this);
+#else
+    pulldown = menuBar()->addMenu(tr("&Style"));
+#endif
 
     styleMenuItems = new EditMenuItems;
     styleMenuItems->items = pulldown;   
     styleMenuItems->which = whichStyle;
     connect(pulldown, SIGNAL(aboutToShow()), this, SLOT(styleMenuDisplay()));
 
+#if QT_VERSION < 0x40000
     pulldown->setCheckable(true);
+#endif
     pulldown->insertItem("&Line", this, SLOT(styleMenuLine()), 0, LINE);
     pulldown->insertItem("&Tube", this, SLOT(styleMenuTube()), 0, TUBE);
     pulldown->insertItem("&Surface", this, SLOT(styleMenuSurface()),
@@ -980,6 +1060,10 @@ MainWindow::buildStyleMenu()
                          0, MESH_POINTS);
     pulldown->insertItem("&All Points", this, SLOT(styleMenuAll()),
                          0, ALL_POINTS);
+#if QT_VERSION >= 0x40000
+    for (int i = LINE; i <= ALL_POINTS; i++)
+         pulldown->actions()[i]->setCheckable(true);
+#endif
     return pulldown;
 }
 
@@ -995,14 +1079,20 @@ MainWindow::buildCoordMenu()
 {
     QPopupMenu *pulldown;
 
+#if QT_VERSION < 0x40000
     pulldown = new QPopupMenu(this);
+#else
+    pulldown = menuBar()->addMenu(tr("&Draw Coord"));
+#endif
     coordMenuItems = new EditMenuItems;
     coordMenuItems->items = pulldown;
     coordMenuItems->which = whichCoord;
 
     connect(pulldown, SIGNAL(aboutToShow()), this, SLOT(coordMenuDisplay()));
 
+#if QT_VERSION < 0x40000
     pulldown->setCheckable(true);
+#endif
     pulldown->insertItem("&NONE", this, SLOT(coordMenuNone()), 0, NO_COORD);
     pulldown->insertItem("&Coord Center", this, SLOT(coordMenuCenter()),
                          0, COORDORIGIN);
@@ -1015,6 +1105,11 @@ MainWindow::buildCoordMenu()
     pulldown->insertSeparator();
     pulldown->insertItem("&Draw Scale", this, SLOT(coordMenuScale()),
                          0, DRAW_TICKER);
+#if QT_VERSION >= 0x40000
+    for (int i = COORDORIGIN; i <= COORD_AT_ORIGIN; i++)
+         pulldown->actions()[i]->setCheckable(true);
+    pulldown->actions()[DRAW_TICKER+1]->setCheckable(true);
+#endif
     return pulldown;
 }
 
@@ -1030,12 +1125,18 @@ MainWindow::buildTypeMenu()
 {
     QPopupMenu *pulldown;
 
+#if QT_VERSION < 0x40000
     pulldown = new QPopupMenu(this);
+#else
+    pulldown = menuBar()->addMenu(tr("&Type"));
+#endif
     typeMenuItems = new EditMenuItems;
     typeMenuItems->items = pulldown;
     typeMenuItems->which = whichType;
 
+#if QT_VERSION < 0x40000
     pulldown->setCheckable(true);
+#endif
 
     connect(pulldown, SIGNAL(aboutToShow()), this, SLOT(typeMenuDisplay()));
 
@@ -1044,6 +1145,10 @@ MainWindow::buildTypeMenu()
     pulldown->insertItem("&Bifurcation", this, SLOT(typeMenuBifurcation()),
                          0, BIFURCATION);
 
+#if QT_VERSION >= 0x40000
+    pulldown->actions()[SOLUTION]->setCheckable(true);
+    pulldown->actions()[BIFURCATION]->setCheckable(true);
+#endif
     return pulldown;
 }
 
@@ -1080,6 +1185,7 @@ MainWindow::buildMenu()
 #endif
 // the text in the menubar for these menus
     QMenuBar *menubar = menuBar();
+#if QT_VERSION < 0x40000
     menubar->insertItem("&File", pulldown1);
     menubar->insertItem("&Type", pulldown4);
     menubar->insertItem("&Style", pulldown3);
@@ -1087,6 +1193,7 @@ MainWindow::buildMenu()
     if (useR3B) menubar->insertItem("&Center", pulldown2);
     menubar->insertItem("&Options", pulldown5);
     menubar->insertItem("&Help", pulldown6);
+#endif
 
 #if defined(__APPLE__) && defined(__MACH__)
     // Workaround: do not use native menu bar of Mac OS X Mavericks and later
