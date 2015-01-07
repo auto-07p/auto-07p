@@ -587,10 +587,16 @@ CONTAINS
 
 ! Perform Newton iterations
 
-       CALL NEWTONBV(AP,PAR,ICP,FUNI,BCNI,ICNI,FNCI,RDS, &
+       CALL NEWTONBV(AP,PAR,ICP,FUNI,BCNI,ICNI,RDS, &
             RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
             TM,DTM,P0,P1,THL,THU,NITPS,CONVERGED)
        IF(CONVERGED)THEN
+          ! Global concatenation of the solution from each node.
+          CALL MPIGAT(UPS,NDIM*NCOL,AP%NTST)
+          IF(IAM==0)THEN
+             CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
+             IF(IID.GE.2)WRITE(9,*)
+          ENDIF
           RETURN
        ENDIF
 
@@ -633,7 +639,7 @@ CONTAINS
   END SUBROUTINE STEPBV
 
 ! ---------- --------
-  SUBROUTINE NEWTONBV(AP,PAR,ICP,FUNI,BCNI,ICNI,FNCI,RDS, &
+  SUBROUTINE NEWTONBV(AP,PAR,ICP,FUNI,BCNI,ICNI,RDS, &
        RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
        TM,DTM,P0,P1,THL,THU,NITPS,CONVERGED)
 
@@ -809,12 +815,6 @@ CONTAINS
        ENDIF
 
        IF(STATE==NEWTON_CONVERGED)THEN
-          ! Global concatenation of the solution from each node.
-          CALL MPIGAT(UPS,NDIM*NCOL,NTST)
-          IF(IAM==0)THEN
-             CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
-             IF(IID.GE.2)WRITE(9,*)
-          ENDIF
           CONVERGED=.TRUE.
           EXIT
        ENDIF
