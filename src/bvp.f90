@@ -16,7 +16,7 @@ MODULE BVP
   INTEGER, ALLOCATABLE :: NRTN(:)
   INTEGER IRTN
 
-  INTEGER, PARAMETER :: LCSPBV_CONT=10, LCSPBV_NOT_CONVERGED=11
+  INTEGER, PARAMETER :: LCSPBV_CONT=10
 
 CONTAINS
 
@@ -262,28 +262,33 @@ CONTAINS
                RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
                TM,DTM,P0,P1,THL,THU,NITPS,ISTOP,NA)
           CALL MPIBCAST1I(MPISTATE)
-          IF(MPISTATE==LCSPBV_NOT_CONVERGED)THEN
-             ! set back to previous (converged) state
-             CALL MPISCAT(UPS,NDIM*NCOL,NTST,NDIM)
-             CALL MPISCAT(UDOTPS,NDIM*NCOL,NTST,NDIM)
-             CALL MPISCAT(UOLDPS,NDIM*NCOL,NTST,NDIM)
-             CALL MPIBCAST(RLCUR,NFPR)
-             CALL MPIBCAST(RLDOT,NFPR)
-             CALL MPIBCAST(RLOLD,NFPR)
-             CALL MPIBCAST(DSOLDS,1)
-             DSOLD=DSOLDS(1)
+          DO WHILE(MPISTATE==LCSPBV_CONT)
+             CALL CONTBV(AP,DSOLD,PAR,ICP,FUNI,RLCUR,RLOLD,RLDOT, &
+                  NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU,RDS)
+             CALL STEPBV(AP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,RDS, &
+                  RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
+                  TM,DTM,P0,P1,THL,THU,NITPS,ISTOP,NA)
+             IF(ISTOP/=0)THEN
+                ! set back to previous (converged) state
+                CALL MPISCAT(UPS,NDIM*NCOL,NTST,NDIM)
+                CALL MPISCAT(UDOTPS,NDIM*NCOL,NTST,NDIM)
+                CALL MPISCAT(UOLDPS,NDIM*NCOL,NTST,NDIM)
+                CALL MPIBCAST(RLCUR,NFPR)
+                CALL MPIBCAST(RLDOT,NFPR)
+                CALL MPIBCAST(RLOLD,NFPR)
+                CALL MPIBCAST(DSOLDS,1)
+                DSOLD=DSOLDS(1)
+             ENDIF
              CALL MPIBCAST1I(MPISTATE)
-          ENDIF
-          IF(MPISTATE/=LCSPBV_CONT)THEN
-             ISTOP=MPISTATE
-             CALL STPLBV(AP,PAR,ICP,ICU,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,THU,ISTOP,NA)
-             IF(ISTOP/=0)EXIT
-             IF(AP%IAD/=0)THEN
-                IF(MOD(AP%NTOT,AP%IAD)==0)THEN
-                   ! Master adapted the mesh to the solution.
-                   CALL ADAPT(NTST,NCOL,NDIM,TM,DTM,UPS,UOLDPS,.FALSE.)
-                   DTM(:)=TM(1:NA)-TM(0:NA-1)
-                ENDIF
+          ENDDO
+          ISTOP=MPISTATE
+          CALL STPLBV(AP,PAR,ICP,ICU,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,THU,ISTOP,NA)
+          IF(ISTOP/=0)EXIT
+          IF(AP%IAD/=0)THEN
+             IF(MOD(AP%NTOT,AP%IAD)==0)THEN
+                ! Master adapted the mesh to the solution.
+                CALL ADAPT(NTST,NCOL,NDIM,TM,DTM,UPS,UOLDPS,.FALSE.)
+                DTM(:)=TM(1:NA)-TM(0:NA-1)
              ENDIF
           ENDIF
 
@@ -1431,8 +1436,6 @@ CONTAINS
     IF(IID>0)WRITE(9,103)IBR,NTOP+1
     ATYPE=''
     ! set back to previous (converged) state
-    MPISTATE=LCSPBV_NOT_CONVERGED
-    CALL MPIBCAST1I(MPISTATE)
     CALL MPISCAT(UPSS,NDIM*NCOL,NTST,NDIM)
     CALL MPISCAT(UDOTPSS,NDIM*NCOL,NTST,NDIM)
     CALL MPISCAT(UOLDPSS,NDIM*NCOL,NTST,NDIM)
