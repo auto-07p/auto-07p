@@ -256,11 +256,59 @@ CONTAINS
     CALL MPIBCAST1I(ISTOP)
     CALL STPLBV(AP,PAR,ICP,ICU,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,THU,ISTOP,NA)
 
-    IF(IAM/=0)THEN
-       DO WHILE(ISTOP==0)
-          CALL STEPBV(AP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,RDS, &
-               RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
-               TM,DTM,P0,P1,THL,THU,NITPS,ISTOP,NA)
+    DO WHILE(ISTOP==0)
+       ITP=0
+       AP%ITP=ITP
+       NINS=AP%NINS
+       CALL STEPBV(AP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,RDS, &
+            RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
+            TM,DTM,P0,P1,THL,THU,NITPS,ISTOP,NTSTNA)
+
+       IF(IAM==0)THEN
+          IFOUND=0
+          DSTEST=DSOLD
+          IF(ISTOP/=0)THEN
+             ISTEPPED=AP%NTEST+1
+          ELSE
+             ISTEPPED=0
+             CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
+             IF(IID.GE.2)WRITE(9,*)
+             DO ITEST=1,AP%NTEST
+                ! Check for special points
+                CALL LCSPBV(AP,DSOLD,DSTEST,PAR,ICP,ITEST,FUNI,BCNI,ICNI,FNCI, &
+                     TEST(ITEST),RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS, &
+                     UPOLDP,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ATYPE,STEPPED)
+                IF(STEPPED)ISTEPPED=ITEST
+                IF(LEN_TRIM(ATYPE)>0)THEN
+                   IFOUND=ITEST
+                   AP%ITP=LBITP(ATYPE,.TRUE.)
+                   AP%ITP=AP%ITP+SIGN(10,AP%ITP)*ITPST
+                ENDIF
+             ENDDO
+          ENDIF
+
+          DO ITEST=1,ISTEPPED-1
+             ! evaluate the test functions for the next step
+             TEST(ITEST)=FNCS(AP,ICP,UPS,PAR,ATYPEDUM,IUZ,VUZ,ITEST,FNCI)
+          ENDDO
+
+          ITP=AP%ITP
+          IF(ITP/=0)THEN
+             IF(STOPPED(IUZ,IFOUND,NUZR,ITP,STOPCNTS))THEN
+                ISTOP=-1 ! *Stop at the first found bifurcation
+             ENDIF
+             IF(MOD(ITP,10)/=-4)THEN
+                ! for plotter: use stability of previous point
+                ! for bifurcation points
+                AP%NINS=NINS
+             ENDIF
+          ENDIF
+
+! Store plotting data.
+
+          CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
+          CALL MPIBCAST1I(ISTOP)
+       ELSE
           CALL MPIBCAST1I(MPISTATE)
           DO WHILE(MPISTATE==LCSPBV_CONT)
              CALL CONTBV(AP,DSOLD,PAR,ICP,FUNI,RLCUR,RLOLD,RLDOT, &
@@ -282,79 +330,8 @@ CONTAINS
              CALL MPIBCAST1I(MPISTATE)
           ENDDO
           ISTOP=MPISTATE
-          CALL STPLBV(AP,PAR,ICP,ICU,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,THU,ISTOP,NA)
-          IF(ISTOP/=0)EXIT
-          IF(AP%IAD/=0)THEN
-             IF(MOD(AP%NTOT,AP%IAD)==0)THEN
-                ! Master adapted the mesh to the solution.
-                CALL ADAPT(NTST,NCOL,NDIM,TM,DTM,UPS,UOLDPS,.FALSE.)
-                DTM(:)=TM(1:NA)-TM(0:NA-1)
-             ENDIF
-          ENDIF
-
-          ! Update UOLDPS, UDOTPS, UPOLDP, RLOLD, and RLDOT.
-
-          CALL CONTBV(AP,DSOLD,PAR,ICP,FUNI,RLCUR,RLOLD,RLDOT, &
-               NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU,RDS)
-
-       ENDDO
-       DEALLOCATE(PAR,THU)
-       DEALLOCATE(UPS,UOLDPS,UPOLDP,UDOTPS,DTM,TM)
-       DEALLOCATE(RLCUR,RLOLD,RLDOT)
-       RETURN
-    ENDIF
-
-    DO WHILE(ISTOP==0)
-       ITP=0
-       AP%ITP=ITP
-       NINS=AP%NINS
-       CALL STEPBV(AP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,RDS, &
-            RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
-            TM,DTM,P0,P1,THL,THU,NITPS,ISTOP,NTST)
-
-       IFOUND=0
-       DSTEST=DSOLD
-       IF(ISTOP/=0)THEN
-          ISTEPPED=AP%NTEST+1
-       ELSE
-          ISTEPPED=0
-          CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
-          IF(IID.GE.2)WRITE(9,*)
-          DO ITEST=1,AP%NTEST
-             ! Check for special points
-             CALL LCSPBV(AP,DSOLD,DSTEST,PAR,ICP,ITEST,FUNI,BCNI,ICNI,FNCI, &
-                  TEST(ITEST),RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS, &
-                  UPOLDP,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ATYPE,STEPPED)
-             IF(STEPPED)ISTEPPED=ITEST
-             IF(LEN_TRIM(ATYPE)>0)THEN
-                IFOUND=ITEST
-                AP%ITP=LBITP(ATYPE,.TRUE.)
-                AP%ITP=AP%ITP+SIGN(10,AP%ITP)*ITPST
-             ENDIF
-          ENDDO
        ENDIF
 
-       DO ITEST=1,ISTEPPED-1
-          ! evaluate the test functions for the next step
-          TEST(ITEST)=FNCS(AP,ICP,UPS,PAR,ATYPEDUM,IUZ,VUZ,ITEST,FNCI)
-       ENDDO
-
-       ITP=AP%ITP
-       IF(ITP/=0)THEN
-          IF(STOPPED(IUZ,IFOUND,NUZR,ITP,STOPCNTS))THEN
-             ISTOP=-1 ! *Stop at the first found bifurcation
-          ENDIF
-          IF(MOD(ITP,10)/=-4)THEN
-             ! for plotter: use stability of previous point
-             ! for bifurcation points
-             AP%NINS=NINS
-          ENDIF
-       ENDIF
-
-! Store plotting data.
-
-       CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
-       CALL MPIBCAST1I(ISTOP)
        CALL STPLBV(AP,PAR,ICP,ICU,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,THU,ISTOP,NA)
 
        IF(ISTOP/=0)EXIT
@@ -364,7 +341,7 @@ CONTAINS
 
        IF(IAD.NE.0)THEN
           IF(MOD(NTOT,IAD).EQ.0)THEN
-             CALL ADAPT(NTST,NCOL,NDIM,TM,DTM,UPS,UOLDPS, &
+             CALL ADAPT(NTST,NTSTNA,NCOL,NDIM,TM,DTM,UPS,UOLDPS, &
                   ((IPS==2.OR.IPS==12) .AND. ABS(ISW)<=1))
           ENDIF
        ENDIF
