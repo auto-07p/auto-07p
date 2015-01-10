@@ -101,9 +101,8 @@ CONTAINS
     DOUBLE PRECISION, ALLOCATABLE :: UDOTPS(:,:),TM(:),TEST(:)
     INTEGER NDIM,IPS,IRS,ILP,NTST,NCOL,IAD,IADS,ISP,ISW,NUZR,ITP,ITPST,NFPR
     INTEGER IBR,IPERP,ISTOP,ITNW,ITEST,I,NITPS,NODIR,NTOP,NTOT,NPAR,NINS
-    INTEGER IFOUND,ISTEPPED,IAM,KWT,NA,IID
+    INTEGER IFOUND,ISTEPPED,MPISTATE,IAM,KWT,NA,NTSTNA,IID
     INTEGER STOPCNTS(-9:14)
-    INTEGER MPISTATE
     DOUBLE PRECISION DS,DSMAX,DSOLD,DSTEST,RDS,SP1,DSOLDS(1)
     LOGICAL STEPPED
     CHARACTER(4) ATYPE,ATYPEDUM
@@ -144,12 +143,7 @@ CONTAINS
     ! past NPAR gracefully
     ALLOCATE(PAR(MAX(NPAR,NPARX)),THL(NFPR),THU(NDIM),IUZ(NUZR),VUZ(NUZR))
 
-    IF(IAM==0)THEN
-       CALL INIT3(AP,ICP,PAR,THL,THU,IUZ,VUZ)
-    ELSE
-       AP%ISP=ABS(AP%ISP)
-       AP%NTOT=0
-    ENDIF
+    IF(IAM==0)CALL INIT3(AP,ICP,PAR,THL,THU,IUZ,VUZ)
 
     CALL MPIBCAST(THU,NDIM)
 
@@ -160,41 +154,109 @@ CONTAINS
     DEALLOCATE(NP)
     IID=AP%IID
 
+    IF(IAM==0)THEN
+       NTSTNA=NTST
+    ELSE
+       NTSTNA=NA
+    ENDIF
+
     ALLOCATE(RLCUR(NFPR),RLDOT(NFPR),RLOLD(NFPR))
+    ALLOCATE(UPS(NDIM,0:NTSTNA*NCOL),UOLDPS(NDIM,0:NTSTNA*NCOL))
+    ALLOCATE(UPOLDP(NDIM,0:NA*NCOL),UDOTPS(NDIM,0:NTSTNA*NCOL))
+    ALLOCATE(TM(0:NTSTNA),DTM(NTSTNA))
+    ALLOCATE(P0(NDIM,NDIM),P1(NDIM,NDIM),TEST(AP%NTEST),EV(AP%NDM))
 
-    IF(IAM/=0)THEN
-       ALLOCATE(UPS(NDIM,0:NA*NCOL),UOLDPS(NDIM,0:NA*NCOL))
-       ALLOCATE(UPOLDP(NDIM,0:NA*NCOL),UDOTPS(NDIM,0:NA*NCOL),DTM(NA),TM(0:NA))
+    DS=AP%DS
 
+    RDS=DS
+    DSOLD=RDS
+    IF(IAM==0)CALL INITSTOPCNTS(ISP,ILP,ITPST,STOPCNTS)
+    IF(ISP.LT.0)THEN
+       ISP=-ISP
+       AP%ISP=ISP
+    ENDIF
+    DO I=1,AP%NTEST
+       TEST(I)=0.d0
+    ENDDO
+    NITPS=0
+    NTOT=0
+    AP%NTOT=NTOT
+    ISTOP=0
+
+    DO I=1,NFPR
+       RLCUR(I)=0.d0
+       RLOLD(I)=0.d0
+       RLDOT(I)=0.d0
+    ENDDO
+
+    UPS(:,:)=0.d0
+    UOLDPS(:,:)=0.d0
+    UPOLDP(:,:)=0.d0
+    UDOTPS(:,:)=0.d0
+
+    NODIR=0
+    IF(IAM==0)THEN
+       CALL RSPTBV(AP,PAR,ICP,STPNBVI,FNCI,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,NODIR)
+    ELSE
        ! RSPTBV calls STPNBVI which sometimes calls SOLVBV so we need
        ! to check if parallel work needs to be done
        DO WHILE(MPIWFI(.TRUE.))
           CALL MPI_SETUBV_WORKER(FUNI,ICNI,BCNI)
        ENDDO
+    ENDIF
+    CALL STUDPBV(AP,PAR,ICP,FUNI,RLCUR,RLOLD, &
+         NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,TM,NODIR,THU,NTSTNA,NA)
 
-       ! Store U-prime (derivative with respect to time or space variable).
-
-       RLDOT(:)=0
-       CALL STUDPBV(AP,PAR,ICP,FUNI,RLCUR,RLOLD, &
-            NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,TM,NODIR,THU,NA,NA)
+    IF(IAM==0)THEN
+!     don't set global rotations here for homoclinics, but in autlib5.f
+       IF(IPS.NE.9)CALL SETRTN(AP%NDM,NTST*NCOL,NDIM,UPS)
+    ELSE
        DTM(:)=TM(1:NA)-TM(0:NA-1)
+    ENDIF
 
-       CALL MPIBCAST1I(IPERP)
-       IF(IPERP/=0.AND.IPERP/=3)THEN
-          CALL MPISCAT(UDOTPS,NDIM*NCOL,NTST,NDIM)
-          CALL MPIBCAST(RLDOT,AP%NFPR)
+    CALL MPIBCAST1I(NODIR)
+    IPERP=2
+    IF(NODIR.EQ.1 .AND. ISW.GT.0)THEN
+       ! no direction given or valid; no branch switch
+       IPERP=0
+    ELSEIF(IRS.NE.0 .AND. ISW.LT.0)THEN
+       ! branch switch
+       IPERP=1
+    ELSEIF(ITP==3 .OR. ABS(ITP/10)==3) THEN
+       ! Hopf bifurcation
+       IPERP=3
+    ELSEIF( ISP/=0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12)) THEN
+       ! periodic orbit with detection of special points: compute FMs
+       IPERP=-1
+    ENDIF
+    IF(IPERP/=0.AND.IPERP/=3)THEN
+       CALL MPISCAT(UDOTPS,NDIM*NCOL,NTST,NDIM)
+       CALL MPIBCAST(RLDOT,AP%NFPR)
+    ENDIF
+    IF(IPERP<2)THEN
+       CALL STDRBV(AP,PAR,ICP,FUNI,BCNI,ICNI,RLCUR,RLOLD,RLDOT,NDIM, &
+            UPS,UOLDPS,UDOTPS,UPOLDP,DTM,IPERP,P0,P1,THL,THU,NA)
+       IF(IAM==0 .AND. ISP/=0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12) )THEN
+          ! determine and print Floquet multipliers and stability
+          SP1 = FNCI(AP,ICP,UPS,NDIM,PAR,3,ATYPEDUM)
        ENDIF
-       IF(IPERP<2)THEN
-          ! no direction given or branch switch or
-          ! periodic orbit with detection of special points: compute FMs
-          CALL STDRBV(AP,PAR,ICP,FUNI,BCNI,ICNI,RLCUR,RLOLD,RLDOT,NDIM, &
-               UPS,UOLDPS,UDOTPS,UPOLDP,DTM,IPERP,P0,P1,THL,THU,NA)
-       ENDIF
+    ENDIF
 
-       CALL MPIBCAST(PAR,NPAR)
-       RDS=AP%DS
-       CALL MPIBCAST1I(ISTOP)
-       CALL STPLBV(AP,PAR,ICP,ICU,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,THU,ISTOP,NA)
+! Store plotting data for restart point :
+
+    IF(IAM==0)CALL STHD(AP,ICP)
+    IF(IRS.EQ.0) THEN
+       ITP=9+10*ITPST
+    ELSE
+       ITP=0
+    ENDIF
+    AP%ITP=ITP
+    IF(IAM==0)CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
+    CALL MPIBCAST(PAR,NPAR)
+    CALL MPIBCAST1I(ISTOP)
+    CALL STPLBV(AP,PAR,ICP,ICU,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,THU,ISTOP,NA)
+
+    IF(IAM/=0)THEN
        DO WHILE(ISTOP==0)
           CALL STEPBV(AP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,RDS, &
                RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
@@ -237,87 +299,6 @@ CONTAINS
        RETURN
     ENDIF
 
-    ALLOCATE(UPS(NDIM,0:NTST*NCOL),UOLDPS(NDIM,0:NTST*NCOL))
-    ALLOCATE(UPOLDP(NDIM,0:NA*NCOL),UDOTPS(NDIM,0:NTST*NCOL))
-    ALLOCATE(TM(0:NTST),DTM(NTST))
-    ALLOCATE(P0(NDIM,NDIM),P1(NDIM,NDIM),TEST(AP%NTEST),EV(AP%NDM))
-
-    DS=AP%DS
-
-    RDS=DS
-    DSOLD=RDS
-    CALL INITSTOPCNTS(ISP,ILP,ITPST,STOPCNTS)
-    IF(ISP.LT.0)THEN
-       ISP=-ISP
-       AP%ISP=ISP
-    ENDIF
-    DO I=1,AP%NTEST
-       TEST(I)=0.d0
-    ENDDO
-    NITPS=0
-    NTOT=0
-    AP%NTOT=NTOT
-    ISTOP=0
-
-    DO I=1,NFPR
-       RLCUR(I)=0.d0
-       RLOLD(I)=0.d0
-       RLDOT(I)=0.d0
-    ENDDO
-
-    UPS(:,:)=0.d0
-    UOLDPS(:,:)=0.d0
-    UPOLDP(:,:)=0.d0
-    UDOTPS(:,:)=0.d0
-
-    NODIR=0
-    CALL RSPTBV(AP,PAR,ICP,STPNBVI,FNCI,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,NODIR)
-    CALL STUDPBV(AP,PAR,ICP,FUNI,RLCUR,RLOLD, &
-         NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,TM,NODIR,THU,NTST,NA)
-
-!     don't set global rotations here for homoclinics, but in autlib5.f
-    IF(IPS.NE.9)CALL SETRTN(AP%NDM,NTST*NCOL,NDIM,UPS)
-
-    IPERP=2
-    IF(NODIR.EQ.1 .AND. ISW.GT.0)THEN
-       ! no direction given or valid; no branch switch
-       IPERP=0
-    ELSEIF(IRS.NE.0 .AND. ISW.LT.0)THEN
-       ! branch switch
-       IPERP=1
-    ELSEIF(ITP==3 .OR. ABS(ITP/10)==3) THEN
-       ! Hopf bifurcation
-       IPERP=3
-    ELSEIF( ISP/=0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12)) THEN
-       ! periodic orbit with detection of special points: compute FMs
-       IPERP=-1
-    ENDIF
-    CALL MPIBCAST1I(IPERP)
-    IF(IPERP/=0.AND.IPERP/=3)THEN
-       CALL MPISCAT(UDOTPS,NDIM*NCOL,NTST,NDIM)
-       CALL MPIBCAST(RLDOT,AP%NFPR)
-    ENDIF
-    IF(IPERP<2)THEN
-       CALL STDRBV(AP,PAR,ICP,FUNI,BCNI,ICNI,RLCUR,RLOLD,RLDOT,NDIM, &
-            UPS,UOLDPS,UDOTPS,UPOLDP,DTM,IPERP,P0,P1,THL,THU,NA)
-       IF(ISP/=0 .AND. (IPS==2.OR.IPS==7.OR.IPS==12) )THEN
-          ! determine and print Floquet multipliers and stability
-          SP1 = FNCI(AP,ICP,UPS,NDIM,PAR,3,ATYPEDUM)
-       ENDIF
-    ENDIF
-
-! Store plotting data for restart point :
-
-    CALL STHD(AP,ICP)
-    IF(IRS.EQ.0) THEN
-       ITP=9+10*ITPST
-    ELSE
-       ITP=0
-    ENDIF
-    AP%ITP=ITP
-    CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
-    CALL MPIBCAST(PAR,NPAR)
-    CALL STPLBV(AP,PAR,ICP,ICU,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,THU,ISTOP,NA)
     DO WHILE(ISTOP==0)
        ITP=0
        AP%ITP=ITP
@@ -368,6 +349,7 @@ CONTAINS
 ! Store plotting data.
 
        CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
+       CALL MPIBCAST1I(ISTOP)
        CALL STPLBV(AP,PAR,ICP,ICU,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,THU,ISTOP,NA)
 
        IF(ISTOP/=0)EXIT
@@ -1559,10 +1541,6 @@ CONTAINS
     NTOT=AP%NTOT
     NTOT=NTOT+1
     AP%NTOT=NTOT
-
-    IF(IAM==0)THEN
-       CALL MPIBCAST1I(ISTOP)
-    ENDIF
 
 ! ITP is set to 4 every NPR steps along a branch of solns and the entire
 ! solution is written on unit 8.
