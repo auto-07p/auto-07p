@@ -103,7 +103,7 @@ CONTAINS
     INTEGER IBR,IPERP,ISTOP,ITNW,ITEST,I,NITPS,NODIR,NTOP,NTOT,NPAR,NINS
     INTEGER IFOUND,ISTEPPED,MPISTATE,IAM,KWT,NA,NTSTNA,IID
     INTEGER STOPCNTS(-9:14)
-    DOUBLE PRECISION DS,DSMAX,DSOLD,DSTEST,RDS,SP1,DSOLDS(1)
+    DOUBLE PRECISION DS,DSMAX,DSOLD,DSTEST,RDS,SP1
     LOGICAL STEPPED
     CHARACTER(4) ATYPE,ATYPEDUM
 
@@ -264,74 +264,63 @@ CONTAINS
             RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
             TM,DTM,P0,P1,THL,THU,NITPS,ISTOP,NTSTNA)
 
-       IF(IAM==0)THEN
-          IFOUND=0
-          DSTEST=DSOLD
-          IF(ISTOP/=0)THEN
-             ISTEPPED=AP%NTEST+1
-          ELSE
-             ISTEPPED=0
+       IFOUND=0
+       DSTEST=DSOLD
+       IF(ISTOP/=0)THEN
+          ISTEPPED=AP%NTEST+1
+       ELSE
+          ISTEPPED=0
+          IF(IAM==0)THEN
              CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
              IF(IID.GE.2)WRITE(9,*)
-             DO ITEST=1,AP%NTEST
-                ! Check for special points
-                CALL LCSPBV(AP,DSOLD,DSTEST,PAR,ICP,ITEST,FUNI,BCNI,ICNI,FNCI, &
-                     TEST(ITEST),RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS, &
-                     UPOLDP,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ATYPE,STEPPED)
-                IF(STEPPED)ISTEPPED=ITEST
-                IF(LEN_TRIM(ATYPE)>0)THEN
-                   IFOUND=ITEST
-                   AP%ITP=LBITP(ATYPE,.TRUE.)
-                   AP%ITP=AP%ITP+SIGN(10,AP%ITP)*ITPST
-                ENDIF
-             ENDDO
+          ELSE
+             ! receive MPISTATE=ISTOP from CNRLBV or LCSPBV_CONT+ITEST from LCSPBV
+             CALL MPIBCAST1I(MPISTATE)
           ENDIF
+          DO ITEST=1,AP%NTEST
+             ! Check for special points
+             CALL LCSPBV(AP,DSOLD,DSTEST,PAR,ICP,ITEST,FUNI,BCNI,ICNI,FNCI, &
+                  TEST(ITEST),RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS, &
+                  UPOLDP,TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ATYPE,STEPPED, &
+                  NA,MPISTATE)
+             IF(STEPPED)ISTEPPED=ITEST
+             IF(LEN_TRIM(ATYPE)>0)THEN
+                IFOUND=ITEST
+                AP%ITP=LBITP(ATYPE,.TRUE.)
+                AP%ITP=AP%ITP+SIGN(10,AP%ITP)*ITPST
+             ENDIF
+          ENDDO
+       ENDIF
 
+       IF(IAM==0)THEN
           DO ITEST=1,ISTEPPED-1
              ! evaluate the test functions for the next step
              TEST(ITEST)=FNCS(AP,ICP,UPS,PAR,ATYPEDUM,IUZ,VUZ,ITEST,FNCI)
           ENDDO
+       ENDIF
 
-          ITP=AP%ITP
-          IF(ITP/=0)THEN
-             IF(STOPPED(IUZ,IFOUND,NUZR,ITP,STOPCNTS))THEN
-                ISTOP=-1 ! *Stop at the first found bifurcation
-             ENDIF
-             IF(MOD(ITP,10)/=-4)THEN
-                ! for plotter: use stability of previous point
-                ! for bifurcation points
-                AP%NINS=NINS
-             ENDIF
+       ITP=AP%ITP
+       IF(ITP/=0)THEN
+          IF(STOPPED(IUZ,IFOUND,NUZR,ITP,STOPCNTS))THEN
+             ISTOP=-1 ! *Stop at the first found bifurcation
           ENDIF
+          IF(MOD(ITP,10)/=-4)THEN
+             ! for plotter: use stability of previous point
+             ! for bifurcation points
+             AP%NINS=NINS
+          ENDIF
+       ENDIF
 
 ! Store plotting data.
 
-          CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
-          CALL MPIBCAST1I(ISTOP)
-       ELSE
-          CALL MPIBCAST1I(MPISTATE)
-          DO WHILE(MPISTATE==LCSPBV_CONT)
-             CALL CONTBV(AP,DSOLD,PAR,ICP,FUNI,RLCUR,RLOLD,RLDOT, &
-                  NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU,RDS)
-             CALL STEPBV(AP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,RDS, &
-                  RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
-                  TM,DTM,P0,P1,THL,THU,NITPS,ISTOP,NA)
-             IF(ISTOP/=0)THEN
-                ! set back to previous (converged) state
-                CALL MPISCAT(UPS,NDIM*NCOL,NTST,NDIM)
-                CALL MPISCAT(UDOTPS,NDIM*NCOL,NTST,NDIM)
-                CALL MPISCAT(UOLDPS,NDIM*NCOL,NTST,NDIM)
-                CALL MPIBCAST(RLCUR,NFPR)
-                CALL MPIBCAST(RLDOT,NFPR)
-                CALL MPIBCAST(RLOLD,NFPR)
-                CALL MPIBCAST(DSOLDS,1)
-                DSOLD=DSOLDS(1)
-             ENDIF
-             CALL MPIBCAST1I(MPISTATE)
-          ENDDO
-          ISTOP=MPISTATE
+       IF(ISTOP/=1)THEN
+          IF(IAM==0)THEN
+             CALL MPIBCAST1I(ISTOP)
+          ELSE
+             ISTOP=MPISTATE
+          ENDIF
        ENDIF
-
+       IF(IAM==0)CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
        CALL STPLBV(AP,PAR,ICP,ICU,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,THU,ISTOP,NA)
 
        IF(ISTOP/=0)EXIT
@@ -1232,7 +1221,7 @@ CONTAINS
 ! ---------- ------
   SUBROUTINE LCSPBV(AP,DSOLD,DSTEST,PAR,ICP,ITEST,FUNI,BCNI,ICNI,FNCI,Q, &
        RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
-       TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ATYPE,STEPPED)
+       TM,DTM,P0,P1,EV,THL,THU,IUZ,VUZ,NITPS,ATYPE,STEPPED,NA,MPISTATE)
 
     USE SUPPORT
     USE AUTOMPI
@@ -1253,8 +1242,8 @@ CONTAINS
 
     include 'interfaces.h'
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
-    INTEGER, INTENT(IN) :: ICP(*),ITEST,IUZ(*),NDIM
-    INTEGER, INTENT(INOUT) :: NITPS
+    INTEGER, INTENT(IN) :: ICP(*),ITEST,IUZ(*),NDIM,NA
+    INTEGER, INTENT(INOUT) :: NITPS,MPISTATE
     COMPLEX(KIND(1.0D0)), INTENT(INOUT) :: EV(AP%NDM)
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*), UPS(NDIM,0:AP%NCOL*AP%NTST)
     DOUBLE PRECISION, INTENT(INOUT) :: UOLDPS(NDIM,0:AP%NCOL*AP%NTST)
@@ -1269,7 +1258,6 @@ CONTAINS
     LOGICAL, INTENT(OUT) :: STEPPED
 
     INTEGER I,IID,ITMX,IBR,NTOT,NTOP,NITSP1,ISTOP,NTST,NCOL,NFPR,NITPSS
-    INTEGER MPISTATE
     DOUBLE PRECISION DS,DSMAX,EPSS,Q0,Q1,DQ,RDS,RRDS,S0,S1
     DOUBLE PRECISION DETS,FLDFS,DSOLDS(1),DSTESTS
     CHARACTER(4) :: ATYPEDUM
@@ -1293,6 +1281,31 @@ CONTAINS
     EPSS=AP%EPSS
 
     STEPPED=.FALSE.
+
+    IF(MPIIAM()/=0)THEN
+       ATYPE=''
+       IF(MPISTATE/=LCSPBV_CONT+ITEST)RETURN
+       DO NITSP1=0,ITMX
+          CALL CONTBV(AP,DSOLD,PAR,ICP,FUNI,RLCUR,RLOLD,RLDOT, &
+               NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,DTM,THL,THU,RDS)
+          CALL STEPBV(AP,DSOLD,PAR,ICP,FUNI,BCNI,ICNI,RDS, &
+               RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
+               TM,DTM,P0,P1,THL,THU,NITPS,ISTOP,NA)
+          IF(ISTOP.NE.0)EXIT
+          CALL MPIBCAST1I(MPISTATE)
+          IF(MPISTATE/=LCSPBV_CONT+ITEST)RETURN
+       ENDDO
+       ! set back to previous (converged) state
+       CALL MPISCAT(UPS,NDIM*NCOL,NTST,NDIM)
+       CALL MPISCAT(UDOTPS,NDIM*NCOL,NTST,NDIM)
+       CALL MPISCAT(UOLDPS,NDIM*NCOL,NTST,NDIM)
+       CALL MPIBCAST(RLCUR,NFPR)
+       CALL MPIBCAST(RLDOT,NFPR)
+       CALL MPIBCAST(RLOLD,NFPR)
+       CALL MPIBCAST(DSOLDS,1)
+       DSOLD=DSOLDS(1)
+       RETURN
+    ENDIF
 
 ! Check for zero.
 
@@ -1364,7 +1377,7 @@ CONTAINS
     NITPSS=NITPS
     DSTESTS=DSTEST
 
-    MPISTATE=LCSPBV_CONT
+    MPISTATE=LCSPBV_CONT+ITEST
 
     DO NITSP1=0,ITMX
        CALL MPIBCAST1I(MPISTATE)
