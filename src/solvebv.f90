@@ -344,13 +344,13 @@
       INTEGER IRF(NRA,*),ICF(NCA,*),IFST,NLLV
 
 ! Local
-      DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:) :: DFDU,DFDP,UOLD,U, &
+      DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:) :: DFDU,DFDP,U, &
         F,FICD,DICD,UID,UIP,PRM
       DOUBLE PRECISION WPLOC(0:NCOL)
       INTEGER I,J,JJ,K,IC,IC1,J1,K1,IB
       INTEGER, ALLOCATABLE :: IAMAX(:)
 
-      ALLOCATE(DFDU(NDIM*NDIM),DFDP(NDIM*NPAR),UOLD(2*NDIM+NCB),U(NDIM))
+      ALLOCATE(DFDU(NDIM*NDIM),DFDP(NDIM*NPAR),U(3*NDIM+NCB))
       ALLOCATE(F(NDIM),FICD(NINT))
       ALLOCATE(DICD(NINT*(NDIM+NPAR)))
       ALLOCATE(UID(NDIM),UIP(NDIM),PRM(NPAR),IAMAX(NRA))
@@ -364,8 +364,9 @@
        DO I=1,NPAR
           PRM(I)=PAR(I)
        ENDDO
-       UOLD(:)=0.d0
-       UOLD(NDIM+1:NDIM+NCB)=RLOLD(:)
+       ! In U store: U, UOLD, RLOLD, UPOLDP
+       U(:)=0.d0
+       U(2*NDIM+1:2*NDIM+NCB)=RLOLD(:)
        DO J=1,N
 
 ! Generate AA , BB and FA :
@@ -379,7 +380,7 @@
              CALL SBVFUN(NDIM,NCOL,NCB,NCA,FUNI,AP,PRM,ICP,    &
                   AA(1,IC1,J),BB(1,IC1,J),FA(IC1,J),UPS(1,JJ), &
                   UOLDPS(1,JJ),UPOLDP(1,JJ),WPLOC,WT(0,IC),DFDU,DFDP, &
-                  U,UOLD,F,IFST,NLLV)
+                  U,U(NDIM+1),F,IFST,NLLV)
              IF(IFST.EQ.1)THEN
                 DO K=0,NDIM-1
                    IAMAX(IC1+K)=NDIM+IDAMAX(NRA-NDIM,AA(NDIM+1,IC1+K,J),1)
@@ -400,7 +401,7 @@
             CALL SBVICN(NDIM,NINT,NCB,NCA,ICNI,AP,PRM,ICP,            &
                  CC(K1,1,J),DD(1,1,J),FC(1,J),UPS(1,J1),UOLDPS(1,J1), &
                  UDOTPS(1,J1),UPOLDP(1,J1),DTM(J),THU,WI(K),FICD,DICD,&
-                 U,UOLD,UID,UIP,IFST,NLLV)
+                 U,U(NDIM+1),UID,UIP,IFST,NLLV)
          ENDDO
 
 !     debug: do condensation of parameters later after printing
@@ -417,7 +418,7 @@
          ENDIF
        ENDDO
 !     
-       DEALLOCATE(DFDU,DFDP,UOLD,U,F,FICD,DICD)
+       DEALLOCATE(DFDU,DFDP,U,F,FICD,DICD)
        DEALLOCATE(UID,UIP,PRM,IAMAX)
       END SUBROUTINE SUBVPA
 
