@@ -454,7 +454,7 @@ CONTAINS
        CALL FUNI(AP,NDIM,U,U(NDIM+1),ICP,PAR,0,UPOLDP(1,J),&
             DFDU,DFDP)
     ENDDO
-!$OMP END DO
+!$OMP END DO NOWAIT
 
     DEALLOCATE(U,DFDU,DFDP)
   END SUBROUTINE STUPBV
@@ -1717,6 +1717,7 @@ CONTAINS
     NROW=NDIM/7+1
     ! each worker writes to a line string, the lines are then gathered
     ALLOCATE(S(0:NTST*NCOL*NROW-1))
+!$OMP PARALLEL DO PRIVATE(T,J,K)
     DO J=0,NA*NCOL-1
        T=TM(J/NCOL)+MOD(J,NCOL)*DTM(J/NCOL+1)/NCOL
        WRITE(S(J*NROW),102)T,UPS(:MIN(NDIM,6),J)
@@ -1730,6 +1731,7 @@ CONTAINS
        !xxx if(i.eq.1 .and. dabs(er).gt.em)em=dabs(er)
 !xxx====================================================================
     ENDDO
+!$OMP END PARALLEL DO
     CALL MPIGATS(S,NCOL*NROW,NTST,4+7*19)
 
     IF(IAM==0)THEN
@@ -1749,11 +1751,13 @@ CONTAINS
     IF(DIR)THEN
 ! Write the direction of the branch:
        NROW=(NDIM+6)/7
+!$OMP PARALLEL DO PRIVATE(T,J,K)
        DO J=0,NA*NCOL-1
           DO K=0,NROW-1
              WRITE(S(J*NROW+K),102)UDOTPS(K*7+1:MIN(NDIM,K*7+7),J)
           ENDDO
        ENDDO
+!$OMP END PARALLEL DO
        CALL MPIGATS(S,NCOL*NROW,NTST,4+7*19)
     ENDIF
 
