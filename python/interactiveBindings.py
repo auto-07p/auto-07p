@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python2
 
 import sys
 import os
@@ -385,18 +385,23 @@ def _testFilename(inputname,outputname):
 def autoipython(funcs):
     # Use IPython in combination with AUTO
     # First import the shell class
-    ipython11 = False
-    try:
-        import IPython.Shell
-    except ImportError:
-        try: # Check for ipython >= 0.11
-            from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
-            ipython11 = True
+    ipython011 = False
+    ipython1x = False
+    try: # Check for ipython >=1.0
+        from IPython import start_ipython
+        ipython1x = True
+    except:
+        try:
+            import IPython.Shell
         except ImportError:
-            print("Sorry, ipython is not available on this system.")
-            return
+            try: # Check for ipython >= 0.11
+                from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
+                ipython011 = True
+            except ImportError:
+                print("Sorry, ipython is not available on this system.")
+                return
 
-    if ipython11:
+    if ipython011:
         from IPython.config.loader import Config
         cfg = Config()
         cfg.PromptManager.in_template="AUTO In [\\#]: "
@@ -411,6 +416,21 @@ man     -> List of AUTO CLUI commands"""
         ipshell = TerminalInteractiveShell(config = cfg, user_ns = funcs )
         ipshell.show_banner()
         ipshell.mainloop()
+
+    if ipython1x:
+        
+        from traitlets import config
+        cfg = config.Config()
+        cfg.PromptManager.in_template="AUTO In [\\#]: "
+        cfg.PromptManager.in2_template="AUTO    .\\D.: "
+        cfg.PromptManager.out_template="Out[\#]: "
+        cfg.InteractiveShell.confirm_exit = False
+        cfg.InteractiveShell.autocall = 2
+        cfg.InteractiveShell.banner2 ="""
+Welcome to the AUTO IPython CLUI
+man       -> List of AUTO CLUI commands"""
+
+        sys.exit(start_ipython(user_ns=funcs, config=cfg))
         return
 
     import IPython
