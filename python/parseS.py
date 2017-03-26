@@ -867,7 +867,7 @@ class AUTOSolution(UserDict,Points.Pointset):
         output.close()
 
     def writeRawFilename(self,filename):
-        output = open(filename,"w")
+        output = open(filename,"wb")
         self.writeRaw(output)
         output.flush()
         output.close()

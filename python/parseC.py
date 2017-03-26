@@ -494,7 +494,7 @@ class parseC(dict):
                 self[key] = self.__compactindexed(self[key])
             output.write(self.__newstr())
         else:
-            output.write(str(self))
+            output.write(str(self).encode("ascii"))
 
 def pointtest(a):
     keys = ['NPR', 'UZR', 'EPSS', 'ITMX', 'EPSU', 'ITNW', 'NBC',

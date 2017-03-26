@@ -498,7 +498,7 @@ class runAUTO:
             # in case of error, write constants to fort.2 to enable
             # easier debugging.
             if solution is not None:
-                f = open('fort.2', 'w')
+                f = open('fort.2', 'wb')
                 self.__write_constants_solution(f, solution)
                 f.close()
             if status < 0:
@@ -511,7 +511,7 @@ class runAUTO:
 
     def __write_constants_solution(self, f, solution):
         solution.c.write(f,new=True)
-        f.write("s='/'\n")
+        f.write("s='/'\n".encode("ascii"))
         solution.write(f,mlab=True)
 
     def __runCommand_noredir(self,command,solution=None):
@@ -531,7 +531,7 @@ class runAUTO:
         else:
             stdin = os.popen(command, "w")
             status = 0
-        self.__write_constants_solution(stdin, solution)
+        self.__write_constants_solution(stdin.buffer, solution)
         stdin.close()
         if "subprocess" in sys.modules:
             status = obj.wait()
@@ -594,7 +594,7 @@ class runAUTO:
             os.path.getsize(self.fort7_path) == 0 or
             not os.path.isfile(self.fort8_path) or
             not os.path.isfile(self.fort9_path)):
-            f = open('fort.2', 'w')
+            f = open('fort.2', 'wb')
             self.__write_constants_solution(f,
                                             self.options["selected_solution"])
             f.close()
@@ -637,8 +637,8 @@ if __name__ == "__main__":
     log = None
     err = None
     if "-l" in opts:
-        log = open(opts["-l"],"w")
-        err = open(opts["-l"]+"errors","w")
+        log = open(opts["-l"],"wb")
+        err = open(opts["-l"]+"errors","wb")
 
     runner = runAUTO()
     if len(args) == 0:
