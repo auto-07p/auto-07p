@@ -531,7 +531,10 @@ class runAUTO:
         else:
             stdin = os.popen(command, "w")
             status = 0
-        self.__write_constants_solution(stdin.buffer, solution)
+        if hasattr(stdin, 'buffer'):
+            self.__write_constants_solution(stdin.buffer, solution)
+        else:
+            self.__write_constants_solution(stdin, solution)
         stdin.close()
         if "subprocess" in sys.modules:
             status = obj.wait()
