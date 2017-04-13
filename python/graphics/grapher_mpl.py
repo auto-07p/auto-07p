@@ -187,8 +187,10 @@ class BasicGrapher(grapher.BasicGrapher):
             elif key == "realheight":
                 tm = float(self.cget("top_margin"))
                 bm = float(self.cget("bottom_margin"))
-                self.ax.get_figure().subplots_adjust(top=1-tm/value,
-                                                     bottom=bm/value)
+                top = 1-tm/value
+                bottom = bm/value
+                if top > bottom:
+                    self.ax.get_figure().subplots_adjust(top=top, bottom=bottom)
             elif key == "left_margin":
                 fig = self.ax.get_figure()
                 width = fig.get_figwidth()*fig.get_dpi()
