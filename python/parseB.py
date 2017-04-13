@@ -369,7 +369,7 @@ class AUTOBranch(parseBMixin, Points.Pointset):
         global N
         # stability gives a list of point numbers where the stability
         # changes: the end point of each part is stored
-        stab = N.concatenate((N.nonzero(N.less(points[:-1]*points[1:],0)),
+        stab = N.concatenate((N.flatnonzero(N.less(points[:-1]*points[1:],0)),
                               [len(points)-1]))
         points = N.less(N.take(points,stab),0)
         stab = stab + 1

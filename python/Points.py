@@ -42,7 +42,6 @@ def importnumpy():
             fromstring, ndarray, float64, int32, bool8, floating, integer, rank = (
                 N.fromstring, N.ndarray, N.float64, N.int32, N.bool,
                 N.floating, N.integer, N.ndim)
-            N.nonzero = N.flatnonzero
             global _float_types
             global _int_types
             _float_types = (type(1), N.floating)
