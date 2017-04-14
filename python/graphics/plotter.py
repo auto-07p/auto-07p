@@ -80,8 +80,12 @@ class plotter(grapher.GUIGrapher):
         optionDefaultsRC = {}
         c = parseC.parseC()
         for option in parser.options("AUTO_plotter"):
-            optionDefaultsRC[option] = self.parseoption(
-                option,parser.get("AUTO_plotter",option),c)
+            try:
+                optionDefaultsRC[option] = self.parseoption(
+                    option,parser.get("AUTO_plotter",option),c)
+            except:
+                optionDefaultsRC[option] = self.parseoption(
+                    option,parser.get("AUTO_plotter",option,raw=True),c)
         # Let these override the RC options, if specified.
         for key in ["hide","xlabel","ylabel","zlabel"]:
             if key in kw:
