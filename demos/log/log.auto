@@ -4,7 +4,7 @@
 #==============
 
 print "\nDemo log is started"
-print "\n%log : first run : fixed point solution branch"
+print "\nlog : first run : fixed point solution branch"
 r = run("log")
 save("log")
 
