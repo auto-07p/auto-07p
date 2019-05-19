@@ -38,9 +38,9 @@ def importnumpy():
         try:
             import numpy as N
             from numpy import linalg
-            fromstring, ndarray, float64, int32, bool8, floating, integer = (
+            fromstring, ndarray, float64, int32, bool8, floating, integer, rank = (
                 N.fromstring, N.ndarray, N.float64, N.int32, N.bool,
-                N.floating, N.integer)
+                N.floating, N.integer, N.ndim)
             N.nonzero = N.flatnonzero
             global _float_types
             global _int_types
@@ -50,8 +50,8 @@ def importnumpy():
             try:
                 import numarray as N
                 N.array2string = N.arrayprint.array2string
-                ndarray, float64, int32, bool8 = (
-                    N.ArrayType, N.Float64, N.Int32, N.Bool)
+                ndarray, float64, int32, bool8, rank = (
+                    N.ArrayType, N.Float64, N.Int32, N.Bool, N.rank)
                 def nonzero(x):
                     return N.deepnonzero(x)[0]
                 N.deepnonzero = N.nonzero
@@ -73,9 +73,9 @@ def importnumpy():
         except ImportError:
             N = AUTOutil
             float64, int32, bool8 = 'd', 'i', 'B'
-        ndarray = N.ArrayType
-    rank, array, take, array2string, shape, zeros, less, ravel = (
-        N.rank, N.array, N.take, N.array2string, N.shape, N.zeros, N.less,
+        ndarray, rank = N.ArrayType, N.rank
+    array, take, array2string, shape, zeros, less, ravel = (
+        N.array, N.take, N.array2string, N.shape, N.zeros, N.less,
         N.ravel)
     _seq_types = (list, tuple, ndarray)
     _num_equivtype = {type(1.0): float64, type(1): int32,
