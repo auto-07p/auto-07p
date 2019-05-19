@@ -331,7 +331,7 @@ class AUTOBranch(parseBMixin, Points.Pointset):
                 #(fromstring may not do this correctly for a
                 #string like -2.05071-106)
                 data[-1] = AUTOatof(datalist[datalist.rfind(' ')+1:].strip())
-        else: #numarray, Numeric, array
+        else: #array
             datalist = datalist.split()
             try:
                 data = N.array(map(float, datalist), 'd')

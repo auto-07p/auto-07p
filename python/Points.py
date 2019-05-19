@@ -23,18 +23,19 @@ def importnumpy():
     global float64, int32, array2string, shape, zeros, ravel, bool8
     global _seq_types, _num_equivtype, linalg
     fromstring = None
-    which = ''
+    usingnumpy = True
     try:
         import matplotlib
         nn = matplotlib.__version__.split('.')
         if int(nn[0]) == 0 and int(nn[1]) < 99:
             # matplotlib >= 0.99 forces numpy
             import matplotlib.numerix
-            which = matplotlib.numerix.which[0]
+            if matplotlib.numerix.which[0] == 'numeric':
+                usingnumpy = False
     except ImportError:
         pass
     # unless matplotlib uses Numeric (which is incompatible) we can use numpy
-    if which != 'numeric':
+    if usingnumpy:
         try:
             import numpy as N
             from numpy import linalg
@@ -47,32 +48,10 @@ def importnumpy():
             _float_types = (type(1), N.floating)
             _int_types = (type(1), N.integer)
         except ImportError:
-            try:
-                import numarray as N
-                N.array2string = N.arrayprint.array2string
-                ndarray, float64, int32, bool8, rank = (
-                    N.ArrayType, N.Float64, N.Int32, N.Bool, N.rank)
-                def nonzero(x):
-                    return N.deepnonzero(x)[0]
-                N.deepnonzero = N.nonzero
-                N.nonzero = nonzero
-            except ImportError:
-                which = 'numeric'
-    if which == 'numeric':
-        try:
-            try:
-                import platform
-                arch = platform.architecture()[0]
-            except ImportError:
-                arch = ''
-            if arch == '64bit':
-                # Numeric is buggy on 64-bit systems
-                raise ImportError
-            import Numeric as N
-            float64, int32, bool8 = N.Float64, N.Int32, N.UnsignedInt8
-        except ImportError:
-            N = AUTOutil
-            float64, int32, bool8 = 'd', 'i', 'B'
+            usingnumpy = False
+    if not usingnumpy:
+        N = AUTOutil
+        float64, int32, bool8 = 'd', 'i', 'B'
         ndarray, rank = N.ArrayType, N.rank
     array, take, array2string, shape, zeros, less, ravel = (
         N.array, N.take, N.array2string, N.shape, N.zeros, N.less,
