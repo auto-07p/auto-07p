@@ -5,7 +5,7 @@ import os
 import code
 import getopt
 import re
-import AUTOExceptions
+from . import AUTOExceptions
 import keyword
 try:
     import __builtin__

@@ -7,7 +7,8 @@ except ImportError: # Python 3
     from io import StringIO
 import re
 import glob
-import AUTOExceptions,parseC,parseS,gc
+from . import AUTOExceptions,parseC,parseS
+import gc
 try:
     import subprocess
 except ImportError:

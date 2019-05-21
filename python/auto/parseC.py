@@ -18,9 +18,9 @@
 #    MA 02111-1307, USA
 
 import sys
-import AUTOExceptions
-import AUTOutil
-import parseB
+from . import AUTOExceptions
+from . import AUTOutil
+from . import parseB
 
 # The parseC class parses an AUTO parameter file
 # THESE EXPECT THE FILE TO HAVE VERY SPECIFIC FORMAT!

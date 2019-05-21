@@ -1,6 +1,6 @@
 #! /usr/bin/env python
-import runAUTO
-import AUTOExceptions
+from . import runAUTO
+from . import AUTOExceptions
 
 def runDemo(demo,**kw):
     runner = runAUTO.runAUTO(**kw)

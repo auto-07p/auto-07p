@@ -1,14 +1,14 @@
 #! /usr/bin/env python
 try:
-    from graphics import grapher_mpl as grapher
+    from . import grapher_mpl as grapher
 except ImportError:
-    from graphics import grapher
+    from . import grapher
     print("Using plain TkInter for plotting. You can obtain better quality graphics")
     print("using matplotlib (http://matplotlib.sf.net).")
-import parseB
-import parseS
-import parseC
-import AUTOutil
+from .. import parseB
+from .. import parseS
+from .. import parseC
+from .. import AUTOutil
 import os
 import gc
 Axes3D = grapher.Axes3D

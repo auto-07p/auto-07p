@@ -8,7 +8,7 @@ from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 from matplotlib.axes import Axes
 from matplotlib.ticker import AutoLocator, FixedLocator
-import Points
+from . import Points
 if not Points.numpyimported:
     Points.importnumpy()
 transpose = Points.N.transpose

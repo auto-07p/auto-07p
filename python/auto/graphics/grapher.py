@@ -7,9 +7,9 @@ except ImportError:
     import tkinter as Tkinter # Python 3
     from tkinter import simpledialog as tkSimpleDialog
     from tkinter import filedialog as tkFileDialog
-from graphics import Pmw
-import AUTOutil
-from graphics import optionHandler
+from . import Pmw
+from .. import AUTOutil
+from . import optionHandler
 import math
 import sys
 import string
