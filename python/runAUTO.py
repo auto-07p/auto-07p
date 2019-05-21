@@ -514,7 +514,7 @@ class runAUTO:
         f.write("s='/'\n")
         if hasattr(f, 'buffer'):
             f = f.buffer
-        solution.write(f, solution)
+        solution.write(f,mlab=True)
 
     def __runCommand_noredir(self,command,solution=None):
         sys.stdout.flush()
