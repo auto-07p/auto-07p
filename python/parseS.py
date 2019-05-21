@@ -1078,7 +1078,7 @@ class AUTOSolution(UserDict,Points.Pointset):
         # file into the output file
         if not self.__fullyParsed:
             inputsolution = self.__input.readstr(self.__index)
-            if hasattr(output, "encoding"):
+            if hasattr(output, "encoding") and hasattr(inputsolution, "decode"):
                 inputsolution = inputsolution.decode("ascii")
             output.write(inputsolution)
         # Otherwise we do a normal write.  NOTE: if the solution isn't already
