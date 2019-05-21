@@ -867,7 +867,7 @@ class AUTOSolution(UserDict,Points.Pointset):
         output.close()
 
     def writeRawFilename(self,filename):
-        output = open(filename,"wb")
+        output = open(filename,"w")
         self.writeRaw(output)
         output.flush()
         output.close()
@@ -1024,13 +1024,22 @@ class AUTOSolution(UserDict,Points.Pointset):
             return
         try:
             "".encode("ascii") + ""
+            #write encoded
             def write_enc(s):
-                #write encoded
                 output.write(s)
         except TypeError: #Python 3.0
-            def write_enc(s):
-                #write encoded
-                output.write(s.encode("ascii"))
+            if hasattr(output, "encoding"):
+                # output is a text stream
+                if os.linesep == "\n":
+                    def write_enc(s):
+                        output.write(s)
+                else:
+                    def write_enc(s):
+                        output.write(s.replace(os.linesep, "\n"))
+            else:
+                # output is a binary stream (common case)
+                def write_enc(s):
+                    output.write(s.encode("ascii"))
 
         if self.__fullyParsed:
             ndim = len(self.coordarray)
@@ -1068,7 +1077,10 @@ class AUTOSolution(UserDict,Points.Pointset):
         # If the file isn't already parsed, we can just copy from the input
         # file into the output file
         if not self.__fullyParsed:
-            output.write(self.__input.readstr(self.__index))
+            inputsolution = self.__input.readstr(self.__index)
+            if hasattr(output, "encoding"):
+                inputsolution = inputsolution.decode("ascii")
+            output.write(inputsolution)
         # Otherwise we do a normal write.  NOTE: if the solution isn't already
         # parsed it will get parsed here.
         else:
