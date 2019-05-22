@@ -1,4 +1,4 @@
-#! /usr/bin/env python2
+#! /usr/bin/env python
 
 import sys
 import os
@@ -390,7 +390,7 @@ def autoipython(funcs):
     try: # Check for ipython >=1.0
         from IPython import start_ipython
         ipython1x = True
-    except:
+    except ImportError:
         try:
             import IPython.Shell
         except ImportError:
@@ -401,8 +401,11 @@ def autoipython(funcs):
                 print("Sorry, ipython is not available on this system.")
                 return
 
-    if ipython011:
-        from IPython.config.loader import Config
+    if ipython011 or ipython1x:
+        if ipython1x:
+            from traitlets.config import Config
+        else:
+            from IPython.config.loader import Config
         cfg = Config()
         cfg.PromptManager.in_template="AUTO In [\\#]: "
         cfg.PromptManager.in2_template="AUTO    .\\D.: "
@@ -413,24 +416,12 @@ def autoipython(funcs):
 Welcome to the AUTO IPython CLUI
 man     -> List of AUTO CLUI commands"""
 
+        if ipython1x:
+            sys.exit(start_ipython(user_ns=funcs, config=cfg))
+            return
         ipshell = TerminalInteractiveShell(config = cfg, user_ns = funcs )
         ipshell.show_banner()
         ipshell.mainloop()
-
-    if ipython1x:
-        
-        from traitlets import config
-        cfg = config.Config()
-        cfg.PromptManager.in_template="AUTO In [\\#]: "
-        cfg.PromptManager.in2_template="AUTO    .\\D.: "
-        cfg.PromptManager.out_template="Out[\#]: "
-        cfg.InteractiveShell.confirm_exit = False
-        cfg.InteractiveShell.autocall = 2
-        cfg.InteractiveShell.banner2 ="""
-Welcome to the AUTO IPython CLUI
-man       -> List of AUTO CLUI commands"""
-
-        sys.exit(start_ipython(user_ns=funcs, config=cfg))
         return
 
     import IPython
