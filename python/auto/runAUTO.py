@@ -384,7 +384,7 @@ class runAUTO:
         else:
             self.runMakefile()
         self.__outputCommand()
-        import bifDiag
+        from . import bifDiag
         return bifDiag.bifDiag(self.fort7_path,self.fort8_path,
                                self.fort9_path,constants)
 

@@ -81,7 +81,7 @@ class parseC(dict):
                    "parnames"]:
             if item is not None:
                 if key == "PAR":
-                    import parseS
+                    from . import parseS
                     if isinstance(item,parseS.AUTOParameters):
                         item = [(k,item(k)) for k in range(1,len(item)+1)]
                 if isinstance(item, dict):

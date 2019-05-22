@@ -684,8 +684,8 @@ class plotter(grapher.GUIGrapher):
 
 
 def test():
-    import parseB
-    import parseS
+    from .. import parseB
+    from .. import parseS
     import sys
     foo = plotter(bifurcation_diagram_filename="../test_data/fort.7",
                   solution_filename="../test_data/fort.8")
