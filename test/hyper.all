@@ -124,7 +124,7 @@ ab ... done
 Starting ab ...
 
   BR    PT  TY  LAB    PAR(1)        L2-NORM       MAX U(1)      MAX U(2)       PERIOD    
-  16   500  EP   18   1.10114E-01   1.87717E+00   9.99905E-01   1.12175E+01   1.86690E+02
+  16   372  UZ   18   1.10114E-01   1.85878E+00   1.00071E+00   1.12332E+01   9.99991E+02
 
  Total Time    0.442E+00
 ab ... done
