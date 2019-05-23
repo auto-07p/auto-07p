@@ -387,6 +387,28 @@ def autoipython(funcs):
     # First import the shell class
     ipython011 = False
     ipython1x = False
+    try:
+        from IPython.terminal.prompts import Prompts, Token
+        class MyPrompt(Prompts):
+            def in_prompt_tokens(self, cli=None): return [
+                    (Token.Prompt, 'AUTO In ['),
+                    (Token.PromptNum, str(self.shell.execution_count)),
+                    (Token.Prompt, ']: ')
+            ]
+
+            def continuation_prompt_tokens(self, cli=None, width=None):
+                if width is None: width = self._width()
+                return [(Token.Prompt, 'AUTO    '+(width-10)*'.'+': ')]
+
+            def out_prompt_tokens(self, cli=None): return [
+                    (Token.OutPrompt, 'Out['),
+                    (Token.OutPromptNum, str(self.shell.execution_count)),
+                    (Token.OutPrompt, ']: ')
+            ]
+        ipython5x = True
+    except ImportError:
+        ipython5x = False
+
     try: # Check for ipython >=1.0
         from IPython import start_ipython
         ipython1x = True
@@ -407,9 +429,12 @@ def autoipython(funcs):
         else:
             from IPython.config.loader import Config
         cfg = Config()
-        cfg.PromptManager.in_template="AUTO In [\\#]: "
-        cfg.PromptManager.in2_template="AUTO    .\\D.: "
-        cfg.PromptManager.out_template="Out[\#]: "
+        if ipython5x:
+            cfg.TerminalInteractiveShell.prompts_class = MyPrompt
+        else:
+            cfg.PromptManager.in_template="AUTO In [\\#]: "
+            cfg.PromptManager.in2_template="AUTO    .\\D.: "
+            cfg.PromptManager.out_template="Out[\#]: "
         cfg.InteractiveShell.confirm_exit = False
         cfg.InteractiveShell.autocall = 2
         cfg.InteractiveShell.banner2 ="""
