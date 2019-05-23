@@ -12,11 +12,11 @@ import sys
 
 # FIXME:  No regression tester (except as part of interactiveBindings)
 class WindowPlotter(Pmw.MegaToplevel):
-    def __init__(self,grapherClass,parent=None,**kw):
+    def __init__(self,grapherClass,parent=None,disabled=False,**kw):
         optiondefs = []
         self.defineoptions(kw,optiondefs)
-        if kw.get('grapher_hide'):
-            if 'graphics.grapher_mpl' in sys.modules:
+        if kw.get('grapher_hide') or disabled:
+            if 'graphics.grapher_mpl' in sys.modules or disabled:
                 kwnew = {}
                 for k in kw:
                     if k.startswith('grapher_'):
@@ -212,6 +212,9 @@ class WindowPlotter(Pmw.MegaToplevel):
         if isinstance(cnf, str) or (cnf is None and not kw):
             return rval
         self.checktype()
+        if not hasattr(self, "menuBar"):
+            #hidden (no on-screen) graph
+            return
         dct = (cnf or {}).copy()
         dct.update(kw)
         for key,value in dct.items():

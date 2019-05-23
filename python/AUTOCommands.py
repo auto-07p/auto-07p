@@ -1721,9 +1721,9 @@ commandPlotter3D = command(plot3,alias=['p3'])
 
 try:
     try:
-        from Tkinter import Tk
+        from Tkinter import Tk, TclError
     except ImportError:
-        from tkinter import Tk # Python 3
+        from tkinter import Tk, TclError # Python 3
     plotterimported = False
     try:
         import readline
@@ -1792,11 +1792,19 @@ try:
                 options['grapher_'+k] = v
 
         # Get rid of the initial window
-        if options.get('grapher_hide'):
-            root=None
-        else:
-            root=Tk()
-            root.withdraw()
+        root = None
+        if not options.get('grapher_hide'):
+            try:
+                root=Tk()
+                root.withdraw()
+            except TclError:
+                sys.stderr.write(str(sys.exc_info()[1])+"\n")
+                options['grapher_hide'] = True
+                if 'graphics.grapher_mpl' in sys.modules:
+                    sys.stderr.write("Disabling on-screen plots, but you can still use savefig\n")
+                else:
+                    sys.stderr.write("Disabling plots, off-screen plots require Matplotlib\n")
+                    return windowPlotter.WindowPlotter2D(root,disabled=True,**options)
         if sys.platform == "cygwin":
             try:
                 readline.set_pre_input_hook(handleevents)

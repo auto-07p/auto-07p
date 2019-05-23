@@ -79,8 +79,11 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         if kw.get("hide") and 'graphics.grapher_mpl' in sys.modules:
             optionHandler.OptionHandler.__init__(self)
         else:
-            Tkinter.Canvas.__init__(self,parent)
-            optionHandler.OptionHandler.__init__(self,Tkinter.Canvas)
+            try:
+                Tkinter.Canvas.__init__(self,parent)
+                optionHandler.OptionHandler.__init__(self,Tkinter.Canvas)
+            except Tkinter.TclError:
+                optionHandler.OptionHandler.__init__(self)
 
         for key in list(kw):
             if key not in optionDefaults:
@@ -256,8 +259,9 @@ class BasicGrapher(optionHandler.OptionHandler,Tkinter.Canvas):
         return [self.cget("minz"),self.cget("maxz")]
 
     def clear(self):
-        for x in self.find_all():
-            self.delete(x)
+        if hasattr(self, "tk"):
+            for x in self.find_all():
+                self.delete(x)
 
     def plot(self):
         pass
@@ -848,6 +852,8 @@ class InteractiveGrapher(LabeledGrapher):
 class GUIGrapher(InteractiveGrapher):
     def __init__(self,parent=None,**kw):
         InteractiveGrapher.__init__(self,parent,**kw)
+        if not hasattr(self, "tk"):
+            return
         self.bind("<ButtonPress-3>",self.popupMenuWrapper)
         self.menu=Tkinter.Menu()
         self.menu.add_radiobutton(label="print value",command=self.printValueBindings)
