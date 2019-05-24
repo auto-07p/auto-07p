@@ -204,6 +204,13 @@ CONTAINS
           CALL MPI_SETUBV_WORKER(FUNI,ICNI,BCNI)
        ENDDO
     ENDIF
+
+    ! call PVLS here the first time so the parameters can be initialized
+    ! some demos use PVLS to set some global storage, so
+    ! for MPI it needs to be called at init time only,
+    ! though PAR is thrown away for IAM>0
+    CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
+
     CALL STUDPBV(AP,PAR,ICP,FUNI,RLCUR,RLOLD, &
          NDIM,UPS,UOLDPS,UDOTPS,UPOLDP,TM,NODIR,THU,NTSTNA,NA)
 
@@ -823,11 +830,6 @@ CONTAINS
     CALL NEWLAB(AP)
     DTM(1:NTST)=TM(1:NTST)-TM(0:NTST-1)
 
-! Set UOLDPS, RLOLD.
-
-    ! call PVLS here the first time so the parameters can be initialized
-    CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
-
   END SUBROUTINE RSPTBV
 
 ! ---------- -------
@@ -859,6 +861,8 @@ CONTAINS
     CALL MPISCAT(TM,1,NTST,1)
     CALL MPIBCAST(PAR,AP%NPAR)
     CALL MPIBCAST1I(NODIR)
+
+    ! Set UOLDPS, RLOLD.
 
     DO I=1,AP%NFPR
        RLCUR(I)=PAR(ICP(I))
