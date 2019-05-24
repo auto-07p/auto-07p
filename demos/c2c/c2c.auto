@@ -24,7 +24,7 @@ print pgm, ": eighth run : switch to continuation of second nontrivial eigenfunc
 ef2 = run(zero2,ISW=-1,UZSTOP={26:1.0})
 
 print pgm, ": ninth run : homotopy in T,h11,h21"
-ti = run(ef2,ISW=1,ISP=0,ICP=[7,11,4,5,6,21,23],NDIM=15,NBC=19,NINT=2,NTST=105,
+ti = run(ef2,ISW=1,ISP=0,ICP=[7,11,4,5,6,21,23],NDIM=15,NBC=19,NINT=2,NTST=110,
    UZR={21:0},UZSTOP={},STOP=['UZ19'],DSMAX=10)
 
 print pgm, ": tenth run : homotopy in T and h21"
