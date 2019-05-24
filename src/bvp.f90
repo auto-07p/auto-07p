@@ -200,7 +200,7 @@ CONTAINS
     ELSE
        ! RSPTBV calls STPNBVI which sometimes calls SOLVBV so we need
        ! to check if parallel work needs to be done
-       DO WHILE(MPIWFI(.TRUE.))
+       DO WHILE(MPIWFI())
           CALL MPI_SETUBV_WORKER(FUNI,ICNI,BCNI)
        ENDDO
     ENDIF

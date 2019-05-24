@@ -29,8 +29,7 @@ subroutine mpiiap(ap)
   type(autoparameters) :: ap
 end subroutine mpiiap
 
-logical function mpiwfi(autobv)
-  logical :: autobv
+logical function mpiwfi()
   mpiwfi = .false.
 end function mpiwfi
 

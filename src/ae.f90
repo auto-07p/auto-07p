@@ -28,9 +28,10 @@ CONTAINS
     include 'interfaces.h'
 
     IF(MPIIAM()>0)THEN
-       IF(MPIWFI(.FALSE.))THEN
-          RETURN
-       ENDIF
+       RETURN
+    ENDIF
+    IF(MPIKWT()>1)THEN
+       WRITE(9,"(A)")' NOTE: MPI is not used for algebraic problems'
     ENDIF
     CALL CNRLAE(AP,ICP,ICU,FUNI,STPNAEI,FNCI)
 

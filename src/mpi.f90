@@ -76,17 +76,10 @@ subroutine mpiiap(ap)
 
 end subroutine mpiiap
 
-logical function mpiwfi(autobv)
-  logical :: autobv
-
+logical function mpiwfi()
   integer :: message_type, ierr
 
   mpiwfi = .false.
-  if (.not.autobv) then
-     print *,'Illegal problem type for MPI'
-     call MPI_Finalize(ierr)
-     stop
-  endif
 
   call MPI_Bcast(message_type,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
   
