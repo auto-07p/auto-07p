@@ -412,10 +412,10 @@ subroutine mpireducemax(buf,n)
   integer ierr
 
   if (mpiiam()==0)then
-     call MPI_Reduce(MPI_IN_PLACE, buf, 2, MPI_DOUBLE_PRECISION, &
+     call MPI_Reduce(MPI_IN_PLACE, buf, n, MPI_DOUBLE_PRECISION, &
           MPI_MAX, 0, MPI_COMM_WORLD, ierr)
   else
-     call MPI_Reduce(buf, buf, 2, MPI_DOUBLE_PRECISION, &
+     call MPI_Reduce(buf, buf, n, MPI_DOUBLE_PRECISION, &
           MPI_MAX, 0, MPI_COMM_WORLD, ierr)
   endif
 end subroutine mpireducemax
@@ -427,10 +427,10 @@ subroutine mpireducemin(buf,n)
   integer ierr
 
   if (mpiiam()==0)then
-     call MPI_Reduce(MPI_IN_PLACE, buf, 2, MPI_DOUBLE_PRECISION, &
+     call MPI_Reduce(MPI_IN_PLACE, buf, n, MPI_DOUBLE_PRECISION, &
           MPI_MIN, 0, MPI_COMM_WORLD, ierr)
   else
-     call MPI_Reduce(buf, buf, 2, MPI_DOUBLE_PRECISION, &
+     call MPI_Reduce(buf, buf, n, MPI_DOUBLE_PRECISION, &
           MPI_MIN, 0, MPI_COMM_WORLD, ierr)
   endif
 end subroutine mpireducemin
