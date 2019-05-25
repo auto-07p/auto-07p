@@ -203,6 +203,7 @@ CONTAINS
        DO WHILE(MPIWFI())
           CALL MPI_SETUBV_WORKER(FUNI,ICNI,BCNI)
        ENDDO
+       PAR(:)=0.d0
     ENDIF
 
     ! call PVLS here the first time so the parameters can be initialized
