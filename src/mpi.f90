@@ -23,7 +23,7 @@ implicit none
 private
 
 public :: mpiini, mpiiap, mpiwfi, mpireduce, mpibcksub, mpisbv, mpicbv, mpibcast
-public :: mpibcasti, mpibcast1i, mpibcastap, mpireducemax, mpireducemin
+public :: mpibcasti, mpibcast1i, mpibcast1l, mpibcastap, mpireducemax, mpireducemin
 public :: mpigat, mpiscat, mpiend, mpitim, mpiiam, mpikwt, partition
 public :: mpigats
 
@@ -292,6 +292,14 @@ subroutine mpibcast1i(buf)
 
   call MPI_Bcast(buf,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 end subroutine mpibcast1i
+
+subroutine mpibcast1l(buf)
+  logical, intent(inout) :: buf
+
+  integer :: ierr
+
+  call MPI_Bcast(buf,1,MPI_LOGICAL,0,MPI_COMM_WORLD,ierr)
+end subroutine mpibcast1l
 
 subroutine mpibcastap(ap)
   type(autoparameters), intent(inout) :: ap
