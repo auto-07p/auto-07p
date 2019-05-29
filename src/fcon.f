@@ -289,13 +289,13 @@ C Redistributes the mesh according to the function EQDF.
       DOUBLE PRECISION, INTENT(OUT) :: TMNEW(0:NNEW)
 C Local
       INTEGER J,J1
-      DOUBLE PRECISION X,DAL,UNEQ
-      DOUBLE PRECISION, ALLOCATABLE :: EQF(:)
-      ALLOCATE(EQF(0:NOLD))
+      DOUBLE PRECISION DAL,UNEQ
+      DOUBLE PRECISION, ALLOCATABLE :: EQF(:),DEQF(:)
+      ALLOCATE(EQF(0:NOLD),DEQF(1:NOLD))
 
 C Put the values of the monotonely increasing function EQDF in EQF.
 
-       CALL EQDF(NOLD,NDIM,TMOLD,UPS,NDOLD,EQF,IPER)
+       CALL EQDF(NOLD,NDIM,TMOLD,UPS,NDOLD,EQF,DEQF,IPER)
 
 C Uniformly divide the range of EQDF :
 
@@ -315,8 +315,7 @@ C value of the index of the TM-interval in which EQF(i) lies.
           J=J+1
         ENDDO
         J=J-1
-        X=(UNEQ-EQF(J))/(EQF(J+1)-EQF(J))
-        TMNEW(J1)=(1.d0-X)*TMOLD(J)+X*TMOLD(J+1)
+        TMNEW(J1)=TMOLD(J)+(UNEQ-EQF(J))/DEQF(J+1)
       ENDDO
 
 C Assign TMNEW(NNEW) explicitly because of loss of precision
@@ -324,18 +323,18 @@ C problems when EQF(NOLD) and EQF(NOLD-1) are very close
 
       TMNEW(NNEW)=TMOLD(NOLD)
 
-      DEALLOCATE(EQF)
+      DEALLOCATE(EQF,DEQF)
       END SUBROUTINE NEWMSH
 
 C     ---------- ----
-      SUBROUTINE EQDF(NTST,NDIM,TM,UPS,NDOLD,EQF,IPER)
+      SUBROUTINE EQDF(NTST,NDIM,TM,UPS,NDOLD,EQF,DEQF,IPER)
 
       DOUBLE PRECISION, PARAMETER :: HMACH=1.0d-7
 
       INTEGER, INTENT(IN) :: NTST,NDIM,NDOLD
       LOGICAL, INTENT(IN) :: IPER
       DOUBLE PRECISION, INTENT(IN) :: UPS(NDOLD,0:NTST),TM(0:NTST)
-      DOUBLE PRECISION, INTENT(OUT) :: EQF(0:NTST)
+      DOUBLE PRECISION, INTENT(OUT) :: EQF(0:NTST),DEQF(NTST)
 
 C Local
       DOUBLE PRECISION E,DTAV,ND,DT
@@ -361,7 +360,10 @@ C and define the equidistribution function :
            IF(ABS(ND)>HMACH)SMALL=.FALSE.
            HD(I)=ND
          ENDDO
-         IF(J>1)EQF(J-1)=EQF(J-2)+(TM(J-1)-TM(J-2))*E
+         IF(J>1)THEN
+            EQF(J-1)=EQF(J-2)+(TM(J-1)-TM(J-2))*E
+            DEQF(J-1)=E
+         ENDIF
        ENDDO
 
        E=0.d0
@@ -379,12 +381,15 @@ C      *else extend by extrapolation :
          IF(ABS(ND)>HMACH)SMALL=.FALSE.
        ENDDO
        EQF(NTST)=EQF(NTST-1)+(TM(NTST)-TM(NTST-1))*E
+       DEQF(NTST)=E
 
 C Take care of "small derivative" case.
 
        IF(SMALL)THEN
-         DO I=0,NTST
+         EQF(0)=0
+         DO I=1,NTST
             EQF(I)=I
+            DEQF(I)=1.0d0/(TM(I)-TM(I-1))
          ENDDO
        ENDIF
 
