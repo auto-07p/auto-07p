@@ -7,7 +7,7 @@ import os
 import array
 import gzip
 import sys
-import AUTOExceptions
+from . import AUTOExceptions
 N = array
 
 # This file contains code from the Python distribution.  As

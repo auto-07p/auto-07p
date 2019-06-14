@@ -1,15 +1,15 @@
 #! /usr/bin/env python
 
-import AUTOCommands
+from .. import AUTOCommands
 import Tkinter
-import Pmw
-import runAUTO
-import plotter
+from . import Pmw
+from .. import runAUTO
+from . import plotter
 import os
 import tkSimpleDialog
 import sys
-import AUTOclui
-import AUTOutil
+from .. import AUTOclui
+from .. import AUTOutil
 
 class AUTOMessageBar(Pmw.MessageBar):
     def printMessage(self,text):

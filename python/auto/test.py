@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-import AUTOExceptions
+from . import AUTOExceptions
 
 modules = ["parseB", "parseS", "parseBandS", "parseC", "parseH",
            "AUTOclui", "interactiveBindings", "AUTOCommands",

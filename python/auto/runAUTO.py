@@ -7,7 +7,8 @@ except ImportError: # Python 3
     from io import StringIO
 import re
 import glob
-import AUTOExceptions,parseC,parseS,gc
+from . import AUTOExceptions,parseC,parseS
+import gc
 try:
     import subprocess
 except ImportError:
@@ -383,7 +384,7 @@ class runAUTO:
         else:
             self.runMakefile()
         self.__outputCommand()
-        import bifDiag
+        from . import bifDiag
         return bifDiag.bifDiag(self.fort7_path,self.fort8_path,
                                self.fort9_path,constants)
 

@@ -19,15 +19,15 @@
 
 import os
 import sys
-import AUTOExceptions
-import AUTOutil
-from AUTOutil import format19_10E3
+from . import AUTOExceptions
+from . import AUTOutil
+from .AUTOutil import format19_10E3
 try:
     from UserList import UserList
 except ImportError: # Python 3
     from collections import UserList
-import parseC
-import Points
+from . import parseC
+from . import Points
 
 try:
     next

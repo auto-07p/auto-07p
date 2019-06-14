@@ -18,9 +18,9 @@
 #    MA 02111-1307, USA
 
 import sys
-import AUTOExceptions
-import AUTOutil
-import parseB
+from . import AUTOExceptions
+from . import AUTOutil
+from . import parseB
 
 # The parseC class parses an AUTO parameter file
 # THESE EXPECT THE FILE TO HAVE VERY SPECIFIC FORMAT!
@@ -81,7 +81,7 @@ class parseC(dict):
                    "parnames"]:
             if item is not None:
                 if key == "PAR":
-                    import parseS
+                    from . import parseS
                     if isinstance(item,parseS.AUTOParameters):
                         item = [(k,item(k)) for k in range(1,len(item)+1)]
                 if isinstance(item, dict):

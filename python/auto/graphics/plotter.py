@@ -1,14 +1,14 @@
 #! /usr/bin/env python
 try:
-    from graphics import grapher_mpl as grapher
+    from . import grapher_mpl as grapher
 except ImportError:
-    from graphics import grapher
+    from . import grapher
     print("Using plain TkInter for plotting. You can obtain better quality graphics")
     print("using matplotlib (http://matplotlib.sf.net).")
-import parseB
-import parseS
-import parseC
-import AUTOutil
+from .. import parseB
+from .. import parseS
+from .. import parseC
+from .. import AUTOutil
 import os
 import gc
 import sys
@@ -692,8 +692,8 @@ class plotter(grapher.GUIGrapher):
 
 
 def test():
-    import parseB
-    import parseS
+    from .. import parseB
+    from .. import parseS
     import sys
     foo = plotter(bifurcation_diagram_filename="../test_data/fort.7",
                   solution_filename="../test_data/fort.8")

@@ -12,7 +12,7 @@
 
 from __future__ import division
 
-import AUTOutil
+from . import AUTOutil
 from copy import copy, deepcopy
 import sys
 

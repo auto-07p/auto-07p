@@ -1,6 +1,6 @@
 #!/usr/bin/env autox
-import bifDiag, parseB, AUTOExceptions
-from graphics import windowPlotter
+from .. import bifDiag, parseB, AUTOExceptions
+from . import windowPlotter
 import code
 import sys
 try:

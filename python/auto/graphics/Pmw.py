@@ -1,6 +1,6 @@
 
-from graphics import PmwColor as Color
-from graphics import PmwBlt as Blt
+from . import PmwColor as Color
+from . import PmwBlt as Blt
 
 ### Loader functions:
 

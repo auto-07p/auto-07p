@@ -1,14 +1,14 @@
 #! /usr/bin/env python
 # this is an enhanced list of bifurcation branches:
 # the labels contain the solutions and diagnostics as well
-import AUTOutil
-import parseB
-import parseC
-import parseH
-import parseS
-import parseD
-import Points
-import AUTOExceptions
+from . import AUTOutil
+from . import parseB
+from . import parseC
+from . import parseH
+from . import parseS
+from . import parseD
+from . import Points
+from . import AUTOExceptions
 import gzip
 import types
 import sys

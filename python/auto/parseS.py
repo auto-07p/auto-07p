@@ -29,15 +29,15 @@ try:
     file
 except NameError: #Python 3
     from io import IOBase as file
-import AUTOExceptions
+from . import AUTOExceptions
 import copy
-import parseB
-import parseC
-import Points
-import runAUTO
+from . import parseB
+from . import parseC
+from . import Points
+from . import runAUTO
 import gzip
-import AUTOutil
-from AUTOutil import format19_10E3
+from . import AUTOutil
+from .AUTOutil import format19_10E3
 import types
 
 # End of data exception definition

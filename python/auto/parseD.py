@@ -11,8 +11,8 @@ try:
 except ImportError: # Python 3
     from collections import UserList
 import getopt
-import AUTOutil
-import parseB
+from . import AUTOutil
+from . import parseB
 
 class parseD(UserList):
     def __init__(self,filename=None):

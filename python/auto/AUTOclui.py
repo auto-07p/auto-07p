@@ -1,10 +1,10 @@
 #! /usr/bin/env python
-import AUTOutil
+from . import AUTOutil
 import sys
 import os
-import AUTOCommands
-import runAUTO
-import interactiveBindings
+from . import AUTOCommands
+from . import runAUTO
+from . import interactiveBindings
 try:
     import __builtin__
     from new import function

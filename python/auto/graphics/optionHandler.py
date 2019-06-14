@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
-import AUTOutil
-import AUTOExceptions
+from .. import AUTOutil
+from .. import AUTOExceptions
 
 class OptionHandler:
     def __init__(self,baseClass=None):
