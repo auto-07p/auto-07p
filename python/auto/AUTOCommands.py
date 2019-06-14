@@ -5,14 +5,14 @@ try:
 except ImportError: # Python 3
     from io import StringIO
     import builtins as __builtin__
-from . import parseC
-from . import parseB
-from . import parseS
-from . import parseBandS
-from . import parseH
-from . import bifDiag
+from auto import parseC
+from auto import parseB
+from auto import parseS
+from auto import parseBandS
+from auto import parseH
+from auto import bifDiag
 import os
-from . import AUTOutil
+from auto import AUTOutil
 import sys
 import glob
 import shutil
@@ -21,7 +21,7 @@ SIMPLE=0
 EXPERT=1
 
 
-from . import AUTOExceptions
+from auto import AUTOExceptions
 
 #############################################
 #  commands      
@@ -280,8 +280,8 @@ def relabel(name1=None,name2=None,templates=None):
         n2b = name2["bifurcationDiagram"]
         n2s = name2["solution"]
         n2d = name2["diagnostics"]
-    from . import relabel
-    relabel.relabel(n1b,n1s,n2b,n2s)
+    from auto.relabel import relabel
+    relabel(n1b,n1s,n2b,n2s)
     if os.access(n2b,os.F_OK):
         if name2["bifurcationDiagram"] is None:
             # Save backups
@@ -1891,7 +1891,7 @@ def autohelp(command_string=""):
             if cmd not in _aliases:
                 _aliases[cmd] = []
             _aliases[cmd].append(option)
-    from . import AUTOCommands
+    from auto import AUTOCommands
     if _aliases == {}:
         # Now we copy the commands from the module
         for key in AUTOCommands.__dict__:
@@ -1940,7 +1940,7 @@ def autohelp(command_string=""):
                 outputString += doc[0]
                 outputString += "\n"
 
-        from . import interactiveBindings            
+        from auto import interactiveBindings            
         execlist = [{'name' : 'auto', 'alias' : 'ex', 
                      'fn' : interactiveBindings.AUTOInteractiveConsole.ex},
                     {'name' : 'demofile', 'alias' : 'dmf',
@@ -2034,7 +2034,7 @@ def gui(type="simple"):
         from Tkinter import Tk
     except ImportError:
         from tkinter import Tk # Python 3
-    from .graphics import AUTOgui, Pmw
+    from auto.graphics import AUTOgui, Pmw
     # Get rid of the initial window
     root = Tk()
     root.withdraw()
@@ -2085,7 +2085,7 @@ commandSpecialPointLabels = command(splabs)
 #  Testing stuff
 ############################################
 def test():
-    from . import runAUTO
+    from auto import runAUTO
     import sys
     
     def printfunc(text):

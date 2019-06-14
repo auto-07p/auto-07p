@@ -4,10 +4,10 @@ try:
     import Tkinter
 except ImportError:
     import tkinter as Tkinter # Python 3
-from . import Pmw
-from .. import parseC
-from .. import AUTOutil
-from . import plotter
+from auto.graphics import Pmw
+from auto import parseC
+from auto import AUTOutil
+from auto.graphics import plotter
 import sys
 
 # FIXME:  No regression tester (except as part of interactiveBindings)

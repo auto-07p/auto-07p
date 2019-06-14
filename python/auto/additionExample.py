@@ -1,4 +1,4 @@
-from . import AUTOCommands
+from auto import AUTOCommands
 
 
 class randy(AUTOCommands.commandQueryDiagnostic):

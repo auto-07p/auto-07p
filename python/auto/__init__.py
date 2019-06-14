@@ -7,7 +7,7 @@
 # c) from auto import *
 
 if __name__ == "__main__":
-    from . import AUTOclui
+    from auto import AUTOclui
     AUTOclui.auto()
 else:
-    from .AUTOclui import *
+    from auto.AUTOclui import *

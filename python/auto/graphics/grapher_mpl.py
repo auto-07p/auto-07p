@@ -12,7 +12,7 @@ from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 from matplotlib.axes import Axes
 from matplotlib.ticker import AutoLocator, FixedLocator
-from . import Points
+from auto import Points
 if not Points.numpyimported:
     Points.importnumpy()
 transpose = Points.N.transpose
@@ -43,11 +43,11 @@ try:
 except ImportError:
     import tkinter as Tkinter # Python 3
     from tkinter import filedialog as tkFileDialog
-from graphics import Pmw
-import AUTOutil
+from auto.graphics import Pmw
+from auto import AUTOutil
 import math
 import string
-from graphics import grapher
+from auto.graphics import grapher
 
 GrapherError="GrapherError"
 

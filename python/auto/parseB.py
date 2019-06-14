@@ -19,15 +19,14 @@
 
 import os
 import sys
-from . import AUTOExceptions
-from . import AUTOutil
-from .AUTOutil import format19_10E3
+from auto import AUTOExceptions
+from auto import AUTOutil
+from auto.AUTOutil import format19_10E3
 try:
     from UserList import UserList
 except ImportError: # Python 3
     from collections import UserList
-from . import parseC
-from . import Points
+from auto import Points
 
 try:
     next
@@ -914,6 +913,7 @@ class AUTOBranch(parseBMixin, Points.Pointset):
         self.c = self.parseHeader(headerlist)
 
     def parseHeader(self,headerlist):
+        from auto import parseC
         self.headerlist = headerlist
         if hasattr(str,"split"):
             split = str.split

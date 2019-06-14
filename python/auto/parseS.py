@@ -29,15 +29,14 @@ try:
     file
 except NameError: #Python 3
     from io import IOBase as file
-from . import AUTOExceptions
+from auto import AUTOExceptions
 import copy
-from . import parseB
-from . import parseC
-from . import Points
-from . import runAUTO
+from auto import parseB
+from auto import parseC
+from auto import Points
 import gzip
-from . import AUTOutil
-from .AUTOutil import format19_10E3
+from auto import AUTOutil
+from auto.AUTOutil import format19_10E3
 import types
 
 # End of data exception definition
@@ -847,6 +846,7 @@ class AUTOSolution(UserDict,Points.Pointset):
         Run AUTO from the solution with the given AUTO constants.
         Returns a bifurcation diagram of the result.
         """
+        from auto import runAUTO
         return runAUTO.runAUTO(selected_solution=self.load(**kw)).run()
 
     def readAllFilename(self,filename):

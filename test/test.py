@@ -7,10 +7,10 @@ import os
 import sys, shutil
 import time
 import platform
-from interactiveBindings import AUTOInteractiveConsole
-import AUTOclui
+from auto.interactiveBindings import AUTOInteractiveConsole
+from auto import AUTOclui
 import parse_test
-import runDemo
+from auto import runDemo
 
 # selection
 DIR1=["pp2","exp","int","dd2","opt","lin","bvp","pp3","wav","plp"]

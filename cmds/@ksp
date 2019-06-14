@@ -3,8 +3,8 @@
 import sys
 import os
 sys.path.append(os.path.join(os.environ["AUTO_DIR"],"python"))
-from AUTOclui import *
-import parseBandS
+from auto.AUTOclui import *
+from auto import parseBandS
 
 # This is the Python syntax for making a script runable    
 if __name__ == '__main__':

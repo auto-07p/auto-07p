@@ -3,7 +3,7 @@
 import sys
 import os
 sys.path.append(os.path.join(os.environ["AUTO_DIR"],"python"))
-from AUTOCommands import commandSubtractBranches
+from auto.AUTOCommands import commandSubtractBranches
 
 # This is the Python syntax for making a script runnable
 if __name__ == '__main__':

@@ -7,7 +7,7 @@ fi
 
 if test "`uname`" = "Darwin"; then
   if which pythonw > /dev/null; then
-    exec pythonw $AUTO_DIR/python/interactiveBindings.py ${1+"$@"};
+    exec pythonw $AUTO_DIR/python/auto/interactiveBindings.py ${1+"$@"};
   fi
 fi
-exec $AUTO_DIR/python/interactiveBindings.py ${1+"$@"};
+exec python $AUTO_DIR/python/auto/interactiveBindings.py ${1+"$@"};

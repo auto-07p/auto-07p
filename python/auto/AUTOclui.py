@@ -1,10 +1,10 @@
 #! /usr/bin/env python
-from . import AUTOutil
+from auto import AUTOutil
 import sys
 import os
-from . import AUTOCommands
-from . import runAUTO
-from . import interactiveBindings
+from auto import AUTOCommands
+from auto import runAUTO
+from auto import interactiveBindings
 try:
     import __builtin__
     from new import function
@@ -132,7 +132,7 @@ def exportFunctions(log=None,err=None):
 # to the aliases
 if "AUTO_DIR" not in os.environ:
     absfile = os.path.abspath(__file__)
-    autodir = os.path.dirname(os.path.dirname(absfile))
+    autodir = os.path.dirname(os.path.dirname(os.path.dirname(absfile)))
     os.environ["AUTO_DIR"] = autodir
 funcs = exportFunctions()
 runner = interactiveBindings.AUTOInteractiveConsole(funcs)

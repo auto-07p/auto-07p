@@ -3,8 +3,8 @@
 import sys
 import os
 sys.path.append(os.path.join(os.environ["AUTO_DIR"],"python"))
-from parseC import parseC
-from parseH import parseH
+from auto.parseC import parseC
+from auto.parseH import parseH
 
 # This is the Python syntax for making a script runnable
 if __name__ == '__main__':

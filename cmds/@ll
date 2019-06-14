@@ -8,7 +8,7 @@ if python - 2> /dev/null <<EOF
 import sys
 import os
 sys.path.append(os.path.join(os.environ["AUTO_DIR"],"python"))
-import parseS
+from auto import parseS
 
 solutions=parseS.parseS("$file")
 print("\n  BR    PT  TY  LAB")

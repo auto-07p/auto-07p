@@ -5,7 +5,9 @@ import os
 import code
 import getopt
 import re
-from . import AUTOExceptions
+if __package__ != 'auto':
+    sys.path.insert(0,os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from auto import AUTOExceptions
 import keyword
 try:
     import __builtin__

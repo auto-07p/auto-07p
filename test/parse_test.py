@@ -9,7 +9,7 @@ try:
     from urllib import pathname2url
 except ImportError: # Python 3
     from urllib.request import pathname2url
-import parseB
+from auto import parseB
 
 #A few template strings which will be used later for reports, etc.
 

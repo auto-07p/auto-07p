@@ -3,7 +3,7 @@
 import sys
 import os
 sys.path.append(os.path.join(os.environ["AUTO_DIR"],"python"))
-import parseB
+from auto import parseB
 
 # This is the Python syntax for making a script runable    
 if __name__ == '__main__':
