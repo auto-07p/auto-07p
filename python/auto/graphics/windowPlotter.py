@@ -16,7 +16,7 @@ class WindowPlotter(Pmw.MegaToplevel):
         optiondefs = []
         self.defineoptions(kw,optiondefs)
         if kw.get('grapher_hide') or disabled:
-            if 'graphics.grapher_mpl' in sys.modules or disabled:
+            if 'auto.graphics.grapher_mpl' in sys.modules or disabled:
                 kwnew = {}
                 for k in kw:
                     if k.startswith('grapher_'):

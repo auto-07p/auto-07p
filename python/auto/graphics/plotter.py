@@ -237,7 +237,7 @@ class plotter(grapher.GUIGrapher):
         rval = self._configNoDraw(cnf,**kw)
         if isinstance(cnf, str) or (cnf is None and not kw):
             return rval
-        if 'graphics.grapher_mpl' not in sys.modules and not hasattr(self, "tk"):
+        if 'auto.graphics.grapher_mpl' not in sys.modules and not hasattr(self, "tk"):
             # plotting disabled
             return
         if self.__needsPlot:
