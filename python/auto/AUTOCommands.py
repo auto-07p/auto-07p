@@ -1800,7 +1800,7 @@ try:
             except TclError:
                 sys.stderr.write(str(sys.exc_info()[1])+"\n")
                 options['grapher_hide'] = True
-                if 'graphics.grapher_mpl' in sys.modules:
+                if 'auto.graphics.grapher_mpl' in sys.modules:
                     sys.stderr.write("Disabling on-screen plots, but you can still use savefig\n")
                 else:
                     sys.stderr.write("Disabling plots, off-screen plots require Matplotlib\n")
@@ -1847,7 +1847,7 @@ try:
             options["grapher_solution"] = n1b()
         handle = windowPlotter.WindowPlotter2D(root,**options)
         if (not options.get('grapher_hide') or
-            'graphics.grapher_mpl' not in sys.modules):
+            'auto.graphics.grapher_mpl' not in sys.modules):
             handle.update()
             try:
                 def plotterquit():
