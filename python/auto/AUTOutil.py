@@ -101,7 +101,10 @@ def findBaseClass(inputClass,baseClass):
         return 0
 
 def getAUTORC(section=None):
-    parser = ConfigParser()
+    try:
+        parser = ConfigParser(strict=False)
+    except TypeError: # for Python 2.x without strict
+        parser = ConfigParser()
     if section is not None:
         parser.add_section(section)
     path = os.path.expandvars("$AUTO_DIR/.autorc")

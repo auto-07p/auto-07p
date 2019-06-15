@@ -391,7 +391,7 @@ class BasicGrapher(grapher.BasicGrapher):
             
         # data
         line_width=self.cget("line_width")
-        dashes=map(float,self.cget("dashes"))
+        dashes=list(map(float,self.cget("dashes")))
         i=-1
         for d in self.data:
             if d["newsect"] is None or d["newsect"]:
