@@ -4,10 +4,7 @@ if ( test $# -eq 1 ) then
 else
 	file=fort.8
 fi
-if python - 2> /dev/null <<EOF
-import sys
-import os
-sys.path.append(os.path.join(os.environ["AUTO_DIR"],"python"))
+if autox - 2> /dev/null <<EOF
 from auto import parseS
 
 solutions=parseS.parseS("$file")

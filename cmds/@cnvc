@@ -1,8 +1,7 @@
-#! /usr/bin/env python
+#! /usr/bin/env autox
 
 import sys
 import os
-sys.path.append(os.path.join(os.environ["AUTO_DIR"],"python"))
 from auto.parseC import parseC
 from auto.parseH import parseH
 

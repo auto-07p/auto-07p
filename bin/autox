@@ -17,4 +17,5 @@ if test "`uname`" = "Darwin"; then
     exec pythonw ${1+"$@"};
   fi
 fi
-exec python ${1+"$@"};
+command -v > /dev/null python && exec python ${1+"$@"};
+exec python3 ${1+"$@"};

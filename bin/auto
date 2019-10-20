@@ -10,4 +10,5 @@ if test "`uname`" = "Darwin"; then
     exec pythonw $AUTO_DIR/python/auto/interactiveBindings.py ${1+"$@"};
   fi
 fi
-exec python $AUTO_DIR/python/auto/interactiveBindings.py ${1+"$@"};
+command -v > /dev/null python && exec python $AUTO_DIR/python/auto/interactiveBindings.py ${1+"$@"};
+exec python3 $AUTO_DIR/python/auto/interactiveBindings.py ${1+"$@"};
