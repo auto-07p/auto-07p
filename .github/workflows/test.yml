@@ -13,7 +13,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install gfortran libsoqt4-dev libmotif-dev
         sudo apt-get install python-matplotlib
-        sudo apt-get install texlive transfig
+        sudo apt-get install texlive texlive-latex-extra transfig
         # compile auto
         ./configure --enable-gui
         make
