@@ -9,6 +9,10 @@ jobs:
     - uses: actions/checkout@v1
     - name: Compile
       run: |
+        # install dependencies
+        sudo apt-get install gfortran libsoqt4-dev libmotif-dev
+        sudo apt-get install python-matplotlib
+        sudo apt-get install texlive transfig
         # compile auto
-        ./configure
+        ./configure --enable-gui
         make
