@@ -17,3 +17,9 @@ jobs:
         # compile auto
         ./configure --enable-gui
         make
+        # compile manual
+        make -C doc auto.pdf ../plaut04/doc/userguide.pdf
+        # run test
+        export AUTO_DIR=$PWD
+        cd test
+        ../bin/auto all.auto
