@@ -36,6 +36,6 @@ jobs:
         export AUTO_DIR=$PWD
         export AUTO_COMMAND_PREFIX="mpirun -n 2"
         export OMP_NUM_THREADS=1
-        export OMPI_mca_btl="^openib"
+        export OMPI_MCA_btl="^openib"
         cd test
         python3 $AUTO_DIR/python/auto/interactiveBindings.py all.auto
