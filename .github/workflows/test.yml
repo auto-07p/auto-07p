@@ -23,10 +23,12 @@ jobs:
         make -C doc auto.pdf ../plaut04/doc/userguide.pdf
     - name: Run test (python2)
       run: |
+        export OMPI_MCA_btl="^openib"
         cd test
         python2 ../python/auto all.auto
     - name: Run test (python3)
       run: |
+        export OMPI_MCA_btl="^openib"
         cd test
         python3 ../python/auto all.auto
     - name: Run test (MPI + python3)
