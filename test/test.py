@@ -121,8 +121,10 @@ def test(demos, versions=None, log_file=None, parse=True):
             err[version].close()
             log[version].close()
 
+    retcode = 0
     if parse:
-        parse_test.parse(log_files, demos=demos)
+        retcode = parse_test.parse(log_files, demos=demos)
+    return retcode
 
 if __name__ == '__main__':
     opts_list,args=getopt.getopt(sys.argv[1:],"cfpl:i:")
@@ -145,4 +147,4 @@ if __name__ == '__main__':
         log_file=opts["-l"]
 
     demos = args[0]
-    test(args[0], versions, log_file, parse=False)
+    sys.exit(test(args[0], versions, log_file, parse=False))

@@ -257,6 +257,7 @@ def parse(trial_file,epsilon=None, abseps=None, demo=None, html_dir=None,
     print ("Putting results in directory:  %s"%html_dir)
 
     table = []
+    retcode = 0
     if len(demo) == 0:
         top = BasicDocument()
         top.append(H(1,"Correct file %s"%correct_file))
@@ -317,12 +318,15 @@ def parse(trial_file,epsilon=None, abseps=None, demo=None, html_dir=None,
                     for lst in report_list[i]:
                         print("%-6s: %15.7e%15.7e"%(lst[0],lst[1],lst[2]))
                 elif len(report_list[i]) > 0:
+                    if i != DEMO_OK:
+                        retcode = 1
                     print(" ".join([dct[i]]+report_list[i]))
         print("Please point your web browser to the following URL "
               "for detailed results:\nfile:%s"%
               pathname2url(os.path.abspath("verification/index.html")))
     else:
         check_demo(demo,correct_file,trial_file,epsilon,abseps)
+    return retcode
 
 if __name__ == "__main__":
     opts_list,args = getopt.getopt(sys.argv[1:],"c:t:d:e:h:")
@@ -342,7 +346,7 @@ if __name__ == "__main__":
             epsilon=float(x[1])
         if x[0]=="-h":
             html_dir=x[1]
-    parse(trial_file, correct_file, demo, epsilon, html_dir)
+    sys.exit(parse(trial_file, correct_file, demo, epsilon, html_dir))
 
 
 
