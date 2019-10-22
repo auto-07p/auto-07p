@@ -1,4 +1,4 @@
 #!/usr/bin/env auto
-import test
-test.test('hom')
+import sys, test
+sys.exit(test.test('hom'))
 
