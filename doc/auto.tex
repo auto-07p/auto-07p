@@ -1903,44 +1903,44 @@ demos  {\tt dd2}, {\tt int}, {\tt plp}, {\tt opt}, and {\tt ops}.
  Copying demo lrz ... done
  Runner configured
  AUTO> data=run('lrz')
- gfortran -fopenmp -O -c lrz.f -o lrz.o
+ gfortran -fopenmp -O -c lrz.f90 -o lrz.o
  gfortran -fopenmp -O lrz.o -o lrz.exe /home/bart/auto/07p/lib/*.o
  Starting lrz ...
 (...)
 lrz ... done
  AUTO> print data
 
-  BR    PT  TY  LAB    PAR(1)        L2-NORM         U(1)          U(2)          U(3)     
+  BR    PT  TY  LAB      rho         L2-NORM          x             y             z       
    1     1  EP    1   0.00000E+00   0.00000E+00   0.00000E+00   0.00000E+00   0.00000E+00
    1     5  BP    2   1.00000E+00   0.00000E+00   0.00000E+00   0.00000E+00   0.00000E+00
-   1    13  EP    3   3.16000E+01   0.00000E+00   0.00000E+00   0.00000E+00   0.00000E+00
+   1    13  UZ    3   3.00000E+01   0.00000E+00   0.00000E+00   0.00000E+00   0.00000E+00
 
-  BR    PT  TY  LAB    PAR(1)        L2-NORM         U(1)          U(2)          U(3)     
+  BR    PT  TY  LAB      rho         L2-NORM          x             y             z       
    2    42  HB    4   2.47368E+01   2.62685E+01   7.95602E+00   7.95602E+00   2.37368E+01
-   2    45  EP    5   3.26008E+01   3.41635E+01   9.17980E+00   9.17980E+00   3.16008E+01
+   2    45  UZ    5   3.00000E+01   3.15542E+01   8.79394E+00   8.79394E+00   2.90000E+01
 
-  BR    PT  TY  LAB    PAR(1)        L2-NORM         U(1)          U(2)          U(3)     
+  BR    PT  TY  LAB      rho         L2-NORM          x             y             z       
    2    42  HB    6   2.47368E+01   2.62685E+01  -7.95602E+00  -7.95602E+00   2.37368E+01
-   2    45  EP    7   3.26008E+01   3.41635E+01  -9.17980E+00  -9.17980E+00   3.16008E+01
+   2    45  UZ    7   3.00000E+01   3.15542E+01  -8.79394E+00  -8.79394E+00   2.90000E+01
 
  AUTO> br=data[1]
  AUTO> print br
-  BR    PT  TY  LAB    PAR(1)        L2-NORM         U(1)          U(2)          U(3)     
+  BR    PT  TY  LAB      rho         L2-NORM          x             y             z       
    2    42  HB    4   2.47368E+01   2.62685E+01   7.95602E+00   7.95602E+00   2.37368E+01
-   2    45  EP    5   3.26008E+01   3.41635E+01   9.17980E+00   9.17980E+00   3.16008E+01
+   2    45  UZ    5   3.00000E+01   3.15542E+01   8.79394E+00   8.79394E+00   2.90000E+01
  AUTO> print br[0]
- {'TY number': 0, 'PT': -1, 'index': 0, 'section': 0, 'LAB': 0, 'BR': 2,
-  'data': [0.99999994000000003, 0.0, 0.0, 0.0, 0.0], 'TY name': 'No Label'}
- AUTO> print br['PAR(1)']
- [  0.99999994   1.001875     1.00747645   1.01786791   1.03426011
-    1.05801491   1.08738983   1.12195713   1.16544975   1.21923418
+ {'TY number': 0, 'PT': -1, 'BR': 2, 'index': 0, 'section': 0,
+  'data': [0.99999994, 0.0, 0.0, 0.0, 0.0], 'TY name': 'No Label', 'LAB': 0}
+ AUTO> print br['rho']
+[ 0.99999994  1.001875    1.00747645  1.01786791  1.03426011  1.05801491
+  1.08738983  1.12195713  1.16544975  1.21923418  1.28474069  1.36345331
 (...)
-   13.69994168  15.15715248  16.76398367  18.53533839  20.48761501
-   22.63885621  24.73684367  27.10974373  29.72303281  32.60076345]
+ 15.15715248 16.76398367 18.53533839 20.48761501 22.63885621 24.73684368
+ 27.10974374 29.72303283 30.        ]
  AUTO> print br(4)
- {'TY number': 3, 'PT': 42, 'index': 41, 'section': 0, 'LAB': 4, 'BR': 2, 
-  'data': [24.736843667999999, 26.268502943000001, 7.9560197197999996,
-   7.9560197197999996, 23.736843667999999], 'TY name': 'HB'}
+  BR    PT  TY  LAB ISW NTST NCOL NDIM IPS IPRIV
+   2    42  HB    4   1    1    0    3   1     0
+(...)
  \end{boxedverbatim}
  \end{center} 
  }
@@ -1949,7 +1949,7 @@ lrz ... done
  First the demo involving the Lorenz equations named 'lrz' is copied
  and we perform its first run. We then print
  the result, its second branch, the first point on this branch,
- the column corresponding to 'PAR(1)', and the point with
+ the column corresponding to 'rho', and the point with
  label 4 on this branch.
  }
  \label{exa:clui parse diagram}
@@ -1958,7 +1958,7 @@ lrz ... done
  \begin{figure}[htbp]
  {\small \begin{center} \begin{boxedverbatim}
  AUTO> import pylab
- AUTO> pylab.plot(br['PAR(1)'],br['U(1)'])
+ AUTO> pylab.plot(br['rho'],br['x'])
  [<matplotlib.lines.Line2D object at 0x9b1356c>]
  AUTO> pylab.show()
  \end{boxedverbatim}
