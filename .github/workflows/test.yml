@@ -24,15 +24,15 @@ jobs:
     - name: Run test (python2)
       run: |
         cd test
-        python2 $AUTO_DIR/python/auto/interactiveBindings.py all.auto
+        python2 ../python/auto all.auto
     - name: Run test (python3)
       run: |
         cd test
-        python3 $AUTO_DIR/python/auto/interactiveBindings.py all.auto
+        python3 ../python/auto all.auto
     - name: Run test (MPI + python3)
       run: |
         export AUTO_COMMAND_PREFIX="mpirun -n 2"
         export OMP_NUM_THREADS=1
         export OMPI_MCA_btl="^openib"
         cd test
-        python3 $AUTO_DIR/python/auto/interactiveBindings.py all.auto
+        python3 ../python/auto all.auto
