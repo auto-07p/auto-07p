@@ -7,6 +7,8 @@
 # c) from auto import *
 
 if __name__ == "__main__":
+    import sys, os
+    sys.path.insert(0,os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     from auto import AUTOclui
     AUTOclui.auto()
 else:
