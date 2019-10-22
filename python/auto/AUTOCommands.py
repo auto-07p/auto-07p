@@ -1775,7 +1775,7 @@ try:
         # delay importing plotting modules until we actually plot...
         global plotterimported, windowPlotter
         if not plotterimported:
-            from graphics import windowPlotter
+            from auto.graphics import windowPlotter
             plotterimported = True
 
         # root has to be here since I am passing options in
