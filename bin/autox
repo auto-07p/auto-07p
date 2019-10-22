@@ -2,7 +2,7 @@
 if [ -z "$AUTO_DIR" ]; then
     bindir=`dirname $0`
     AUTO_DIR=`dirname $bindir`
-    export AUTO_DIR
+    # don't export AUTO_DIR: Python code will use more reliable absolute path
 fi
 PPATH=$AUTO_DIR/python:$AUTO_DIR/python/auto
 if [ -z "$PYTHONPATH" ]; then
