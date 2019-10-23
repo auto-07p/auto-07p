@@ -8,7 +8,10 @@
 
 if __name__ == "__main__":
     import sys, os
-    sys.path.insert(0,os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    autodir = os.path.dirname(os.path.abspath(__file__))
+    for autodirectory in autodir, os.path.dirname(autodir):
+        if autodirectory not in sys.path:
+            sys.path.insert(0, autodirectory)
     from auto import AUTOclui
     AUTOclui.auto()
 else:
