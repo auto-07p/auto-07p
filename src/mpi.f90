@@ -18,6 +18,7 @@
 module autompi
 
 use auto_constants, only: autoparameters, niap, nrap
+!$ use omp_lib
 
 implicit none
 private
@@ -36,11 +37,19 @@ contains
 
 subroutine mpiini()
 
-  integer ierr,iam,namelen
+  integer ierr,iam,namelen,provided
   character(len=MPI_MAX_PROCESSOR_NAME) processor_name
   integer :: message_type
 
-  call MPI_Init(ierr)
+  provided = MPI_THREAD_SINGLE
+!$ if (omp_get_max_threads() > 1) then
+!$   call MPI_Init_thread(MPI_THREAD_FUNNELED,provided,ierr)
+!$ endif
+  if (provided == MPI_THREAD_SINGLE) then
+     ! if MPI lib doesn't officially support threads try anyway
+     ! since we only call MPI when no other threads are active
+     call MPI_Init(ierr)
+  endif
   call MPI_Comm_rank(MPI_COMM_WORLD,iam,ierr)
   call MPI_Get_processor_name(processor_name,namelen,ierr)
 !  print *,'Process ',iam,' on ',processor_name
