@@ -6454,7 +6454,7 @@ else
            SOXT_LIBS="$tmp_SOXT_LIBS `pkg-config --libs 'QtCore QtGui QtOpenGL'`"
 		    LIBS="$tmp_LIBS1 `pkg-config --libs 'QtCore QtGui QtOpenGL'`"
 		    SOXT_INCLUDES="$SOXT_INCLUDES `pkg-config --cflags 'QtCore QtGui QtOpenGL'`"
-		    CPPFLAGS="$CPPFLAGS `pkg-config --libs 'QtCore QtGui QtOpenGL'`"
+		    CPPFLAGS="$CPPFLAGS `pkg-config --cflags 'QtCore QtGui QtOpenGL'`"
 		    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <Inventor/Qt/SoQt.h>

@@ -270,7 +270,7 @@ else
            [SOXT_LIBS="$tmp_SOXT_LIBS `pkg-config --libs 'QtCore QtGui QtOpenGL'`"
 		    LIBS="$tmp_LIBS1 `pkg-config --libs 'QtCore QtGui QtOpenGL'`"
 		    SOXT_INCLUDES="$SOXT_INCLUDES `pkg-config --cflags 'QtCore QtGui QtOpenGL'`"
-		    CPPFLAGS="$CPPFLAGS `pkg-config --libs 'QtCore QtGui QtOpenGL'`"
+		    CPPFLAGS="$CPPFLAGS `pkg-config --cflags 'QtCore QtGui QtOpenGL'`"
 		    AC_LINK_IFELSE([AC_LANG_SOURCE([#include <Inventor/Qt/SoQt.h>
                      int main(void){(void)SoQt::init((const char *)0L);}])],
                 [SOXTLIB="SoQt"], [SOXTLIB="no"])])])
