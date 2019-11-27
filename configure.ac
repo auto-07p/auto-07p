@@ -64,8 +64,8 @@ AC_SUBST(MPIFILE)
 
 AC_PROG_CC
 # adjust include path if gfortran is installed without MinGW on Windows
-AC_COMPILE_IFELSE([#include <stdio.h>],,
-  [CPPFLAGS="$CPPFLAGS -iwithprefix ../../../../include"])
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([#include <stdio.h>
+	])],,[CPPFLAGS="$CPPFLAGS -iwithprefix ../../../../include"])
 
 AC_PROG_INSTALL
 
@@ -193,15 +193,15 @@ tmp_LDFLAGS=$LDFLAGS
 LDFLAGS="$LDFLAGS $COIN_LDFLAGS"
 tmp_CPPFLAGS=$CPPFLAGS
 CPPFLAGS="$CPPFLAGS $COIN_INCLUDES"
-AC_LINK_IFELSE([#include <Inventor/SoDB.h>
-                int main(void){SoDB::init();}],
+AC_LINK_IFELSE([AC_LANG_SOURCE([#include <Inventor/SoDB.h>
+                int main(void){SoDB::init();}])],
 		[COIN3D="yes"],[COIN3D="no"])
 if test x$COIN3D = "xno" && test x$CXX = "xg++"; then
         tmp_CXX=$CXX
         # for 64-bit Mac OS try with -m32 to link with 32bit coin
         CXX="g++ -m32"
-        AC_LINK_IFELSE([#include <Inventor/SoDB.h>
-                        int main(void){SoDB::init();}],
+        AC_LINK_IFELSE([AC_LANG_SOURCE([#include <Inventor/SoDB.h>
+                        int main(void){SoDB::init();}])],
 		        [COIN3D="yes"],[COIN3D="no"])
         if test x$COIN3D = "xno"; then
                CXX=$tmp_CXX
@@ -255,15 +255,22 @@ else
 	    LDFLAGS="$LDFLAGS $SOXT_LDFLAGS"
 	    tmp_CPPFLAGS=$CPPFLAGS
 	    CPPFLAGS="$CPPFLAGS $SOXT_INCLUDES"
-	    AC_LINK_IFELSE([#include <Inventor/Qt/SoQt.h>
-                    int main(void){(void)SoQt::init((const char *)0L);}],
+	    AC_LINK_IFELSE([AC_LANG_SOURCE([#include <Inventor/Qt/SoQt.h>
+                    int main(void){(void)SoQt::init((const char *)0L);}])],
                     [SOXTLIB="SoQt"],
               # -lXi is a workaround for Fedora Core 5
 	      [LIBS="$LIBS -lXi"
+	       tmp_SOXT_LIBS="$SOXT_LIBS"
 	       SOXT_LIBS="$SOXT_LIBS -lXi"
-	       AC_LINK_IFELSE([#include <Inventor/Qt/SoQt.h>
-                    int main(void){(void)SoQt::init((const char *)0L);}],
-               [SOXTLIB="SoQt"], [SOXTLIB="no"])])
+	       AC_LINK_IFELSE([AC_LANG_SOURCE([#include <Inventor/Qt/SoQt.h>
+                    int main(void){(void)SoQt::init((const char *)0L);}])],
+               [SOXTLIB="SoQt"], [SOXTLIB="no"],
+            #explictly look for Qt (sometimes necessary on Mac OS)
+           [SOXT_LIBS="$tmp_SOXT_LIBS `pkg-config --libs 'QtCore QtGui QtOpenGL'`"
+		    SOXT_INCLUDES="$SOXT_INCLUDES `pkg-config --cflags 'QtCore QtGui QtOpenGL'`"
+		    AC_LINK_IFELSE([AC_LANG_SOURCE([#include <Inventor/Qt/SoQt.h>
+                     int main(void){(void)SoQt::init((const char *)0L);}])],
+                [SOXTLIB="SoQt"], [SOXTLIB="no"])])])
 	    LIBS=$tmp_LIBS
 	    LDFLAGS=$tmp_LDFLAGS
 	    CPPFLAGS=$tmp_CPPFLAGS
