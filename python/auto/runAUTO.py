@@ -13,6 +13,7 @@ try:
     import subprocess
 except ImportError:
     import popen2
+import shlex
 
 # A few global variables for the signal handler
 alarm_demo=""
@@ -310,7 +311,7 @@ class runAUTO:
             incdir = os.path.join(auto_dir,"include")
             libs = os.path.join(srcdir,"fcon.f")
             deps = [libs] + [os.path.join(incdir,"fcon.h")]
-            var["FFLAGS"] = var["FFLAGS"] + " -I" +  incdir
+            var["FFLAGS"] = var["FFLAGS"] + " -I" + incdir.replace(" ","\\ ")
             execfile = "fcon"
         else:
             libs = os.path.join(libdir,"*.o")
@@ -318,13 +319,13 @@ class runAUTO:
             execfile = equation + ".exe"
         if not os.path.exists(execfile) or self.__newer(deps,execfile):
             if src[-1] == 'c':
-                cmd = "%s -L%s %s %s %s.o -o %s %s -lauto_c"%(var["FC"],libdir,
+                cmd = '%s -L%s %s %s %s.o -o %s %s -lauto_c'%(var["FC"],libdir.replace(" ","\\ "),
                                    var["FFLAGS"],var["OPT"],equation,execfile,libs)
             else:
                 cmd = "%s %s %s %s.o -o %s %s"%(var["FC"],var["FFLAGS"],var["OPT"],
                                                     equation,execfile,libs)
             sys.stdout.write(cmd+"\n")
-            cmd = cmd.replace(libs, " ".join(deps[:-1]))
+            cmd = cmd.replace(libs, " ".join([x.replace(" ","\\ ") for x in deps[:-1]]))
             self.runCommand(cmd)
         return os.path.exists(equation+'.exe') and not self.__newer(deps,equation+'.exe')
 
@@ -519,7 +520,7 @@ class runAUTO:
 
     def __runCommand_noredir(self,command,solution=None):
         sys.stdout.flush()
-        args = os.path.expandvars(command).split()
+        args = shlex.split(os.path.expandvars(command))
         if solution is None:
             if "subprocess" in sys.modules:
                 return subprocess.call(args)
@@ -548,7 +549,7 @@ class runAUTO:
             # This is done as the object version so I can use the "poll" method
             # later on to see if it is still running.
             if "subprocess" in sys.modules:
-                args = os.path.expandvars(command).split()
+                args = shlex.split(os.path.expandvars(command))
                 demo_object = self.__popen(args, subprocess.PIPE,
                                            subprocess.PIPE)
                 stdin, stdout, stderr = (demo_object.stdin, demo_object.stdout,
