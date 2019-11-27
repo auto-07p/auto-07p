@@ -1,3 +1,129 @@
+0.9.2:
+* Main AUTO
+  - Print eigenvalues in Hopf detection function if following a
+    BP curve or an Rn/BT has been detected.
+  - Don't write MAX/MIN for IPS==-2, that is, IVPs (request by Sebius).
+  - Replace tabs with spaces in continuation lines (bug reported by Sebius).
+  - Fix warnings reported by newer GCCs.
+  - Update included BLAS from www.netlib.org/blas (LAST UPDATE:
+    Tuesday Apr 19th 2011)
+  - Use 3-digit exponents for all 19.10 formats (in solution files),
+    to avoid numbers such as 1.1234567891-100.
+  - Fix constant file output for strings with backslashes, using "'"+str(s)+"'"
+    instead of repr(s) (report from Sebius Doedel).
+  - Thanks to Felix Becker <felix.becker@zih.tu-dresden.de>: fix error detected
+    by -fcheck=bounds in ae.f90 and bvp.f90.
+  - Use TRIM(ATYPE)//'0' instead of ATYPE//'0' to fix a problem detecting
+    spurious Torus bifurcations. Thanks to Medhi Paak for reporting this bug.
+  - Change sorting algorithm for Floquet multipliers from selection to insertion
+    sort to keep complex conjugates together correctly. Solves sorting
+	issue reported by Medhi Paak and Sebius Doedel.
+  - Only compute L2-NORM (or similar) for WRTBV9 if IID>=2, else it is
+    not used.
+  - Better MPI parallelization:
+    * The code in bvp.f90 has been parallelized so that the solution
+      vectors are nearly always distributed and only concatenated when
+      Newton iterations converge (for mesh adaptation, solution
+      measures, and I/O). This speeds up the code significantly for higher
+      processor counts.
+    * Some work space arrays used in the linear solver now have the
+      minimum size required (of length NTST/NP+log2(NTST) instead of
+      length NTST where NP is the number of processors). This significantly
+      reduces memory consumption.
+    * HomCont works with MPI.
+    * BPCont works with MPI.
+    * MPI is properly ignored for algebraic problems so it can be
+      easily used in scripts and automatic testing, by setting e.g.
+      AUTO_COMMAND_PREFIX="mpirun -n 4"
+    * AUTO now calls MPI_Init_thread instead of MPI_Init for hybrid
+      MPI/OpenMP configurations
+  - Better OpenMP parallelization:
+    * Call STUPBV (time derivatives) in parallel for OpenMP.
+    * Parallellize part of fort.8 I/O (FP to string conversion) using OpenMP.
+  - Store UOLD vector into U past NDIM. This allows equation files to
+    access UOLD in FUNC.
+  - Meshing improvements:
+    * Let INTERP work on two solutions in one loop, to save on recomputing weights.
+    * Simplify INTWTS interface/implementation to remove the need for the array X
+      and with less potential loss of precision.
+    * Store "E" (deqf/dt) from EQDF into DEQF and use it directly in NEWMSH
+      This avoids an addition followed by a subtraction which resulted in
+      rounding errors.
+  - Move to git repository, add .gitignore file (with Andreas Amann)
+* Python:
+  - Python 3 support
+    * Adapt for Python3 compatibility (Andreas Amann)
+      All tests now run for Python3 and Python2
+    * Python3: only use binary mode for solutions, not constants.
+      Solution files use binary mode for speed since they only contain
+      numbers and no strings, unlike constants files, but a text mode
+      workaround is there now just in case the stdin pipe has no binary
+      buffer.
+  - Python packaging support
+    * Add setup.py/setup.cfg and move Python code to auto subdirectory
+	  (Rike-Benjamin Schuppner)
+    * Add __init__.py and use relative imports (Rike-Benjamin Schuppner)
+    * Add __main__.py to simplify testing, and allow "python /path/to/auto"
+    * Python: Change relative to absolute imports and adjust commands.
+      Absolute imports work more nicely with existing scripts, and are
+      recommended by PEP8 anyway.
+  - IPython support
+    * Support IPython >= 0.11, thanks to Andreas Amann <a.amann@ucc.ie>.
+    * included support for IPython >1.x
+    * Prompts need to be defined differently with IPython >= 5.
+  - Use numpy.ndim instead of the deprecated numpy.rank.
+  - Remove support for long (~10 years) obsolete Numeric and numarray.
+  - Avoid identifying np.nonzero and np.flatnonzero (Andreas Amann)
+    Monkey patching np.nonzero to be np.flatnonzero had bad effects on
+    matplotlib, which depends on the correct np.nonzero to be available.
+  - Avoid plain python in shebangs.
+    "python" may not exist, but "python3" may exist. The auto and autox shell
+    scripts now take care of this.
+* PyPLAUT
+  - For Python 3: fix handling of dashes and parser for autorc files.
+  - If Tk cannot be initialized, hide the plot if possible.
+    This allows to run the automated test without DISPLAY set.
+  - Use NavigationToolbar2Tk for matplotlib 2.2+
+  - Use get/set_facecolor if available instead of deprecated functions.
+  - Fix problem when updating small plotting window
+* PLAUT
+  - Fix compilation with newer versions of gfortran:
+    ANGLE needs 4 elements, otherwise it cannot call ARROWL with it.
+* PLAUT04
+  - Eliminate use of QT3_SUPPORT methods for pulldown menus.
+    Eliminate QT3_SUPPORT define.
+  - Qt4 compat for file dialog windows.
+  - Replace insertItem with addItem for lists for Qt4 compatibility.
+  - Use toLocal8Bit() instead of implicit QString->const char * conversions.
+  - Call constructors for QComboBox, QSpinBox, QDialog, etc. in Qt4 style.
+  - Create a seperate method for every pulldown menu entry for better
+    QT4 compatibility.
+  - Workaround for the menu bar in newer Mac OS X versions (Mavericks+)
+  - Fix set but not used warnings for PLAUT04.
+* Testing
+  - Setup automated testing (Continuous Integration) using Github
+    Actions (on Ubuntu)
+    * Compile AUTO and manual
+    * Test with both python2 and python3.
+    * Enabled test with MPI enabled
+    * Properly exit with error code in test scripts.
+    * Upload test artifacts (logfile and verification html).
+  - Adjust r3b demo test reference.
+  - The eighth run of the fhh demo converges (since 703607e for NEWMSH)
+  - Fix two more results for ab demo in test reference.
+* Manual
+  - Fix documentation illustrating Python data access for lrz demo. Closes #3.
+  - Latex compile fix (Andreas Amann)
+    the unknown m placement specifier for figures was ignored by older
+    latex versions but is now an error.
+* Demos
+  - Make tfc demo more robust.
+  - Tweak EPS* in fhh demo to properly detect UZ in eighth run
+  - Adjust EPSS in fhh demo to still detect the test point.
+  - Increase NTST in ab demo to make it more robust in the last run.
+  - Increase NTST in c.ab.3 to 70 so it does not MX unreliably.
+  - c2c demo: increase NTST a little to make it work correctly with GCC8
+  - Increase NTST in c.fhn.5 to match c.fhn.6 (elimates spurious UZ)
 0.9.1:
 * Main AUTO:
   - Fix makefile dependency problem.
