@@ -6449,7 +6449,21 @@ _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
   SOXTLIB="SoQt"
 else
+  #explictly look for Qt (sometimes necessary on Mac OS)
+           SOXT_LIBS="$tmp_SOXT_LIBS `pkg-config --libs 'QtCore QtGui QtOpenGL'`"
+		    SOXT_INCLUDES="$SOXT_INCLUDES `pkg-config --cflags 'QtCore QtGui QtOpenGL'`"
+		    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <Inventor/Qt/SoQt.h>
+                     int main(void){(void)SoQt::init((const char *)0L);}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"; then :
+  SOXTLIB="SoQt"
+else
   SOXTLIB="no"
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext

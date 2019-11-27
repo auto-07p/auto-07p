@@ -264,7 +264,7 @@ else
 	       SOXT_LIBS="$SOXT_LIBS -lXi"
 	       AC_LINK_IFELSE([AC_LANG_SOURCE([#include <Inventor/Qt/SoQt.h>
                     int main(void){(void)SoQt::init((const char *)0L);}])],
-               [SOXTLIB="SoQt"], [SOXTLIB="no"],
+               [SOXTLIB="SoQt"],
             #explictly look for Qt (sometimes necessary on Mac OS)
            [SOXT_LIBS="$tmp_SOXT_LIBS `pkg-config --libs 'QtCore QtGui QtOpenGL'`"
 		    SOXT_INCLUDES="$SOXT_INCLUDES `pkg-config --cflags 'QtCore QtGui QtOpenGL'`"
