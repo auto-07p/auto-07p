@@ -1,6 +1,6 @@
 #!/bin/sh
 # copy one level deep without hidden files
-for i in $AUTO_DIR/demos/$1/*
+for i in "$AUTO_DIR"/demos/$1/*
 do
   if test -d "$i"; then
     d=`expr "$i" : "$AUTO_DIR/demos/$1/\(.*\)"`

@@ -15,7 +15,7 @@ else
 	outb=fort.37
 	outs=fort.38
 fi
-if $AUTO_DIR/python/auto/relabel.py $inb $ins $outb $outs 2> /dev/null; then :; else
+if "$AUTO_DIR"/python/auto/relabel.py $inb $ins $outb $outs 2> /dev/null; then :; else
 	#Fortran relabelling
 	. compat.sh
 	if test $COMPAT = compat; then
@@ -23,7 +23,7 @@ if $AUTO_DIR/python/auto/relabel.py $inb $ins $outb $outs 2> /dev/null; then :; 
 		cp $ins fort.28
 		outb=fort.37
 		outs=fort.38
-		$AUTO_DIR/bin/relabel
+		"$AUTO_DIR"/bin/relabel
 		rm fort.27 fort.28
 		if test $# -eq 2; then
 			if (test -r fort.37) then
@@ -35,7 +35,7 @@ if $AUTO_DIR/python/auto/relabel.py $inb $ins $outb $outs 2> /dev/null; then :; 
 	        	fi
 		fi
 	else
-		$AUTO_DIR/bin/relabel $inb $ins $outb $outs
+		"$AUTO_DIR"/bin/relabel $inb $ins $outb $outs
 	fi
 fi
 if( test $# -eq 2 ) then

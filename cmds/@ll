@@ -19,5 +19,5 @@ EOF
 then
     :
 else
-    $AUTO_DIR/bin/listlabels < $file
+    "$AUTO_DIR"/bin/listlabels < $file
 fi

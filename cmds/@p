@@ -15,8 +15,8 @@ if test $COMPAT = compat; then
 	b1=
 	s1=
 fi
-if [ -x $AUTO_DIR/bin/xterm-tek ]; then
-	$AUTO_DIR/bin/xterm-tek -bg black -fg white -t -e $AUTO_DIR/bin/plaut $b1 $s1 &
+if [ -x "$AUTO_DIR"/bin/xterm-tek ]; then
+	"$AUTO_DIR"/bin/xterm-tek -bg black -fg white -t -e "$AUTO_DIR"/bin/plaut $b1 $s1 &
 else
-	xterm -bg black -fg white -t -e $AUTO_DIR/bin/plaut $b1 $s1 &
+	xterm -bg black -fg white -t -e "$AUTO_DIR"/bin/plaut $b1 $s1 &
 fi

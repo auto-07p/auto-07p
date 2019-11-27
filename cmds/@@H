@@ -18,7 +18,7 @@ else
 fi
 cat h.$CFILE > fort.12
 if ( test -n "$SFILE" -a -r c.$CFILE ) then
-	echo s=\'$SFILE\' | cat - c.$CFILE | make -f $AUTO_DIR/cmds/cmds.make EQUATION_NAME=$1
+	echo s=\'$SFILE\' | cat - c.$CFILE | make -f "$AUTO_DIR"/cmds/cmds.make EQUATION_NAME=$1
 else
-	make -f $AUTO_DIR/cmds/cmds.make EQUATION_NAME=$1 < c.$CFILE
+	make -f "$AUTO_DIR"/cmds/cmds.make EQUATION_NAME=$1 < c.$CFILE
 fi

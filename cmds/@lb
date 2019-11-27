@@ -2,7 +2,7 @@
 if ( test $# -eq 1 ) then
 	cp b.$1 fort.27
 	cp s.$1 fort.28
-	$AUTO_DIR/bin/autlab
+	"$AUTO_DIR"/bin/autlab
 	rm fort.27
         rm fort.28
         if (test -r fort.37) then
@@ -17,7 +17,7 @@ if ( test $# -eq 1 ) then
 elif( test $# -eq 2 ) then
 	cp b.$1 fort.27
 	cp s.$1 fort.28
-	$AUTO_DIR/bin/autlab
+	"$AUTO_DIR"/bin/autlab
 	rm fort.27
         rm fort.28
         if (test -r fort.37) then
@@ -30,7 +30,7 @@ elif( test $# -eq 2 ) then
 else
 	cp fort.7 fort.27
         cp fort.8 fort.28
-	$AUTO_DIR/bin/autlab
+	"$AUTO_DIR"/bin/autlab
 	rm fort.27
         rm fort.28
         if (test -r fort.37) then

@@ -2,7 +2,7 @@
 if ( test $# -eq 1 ) then
 	mv b.$1 fort.27
 	mv s.$1 fort.28
-	$AUTO_DIR/bin/reduce
+	"$AUTO_DIR"/bin/reduce
 	mv fort.27 b.$1~
         mv fort.28 s.$1~
         if (test -r fort.37) then
@@ -15,7 +15,7 @@ if ( test $# -eq 1 ) then
 elif( test $# -eq 2 ) then
 	mv b.$1 fort.27
 	mv s.$1 fort.28
-	$AUTO_DIR/bin/reduce
+	"$AUTO_DIR"/bin/reduce
 	mv fort.27 b.$1~
         mv fort.28 s.$1~
         if (test -r fort.37) then
@@ -28,7 +28,7 @@ elif( test $# -eq 2 ) then
 else
 	mv fort.7 fort.27
         mv fort.8 fort.28
-	$AUTO_DIR/bin/reduce
+	"$AUTO_DIR"/bin/reduce
 	mv fort.27 fort.7~ 
         mv fort.28 fort.8~
         if (test -r fort.37) then

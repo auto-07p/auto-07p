@@ -1,2 +1,2 @@
 #!/bin/sh
-exec $AUTO_DIR/python/auto/graphics/pyplaut.py $1
+exec "$AUTO_DIR/python/auto/graphics/pyplaut.py" $1

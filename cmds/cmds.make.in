@@ -11,13 +11,13 @@
 #
 CC    	   = @CC@
 FC    	   = @FC@
-CFLAGS 	   = @CFLAGS@ -I$(AUTO_DIR)/include
+CFLAGS 	   = @CFLAGS@ -I"$(AUTO_DIR)"/include
 FFLAGS 	   = @FFLAGS@
 OPT    	   = @OPT_FLAG@
 SRC        = $(EQUATION_NAME).f
 OBJ        = $(EQUATION_NAME).o
 EXE        = $(EQUATION_NAME).exe
-LIBS       = $(AUTO_DIR)/lib/*.o
+LIBS       = "$(AUTO_DIR)"/lib/*.o
 RM         = rm -f
 # @rn
 run: $(EXE)
@@ -32,7 +32,7 @@ $(EXE): $(OBJ) $(LIBS)
 	  $(FC) $(FFLAGS) $(OPT) $(OBJ) -o $@ $(LIBS); \
 	elif [ -f $(EQUATION_NAME).c ]; then \
 	  echo $(FC) -L$(AUTO_DIR)/lib $(FFLAGS) $(OPT) $(OBJ) -o $@ '$(LIBS)' -lauto_c; \
-	  $(FC) -L$(AUTO_DIR)/lib $(FFLAGS) $(OPT) $(OBJ) -o $@ $(LIBS) -l auto_c; \
+	  $(FC) -L"$(AUTO_DIR)"/lib $(FFLAGS) $(OPT) $(OBJ) -o $@ $(LIBS) -l auto_c; \
 	else \
 	  echo $(EQUATION_NAME).f does not exist.; \
 	fi
