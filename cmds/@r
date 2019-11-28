@@ -24,6 +24,12 @@ else
 	CFILE="$1.$2"
 	SFILE="$3"
 fi
+if ( test "$OS" = "Windows_NT" && echo "$AUTO_DIR" | grep " " ) then
+	if command -v cygpath > /dev/null; then
+		# use short file name for AUTO_DIR with spaces
+		AUTO_DIR=$(cygpath -u $(cygpath -s -m "$AUTO_DIR"))
+	fi
+fi
 if ( test -n "$SFILE" -a -r c.$CFILE ) then
 	echo s=\'$SFILE\' | cat - c.$CFILE | make -f "$AUTO_DIR/cmds/cmds.make" EQUATION_NAME=$1
 else

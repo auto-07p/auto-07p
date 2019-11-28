@@ -6,6 +6,12 @@ else
   echo "(Required files : $1.c, c.$1, $1.dat)"
 fi
 echo " "
+if ( test "$OS" = "Windows_NT" && echo "$AUTO_DIR" | grep " " ) then
+	if command -v cygpath > /dev/null; then
+		# use short file name for AUTO_DIR with spaces
+		AUTO_DIR=$(cygpath -u $(cygpath -s -m "$AUTO_DIR"))
+	fi
+fi
 make -f "$AUTO_DIR"/cmds/cmds.make fcon EQUATION_NAME=$1
 cp c.$1   fort.2
 cp $1.dat fort.3
