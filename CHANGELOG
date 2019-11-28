@@ -50,6 +50,8 @@
       This avoids an addition followed by a subtraction which resulted in
       rounding errors.
   - Move to git repository, add .gitignore file (with Andreas Amann)
+  - Adapt configure script, makefiles and shell scripts to newer Mac OS and
+    Windows (using MSYS2).
 * Python:
   - Python 3 support
     * Adapt for Python3 compatibility (Andreas Amann)
