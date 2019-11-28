@@ -1,13 +1,22 @@
 #! /bin/sh
 if [ -z "$AUTO_DIR" ]; then
-    bindir=`dirname $0`
-    AUTO_DIR=`dirname $bindir`
+    bindir=`dirname "$0"`
+    AUTO_DIR=`dirname "$bindir"`
     # don't export AUTO_DIR: Python code will use more reliable absolute path
 fi
 
 if test "`uname`" = "Darwin"; then
   if which pythonw > /dev/null; then
     exec pythonw "$AUTO_DIR/python/auto/interactiveBindings.py" ${1+"$@"};
+  fi
+fi
+if test "$OS" = "Windows_NT" && test "$MSYSCON" = "mintty.exe"; then
+  if command -v > /dev/null winpty; then
+    # winpty is needed so command-line history works
+    AUTO_DIR2="$AUTO_DIR"
+    unset AUTO_DIR
+    command -v > /dev/null python && exec winpty python "$AUTO_DIR2/python/auto/interactiveBindings.py" ${1+"$@"};
+    exec winpty python3 "$AUTO_DIR2/python/auto/interactiveBindings.py" ${1+"$@"};
   fi
 fi
 command -v > /dev/null python && exec python "$AUTO_DIR/python/auto/interactiveBindings.py" ${1+"$@"};

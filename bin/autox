@@ -1,14 +1,20 @@
 #! /bin/sh
 if [ -z "$AUTO_DIR" ]; then
-    bindir=`dirname $0`
-    AUTO_DIR=`dirname $bindir`
+    bindir=`dirname "$0"`
+    AUTO_DIR=`dirname "$bindir"`
     # don't export AUTO_DIR: Python code will use more reliable absolute path
 fi
 PPATH=$AUTO_DIR/python:$AUTO_DIR/python/auto
 if [ -z "$PYTHONPATH" ]; then
-    PYTHONPATH=$PPATH
+    PYTHONPATH="$PPATH"
 else
-    PYTHONPATH=$PPATH:$PYTHONPATH
+    PYTHONPATH="$PPATH:$PYTHONPATH"
+fi
+
+if test "$OS" = "Windows_NT"; then
+  if command -v > /dev/null cygpath; then
+    PYTHONPATH=`cygpath -m -p "$PYTHONPATH"`
+  fi
 fi
 export PYTHONPATH
 
@@ -17,5 +23,14 @@ if test "`uname`" = "Darwin"; then
     exec pythonw ${1+"$@"};
   fi
 fi
+
+if test "$OS" = "Windows_NT" && test "$MSYSCON" = "mintty.exe"; then
+  if command -v > /dev/null winpty; then
+    unset AUTO_DIR
+    command -v > /dev/null python && exec winpty python ${1+"$@"};
+    exec winpty python3 ${1+"$@"};
+  fi
+fi
+
 command -v > /dev/null python && exec python ${1+"$@"};
 exec python3 ${1+"$@"};
