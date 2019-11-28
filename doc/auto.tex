@@ -37,7 +37,7 @@
 \Large FOR ORDINARY DIFFERENTIAL EQUATIONS\\ 
 \author{
 \Large Eusebius J. Doedel and Bart E. Oldeman\\
-\Large Concordia University\\
+\Large Concordia University and McGill HPC Centre\\
 \Large Montreal, Canada\\
 \\
 with major contributions by\\
@@ -54,7 +54,7 @@ Xianjun Wang,
 and
 Chenghai Zhang.\\
 }}
-\date{January 2012}
+\date{November 2019}
 \pagenumbering{alph}
 \maketitle
 \pagenumbering{arabic}
@@ -232,12 +232,12 @@ and then \commandf{make} in the directory \filef{auto/07p}.
 
 To use the Python CLUI and the ``@pp'' {\cal PyPLAUT} plotter it
 is strongly recommended to install NumPy
-(\url{http://numpy.scipy.org}), TkInter, and
-Matplotlib (\url{http://matplotlib.sourceforge.net/}).
+(\url{https://numpy.org}), TkInter, and
+Matplotlib (\url{https://matplotlib.org/}).
 Python itself needs to be at least version 2.3 or higher, but 2.7 or
 higher is strongly recommended.
 For enhanced interactive use of the Python CLUI it is also worth
-installing IPython (\url{http://ipython.scipy.org}).
+installing IPython (\url{https://ipython.org}).
 
 The graphic tool for 3D \AUTO data visualization, {\cal PLAUT04}, is
 compiled by default, but depends on a few libraries that may not be
@@ -288,7 +288,7 @@ Floquet multipliers are included in the package
 (\citename{LAPACK:99} \citeyear{LAPACK:99}).
 The Python CLUI includes a slightly modified version of the Pointset
 and Point classes from PyDSTool by R.~Clewley, M.D.~LaMar, and E.~Sherwood
-(\url{http://pydstool.sourceforge.net})
+(\url{https://github.com/robclewley/pydstool})
 
 \subsection{Installation on Linux/Unix}
 A free Fortran 95 compiler, Gfortran, is shipped with most recent
@@ -357,42 +357,32 @@ sudo make install
 
 \subsection{Installation on Windows}
 A native, light-weight solution for running AUTO on Windows is
-to use GFortran, MSYS 1.0.11 or higher (see \url{http://www.mingw.org}),
-combined with a native Win32 version of Python,
-obtained at \url{http://www.python.org}. To install this setup:
+to use MSYS2 (see \url{https://www.msys2.org}).
+To install this setup:
 \begin{itemize}
 \item
-Install Python (as of this writing, preferably version 2.7, not 3.2!)
-from \url{www.python.org}, NumPy from \url{numpy.scipy.org},
-and Matplotlib from \url{matplotlib.sf.net}, which all come
-with installers.
+Install MSYS2 (make sure to include msys-base, gcc and fortran)
+using the Graphical Installer at \url{https://www.msys2.org}.
 \item
-Install MinGW (make sure to include msys-base, gcc and fortran)
-using the MinGW Graphical Installer at \url{http://www.mingw.org}.
+Start MSYS2 using the Start menu (using one of the MinGW entries, usually
+the 64-bit one).
 \item
-Start MSYS using the Start menu (Start $>$ All Programs $\to$ MinGW
-$\to$ MinGW Shell) or by clicking on its desktop icon, which
-puts you in a home directory, where you can unpack
+Install at least the following packages using \commandf{pacman -S}:
+\filef{gcc-fortran}, \filef{mingw-w64-x86_64-python3-matplotlib},
+and \filef{make}.
+\item
+Then you can unpack
 \AUTO using \filef{gunzip} and \filef{tar}, as described above.
-\item
-Make sure that the {\tt gfortran} and {\tt python} binaries
-are in your {\tt PATH}, and that their directories are at the front of it.
-You can do this, for instance, using the shell command
-\commandf{export PATH="/c/Python27:/bin:/c/Program Files/gfortran/bin:\$PATH" }.
-You can also inspect, edit and then source the file
-\filef{auto/07p/cmds/auto.env.sh} to achieve this.
 \item
 Now you should be able to run configure and make to compile \AUTO
 as shown above.
 \end{itemize}
 
-You can use \AUTO using shell commands from the default MSYS shell
-environment. You can also start the CLUI by double clicking on the file
-\filef{auto.py} in the \filef{python} folder of \AUTO in Windows Explorer,
-or by creating a shortcut to it.
+You can then use \AUTO using shell commands from the default MSYS shell
+environment.
 
 Alternatively, \AUTO runs on Windows as above using the Unix-like
-environment Cygwin (see \url{http://www.cygwin.com}), but the
+environment Cygwin (see \url{https://www.cygwin.com}), but the
 non-Cygwin setup is more responsive and is much easier to setup for
 Matplotlib. You can however use its X server and motif to compile
 and run the old {\cal PLAUT} and GUI94, if you so desire.
@@ -400,7 +390,7 @@ and run the old {\cal PLAUT} and GUI94, if you so desire.
 With some effort it is possible to compile {\cal PLAUT04}
 on Windows (without an X server) using Coin, SoQt, and Qt. You can
 also find precompiled {\cal PLAUT04} binaries at
-\url{http://sourceforge.net/projects/auto-07p/files}.
+\url{https://github.com/auto-07p/auto-07p/releases}.
 
 \section{ Restrictions on Problem Size.} \label{sec:Restrictions}
 There are no size restrictions in the file \filef{
