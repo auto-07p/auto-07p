@@ -10,12 +10,6 @@ if [ -z "$PYTHONPATH" ]; then
 else
     PYTHONPATH="$PPATH:$PYTHONPATH"
 fi
-
-if test "$OS" = "Windows_NT"; then
-  if command -v > /dev/null cygpath; then
-    PYTHONPATH=`cygpath -m -p "$PYTHONPATH"`
-  fi
-fi
 export PYTHONPATH
 
 if test "`uname`" = "Darwin"; then
@@ -24,11 +18,20 @@ if test "`uname`" = "Darwin"; then
   fi
 fi
 
-if test "$OS" = "Windows_NT" && test "$MSYSCON" = "mintty.exe"; then
-  if command -v > /dev/null winpty; then
-    unset AUTO_DIR
-    command -v > /dev/null python && exec winpty python ${1+"$@"};
-    exec winpty python3 ${1+"$@"};
+if test "$OS" = "Windows_NT"; then
+  PYTHONPATHSEP=`python -c 'import os,sys; sys.stdout.write(os.pathsep)'`
+  if command -v > /dev/null cygpath; then
+    if test "$PYTHONPATHSEP" = ";"; then
+      PYTHONPATH=`cygpath -m -p "$PYTHONPATH"`
+      export PYTHONPATH
+    fi
+  fi
+  if test "$MSYSCON" = "mintty.exe"; then
+    if test "$PYTHONPATHSEP" = ";" && command -v > /dev/null winpty; then
+      unset AUTO_DIR
+      command -v > /dev/null python && exec winpty python ${1+"$@"};
+      exec winpty python3 ${1+"$@"};
+    fi
   fi
 fi
 
