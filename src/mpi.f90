@@ -243,23 +243,22 @@ subroutine mpisbv(solvbv)
 
 end subroutine mpisbv
 
-subroutine mpicbv(npar,par,rds,ss)
+subroutine mpicbv(npar,par,rds)
 
   integer, intent(in) :: npar
   double precision :: par(npar)
-  double precision :: rds,ss
+  double precision :: rds
 
   integer :: iam,bufsize
   double precision, allocatable :: buffer(:)
 
   iam=mpiiam()
-  bufsize = npar+2
+  bufsize = npar+1
   allocate(buffer(bufsize))
 
   if(iam==0)then
      buffer(1:npar)=par(:)
      buffer(npar+1)=rds
-     buffer(npar+2)=ss
   endif
 
   call mpibcast(buffer,bufsize)
@@ -267,7 +266,6 @@ subroutine mpicbv(npar,par,rds,ss)
   if(iam>0)then
      par(1:npar)=buffer(1:npar)
      rds=buffer(npar+1)
-     ss=buffer(npar+2)
   endif
 
   deallocate(buffer)
@@ -284,6 +282,14 @@ subroutine mpibcast(buf,len)
 
   call MPI_Bcast(buf,len,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 end subroutine mpibcast
+
+subroutine mpibcast1(buf)
+  double precision, intent(inout) :: buf
+
+  integer :: ierr
+
+  call MPI_Bcast(buf,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+end subroutine mpibcast1
 
 subroutine mpibcasti(buf,len)
   integer, intent(in) :: len

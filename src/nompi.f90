@@ -56,16 +56,20 @@ subroutine mpisbv(solvbv)
   logical, intent(in) :: solvbv
 end subroutine mpisbv
 
-subroutine mpicbv(npar,par,rds,ss)
+subroutine mpicbv(npar,par,rds)
   integer, intent(in) :: npar
   double precision :: par(npar)
-  double precision :: rds,ss
+  double precision :: rds
 end subroutine mpicbv
 
 subroutine mpibcast(buf,len)
   integer, intent(in) :: len
   double precision, intent(inout) :: buf(len)
 end subroutine mpibcast
+
+subroutine mpibcast1(buf)
+  double precision, intent(inout) :: buf
+end subroutine mpibcast1
 
 subroutine mpibcasti(buf,len)
   integer, intent(in) :: len
