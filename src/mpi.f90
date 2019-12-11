@@ -23,8 +23,9 @@ use auto_constants, only: autoparameters, niap, nrap
 implicit none
 private
 
-public :: mpiini, mpiiap, mpiwfi, mpireduce, mpibcksub, mpisbv, mpicbv, mpibcast
-public :: mpibcasti, mpibcast1i, mpibcast1l, mpibcastap, mpireducemax, mpireducemin
+public :: mpiini, mpiiap, mpiwfi, mpireduce, mpibcksub, mpisbv, mpicbv
+public :: mpibcast, mpibcast1, mpibcasti, mpibcast1i, mpibcast1l, mpibcastap
+public :: mpireducemax, mpireducemin
 public :: mpigat, mpiscat, mpiend, mpitim, mpiiam, mpikwt, partition
 public :: mpigats
 
