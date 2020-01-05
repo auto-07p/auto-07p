@@ -24,7 +24,7 @@ fi
 for prefix in b s d c; do
     file1="$dir1$prefix.$name1"
     file2="$dir2$prefix.$name2"
-    if test $prefix == "c"; then
+    if test $prefix = "c"; then
 	if cp -f "$file1" "$file2" 2> /dev/null; then
 	    echo "Copying $file1 to $file2 ... done"
 	    unset error
