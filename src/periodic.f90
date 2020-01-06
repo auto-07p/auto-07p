@@ -1968,7 +1968,7 @@ CONTAINS
              EV(J+SKIP)=ZTMP
              J=J-1
           ENDDO
-          EV(J+SKIP)=CMPLX( REAL(ZINS), -AIMAG(ZINS) ) ! overwritten for real numbers
+          EV(J+SKIP)=CMPLX( REAL(ZINS), -AIMAG(ZINS), KIND(1.0D0) ) ! overwritten for real numbers
           EV(J)=ZINS
        ENDDO
     ENDIF
