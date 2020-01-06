@@ -1312,7 +1312,7 @@ CONTAINS
           IF(MOD(AP%ITP,10)==-4.AND.LEN_TRIM(ATYPE)>0.AND.TRIM(ATYPE)/='UZ')THEN
              CALL MPIBCAST1L(SEARCH)
              Q=0.d0
-             IF(IID>0)WRITE(9,102)RDS
+             IF(IID>0)WRITE(9,102)DSTEST
              RETURN
           ENDIF
           Q1=0.d0
