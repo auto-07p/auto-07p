@@ -2,7 +2,7 @@
 #define CREATELEGEND_H
 
 #include <Inventor/nodes/SoSeparator.h>
-#include <Inventor/SbVec3f.h>
+#include <Inventor/SbLinear.h>
 #include <Inventor/SbColor.h>
 
 SoSeparator *printScaleAt(SbVec3f position, double size, double value);
