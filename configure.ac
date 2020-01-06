@@ -230,6 +230,7 @@ if test x$COIN3D = "xno"; then
 		{
 			DEPS_LIBS="$DEPS_LIBS -lInventorXt"
 			echo "configure: SGI Open Inventor Xt OK. $DEPS_LIBS";  
+			SOXTLIB="SoXt";
 		}
 		fi
 	}
