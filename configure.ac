@@ -249,6 +249,8 @@ else
 		SOXT_LIBS="`soqt-config --libs`"
 		SOXT_LDFLAGS="`soqt-config --ldflags`"
 		SOXT_INCLUDES="`soqt-config --cppflags` -DSOQT_DLL"
+	    else
+		SOXT_LIBS="$SOXT_LIBS -lSoQt"
 	    fi
 	    tmp_LIBS=$LIBS
 	    LIBS="$LIBS $DEPS_LIBS $SOXT_LIBS"
@@ -267,14 +269,22 @@ else
 	       AC_LINK_IFELSE([AC_LANG_SOURCE([#include <Inventor/Qt/SoQt.h>
                     int main(void){(void)SoQt::init((const char *)0L);}])],
                [SOXTLIB="SoQt"],
-            #explictly look for Qt (sometimes necessary on Mac OS)
-           [SOXT_LIBS="$tmp_SOXT_LIBS `pkg-config --libs 'QtCore QtGui QtOpenGL'`"
-		    LIBS="$tmp_LIBS1 `pkg-config --libs 'QtCore QtGui QtOpenGL'`"
-		    SOXT_INCLUDES="$SOXT_INCLUDES `pkg-config --cflags 'QtCore QtGui QtOpenGL'`"
-		    CPPFLAGS="$CPPFLAGS `pkg-config --cflags 'QtCore QtGui QtOpenGL'`"
+            #check for Qt5
+           [SOXT_LIBS="$tmp_SOXT_LIBS `pkg-config --libs 'Qt5Core Qt5Gui Qt5OpenGL'` -fPIC"
+		    LIBS="$tmp_LIBS1 `pkg-config --libs 'Qt5Core Qt5Gui Qt5OpenGL'` -fPIC"
+		    SOXT_INCLUDES="$SOXT_INCLUDES `pkg-config --cflags 'Qt5Core Qt5Gui Qt5OpenGL'` -fPIC"
+		    CPPFLAGS="$CPPFLAGS `pkg-config --cflags 'Qt5Core Qt5Gui Qt5OpenGL'` -fPIC"
 		    AC_LINK_IFELSE([AC_LANG_SOURCE([#include <Inventor/Qt/SoQt.h>
                      int main(void){(void)SoQt::init((const char *)0L);}])],
-                [SOXTLIB="SoQt"], [SOXTLIB="no"])])])
+                [SOXTLIB="SoQt"],
+              #explicitly look for Qt4 (sometimes necessary on Mac OS)
+              [SOXT_LIBS="$tmp_SOXT_LIBS `pkg-config --libs 'QtCore QtGui QtOpenGL'`"
+		      LIBS="$tmp_LIBS1 `pkg-config --libs 'QtCore QtGui QtOpenGL'`"
+		      SOXT_INCLUDES="$SOXT_INCLUDES `pkg-config --cflags 'QtCore QtGui QtOpenGL'`"
+		      CPPFLAGS="$CPPFLAGS `pkg-config --cflags 'QtCore QtGui QtOpenGL'`"
+		      AC_LINK_IFELSE([AC_LANG_SOURCE([#include <Inventor/Qt/SoQt.h>
+                     int main(void){(void)SoQt::init((const char *)0L);}])],
+				[SOXTLIB="no"])])])])
 	    LIBS=$tmp_LIBS
 	    LDFLAGS=$tmp_LDFLAGS
 	    CPPFLAGS=$tmp_CPPFLAGS
@@ -323,11 +333,17 @@ if (test x$HAVE_SOXT_CONFIG = "xtrue" || test x$HAVE_SOQT_CONFIG = "xtrue" || \
 	SOXT_OBJS_R3B=gmainxt.o
     else
         MOCNAMES="moc-qt3 moc"
+        MOCPATH=""
         if ( echo $SOXT_LIBS | grep QtGui > /dev/null ); then
             MOCNAMES="moc-qt4 moc"
+        elif ( echo $SOXT_LIBS | grep Qt5Gui > /dev/null ); then
+            MOCNAMES="moc-qt5 moc"
+            MOCPATH="`pkg-config --variable=host_bins Qt5Core`"
         fi
 	if test -n "$QTDIR"; then
 	    mocpath=$QTDIR/bin:$PATH
+	elif test -n "$MOCPATH"; then
+	    mocpath=$MOCPATH:$PATH
 	else
 	    mocpath=$PATH
 	fi

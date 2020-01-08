@@ -6423,6 +6423,8 @@ fi
 		SOXT_LIBS="`soqt-config --libs`"
 		SOXT_LDFLAGS="`soqt-config --ldflags`"
 		SOXT_INCLUDES="`soqt-config --cppflags` -DSOQT_DLL"
+	    else
+		SOXT_LIBS="$SOXT_LIBS -lSoQt"
 	    fi
 	    tmp_LIBS=$LIBS
 	    LIBS="$LIBS $DEPS_LIBS $SOXT_LIBS"
@@ -6451,11 +6453,11 @@ _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
   SOXTLIB="SoQt"
 else
-  #explictly look for Qt (sometimes necessary on Mac OS)
-           SOXT_LIBS="$tmp_SOXT_LIBS `pkg-config --libs 'QtCore QtGui QtOpenGL'`"
-		    LIBS="$tmp_LIBS1 `pkg-config --libs 'QtCore QtGui QtOpenGL'`"
-		    SOXT_INCLUDES="$SOXT_INCLUDES `pkg-config --cflags 'QtCore QtGui QtOpenGL'`"
-		    CPPFLAGS="$CPPFLAGS `pkg-config --cflags 'QtCore QtGui QtOpenGL'`"
+  #check for Qt5
+           SOXT_LIBS="$tmp_SOXT_LIBS `pkg-config --libs 'Qt5Core Qt5Gui Qt5OpenGL'` -fPIC"
+		    LIBS="$tmp_LIBS1 `pkg-config --libs 'Qt5Core Qt5Gui Qt5OpenGL'` -fPIC"
+		    SOXT_INCLUDES="$SOXT_INCLUDES `pkg-config --cflags 'Qt5Core Qt5Gui Qt5OpenGL'` -fPIC"
+		    CPPFLAGS="$CPPFLAGS `pkg-config --cflags 'Qt5Core Qt5Gui Qt5OpenGL'` -fPIC"
 		    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <Inventor/Qt/SoQt.h>
@@ -6464,7 +6466,21 @@ _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
   SOXTLIB="SoQt"
 else
+  #explicitly look for Qt4 (sometimes necessary on Mac OS)
+              SOXT_LIBS="$tmp_SOXT_LIBS `pkg-config --libs 'QtCore QtGui QtOpenGL'`"
+		      LIBS="$tmp_LIBS1 `pkg-config --libs 'QtCore QtGui QtOpenGL'`"
+		      SOXT_INCLUDES="$SOXT_INCLUDES `pkg-config --cflags 'QtCore QtGui QtOpenGL'`"
+		      CPPFLAGS="$CPPFLAGS `pkg-config --cflags 'QtCore QtGui QtOpenGL'`"
+		      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <Inventor/Qt/SoQt.h>
+                     int main(void){(void)SoQt::init((const char *)0L);}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"; then :
   SOXTLIB="no"
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
@@ -6608,11 +6624,17 @@ if (test x$HAVE_SOXT_CONFIG = "xtrue" || test x$HAVE_SOQT_CONFIG = "xtrue" || \
 	SOXT_OBJS_R3B=gmainxt.o
     else
         MOCNAMES="moc-qt3 moc"
+        MOCPATH=""
         if ( echo $SOXT_LIBS | grep QtGui > /dev/null ); then
             MOCNAMES="moc-qt4 moc"
+        elif ( echo $SOXT_LIBS | grep Qt5Gui > /dev/null ); then
+            MOCNAMES="moc-qt5 moc"
+            MOCPATH="`pkg-config --variable=host_bins Qt5Core`"
         fi
 	if test -n "$QTDIR"; then
 	    mocpath=$QTDIR/bin:$PATH
+	elif test -n "$MOCPATH"; then
+	    mocpath=$MOCPATH:$PATH
 	else
 	    mocpath=$PATH
 	fi
