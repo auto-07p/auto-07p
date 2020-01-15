@@ -210,7 +210,7 @@ fi
 LIBS=$tmp_LIBS
 LDFLAGS=$tmp_LDFLAGS
 CPPFLAGS=$tmp_CPPFLAGS
-HAVE_QT5="no"
+SOXTLIB="no"
 if test x$COIN3D = "xno"; then
 {
 	echo "configure: error: COIN3D is not installed"; 
@@ -236,6 +236,7 @@ if test x$COIN3D = "xno"; then
 		fi
 	}
 	fi
+	ENABLE_PLAUT04_QT="no"
 }
 else
 {
@@ -243,88 +244,100 @@ else
 	SOXT_LDFLAGS=$COIN_LDFLAGS
 	SOXT_LIBS=$COIN_LIBS
 	SOXT_INCLUDES=$COIN_INCLUDES
-	SOXTLIB="no"
-	if test x$ENABLE_PLAUT04_QT = xyes; then
-	    AC_CHECK_PROG(HAVE_SOQT_CONFIG, soqt-config, true, false)
-	    if test x$HAVE_SOQT_CONFIG = "xtrue"; then
-		SOXT_LIBS="`soqt-config --libs`"
-		SOXT_LDFLAGS="`soqt-config --ldflags`"
-		SOXT_INCLUDES="`soqt-config --cppflags` -DSOQT_DLL"
-	    else
-		SOXT_LIBS="$SOXT_LIBS -lSoQt"
-	    fi
-	    tmp_LIBS=$LIBS
-	    LIBS="$LIBS $DEPS_LIBS $SOXT_LIBS"
-	    tmp_LDFLAGS=$LDFLAGS
-	    LDFLAGS="$LDFLAGS $SOXT_LDFLAGS"
-	    tmp_CPPFLAGS=$CPPFLAGS
-	    CPPFLAGS="$CPPFLAGS $SOXT_INCLUDES"
-	    AC_LINK_IFELSE([AC_LANG_SOURCE([#include <Inventor/Qt/SoQt.h>
+}
+fi
+
+if test x$ENABLE_PLAUT04_QT = xyes; then
+    AC_CHECK_PROG(HAVE_SOQT_CONFIG, soqt-config, true, false)
+    if test x$HAVE_SOQT_CONFIG = "xtrue"; then
+	SOXT_LIBS="`soqt-config --libs`"
+	SOXT_LDFLAGS="`soqt-config --ldflags`"
+	SOXT_INCLUDES="`soqt-config --cppflags` -DSOQT_DLL"
+    else
+	SOXT_LIBS="$SOXT_LIBS -lSoQt"
+    fi
+    LIBS="$tmp_LIBS $DEPS_LIBS $SOXT_LIBS"
+    LDFLAGS="$tmp_LDFLAGS $SOXT_LDFLAGS"
+    CPPFLAGS="$tmp_CPPFLAGS $SOXT_INCLUDES"
+    AC_LINK_IFELSE([AC_LANG_SOURCE([#include <Inventor/Qt/SoQt.h>
                     int main(void){(void)SoQt::init((const char *)0L);}])],
                     [SOXTLIB="SoQt"],
               # -lXi is a workaround for Fedora Core 5
 	      [tmp_LIBS1="$LIBS"
-		   LIBS="$LIBS -lXi"
+               LIBS="$LIBS -lXi"
 	       tmp_SOXT_LIBS="$SOXT_LIBS"
 	       SOXT_LIBS="$SOXT_LIBS -lXi"
 	       AC_LINK_IFELSE([AC_LANG_SOURCE([#include <Inventor/Qt/SoQt.h>
                     int main(void){(void)SoQt::init((const char *)0L);}])],
-               [SOXTLIB="SoQt"],
-            #check for Qt5
-           [tmp_CXX="$CXX"
-            AX_CXX_COMPILE_STDCXX(11,noext)
-            SOXT_LIBS="$tmp_SOXT_LIBS `pkg-config --libs 'Qt5Core Qt5Gui Qt5OpenGL'` -fPIC"
-		    LIBS="$tmp_LIBS1 `pkg-config --libs 'Qt5Core Qt5Gui Qt5OpenGL'` -fPIC"
-		    SOXT_INCLUDES="$SOXT_INCLUDES `pkg-config --cflags 'Qt5Core Qt5Gui Qt5OpenGL'` -fPIC"
-		    CPPFLAGS="$CPPFLAGS `pkg-config --cflags 'Qt5Core Qt5Gui Qt5OpenGL'` -fPIC"
-		    AC_LINK_IFELSE([AC_LANG_SOURCE([#include <Inventor/Qt/SoQt.h>
-                     int main(void){(void)SoQt::init((const char *)0L);}])],
-                [SOXTLIB="SoQt"
-                 HAVE_QT5="yes"],
-              #explicitly look for Qt4 (sometimes necessary on Mac OS)
-              [CXX="$tmp_CXX"
-		      SOXT_LIBS="$tmp_SOXT_LIBS `pkg-config --libs 'QtCore QtGui QtOpenGL'`"
-		      LIBS="$tmp_LIBS1 `pkg-config --libs 'QtCore QtGui QtOpenGL'`"
-		      SOXT_INCLUDES="$SOXT_INCLUDES `pkg-config --cflags 'QtCore QtGui QtOpenGL'`"
-		      CPPFLAGS="$CPPFLAGS `pkg-config --cflags 'QtCore QtGui QtOpenGL'`"
-		      AC_LINK_IFELSE([AC_LANG_SOURCE([#include <Inventor/Qt/SoQt.h>
-                     int main(void){(void)SoQt::init((const char *)0L);}])],
-				[SOXTLIB="no"])])])])
-	    LIBS=$tmp_LIBS
-	    LDFLAGS=$tmp_LDFLAGS
-	    CPPFLAGS=$tmp_CPPFLAGS
-	fi
-	if test x$SOXTLIB = xno; then
-	    AC_CHECK_PROG(HAVE_SOXT_CONFIG, soxt-config, true, false)
-	    if test x$HAVE_SOXT_CONFIG = "xtrue"; then
-		SOXT_LIBS="`soxt-config --libs`"
-		SOXT_LDFLAGS="`soxt-config --ldflags`"
-		SOXT_INCLUDES="`soxt-config --cppflags`"
-	    fi
-	    tmp_LIBS=$LIBS
-	    LIBS="$LIBS $DEPS_LIBS $SOXT_LIBS"
-	    tmp_LDFLAGS=$LDFLAGS
-	    LDFLAGS="$LDFLAGS $SOXT_LDFLAGS"
-	    AC_CHECK_LIB([SoXt],abort,SOXTLIB="SoXt",SOXTLIB="no")
-	    LIBS=$tmp_LIBS
-	    LDFLAGS=$tmp_LDFLAGS
-	fi
-	if test x$SOXTLIB = "xno"; then
-		{ echo "configure: error: Coin3d SoQt/SoXt Library is not installed"; PLAUT04_TEST=no; }
-	else
-	{
-		if test x$HAVE_SOXT_CONFIG = "xfalse"; then
-			SOXT_LIBS="-lCoin -l$SOXTLIB"
-			if test x$HAVE_COIN_CONFIG = "xtrue"; then
-				SOXT_LIBS="$COIN_LIBS -l$SOXTLIB"
-				SOXT_LDFLAGS=$COIN_LDFLAGS
-			fi
+               [SOXTLIB="SoQt"])])
+fi
+
+HAVE_QT5="no"
+if (test x$ENABLE_PLAUT04_QT = xyes && test x$SOXTLIB = xno); then
+    PKG_PROG_PKG_CONFIG(0.28)
+    #explicitly look for Qt4 (sometimes necessary on Mac OS)
+    PKG_CHECK_MODULES(QT, [QtCore QtGui QtOpenGL],
+       [SOXT_LIBS="$tmp_SOXT_LIBS $QT_LIBS"
+        LIBS="$tmp_LIBS1 $QT_LIBS"
+        SOXT_INCLUDES="$SOXT_INCLUDES $QT_CFLAGS"
+	CPPFLAGS="$CPPFLAGS $QT_CFLAGS"
+	AC_LINK_IFELSE([AC_LANG_SOURCE([#include <Inventor/Qt/SoQt.h>
+                        int main(void){(void)SoQt::init((const char *)0L);}])],
+        [SOXTLIB="SoQt"])],[SOXTLIB="no"])
+
+    if test x$SOXTLIB = xno; then
+        #check for C++11 and Qt5
+        tmp_CXX="$CXX"
+        AX_CXX_COMPILE_STDCXX(11,noext)
+        PKG_CHECK_MODULES(QT, [Qt5Core Qt5Gui Qt5OpenGL],
+           [SOXT_LIBS="$tmp_SOXT_LIBS $QT_LIBS -fPIC"
+            LIBS="$tmp_LIBS1 $QT_LIBS -fPIC"
+            SOXT_INCLUDES="$SOXT_INCLUDES $QT_CFLAGS -fPIC"
+            CPPFLAGS="$CPPFLAGS $QT_CFLAGS -fPIC"
+            AC_LINK_IFELSE([AC_LANG_SOURCE([#include <Inventor/Qt/SoQt.h>
+                         int main(void){(void)SoQt::init((const char *)0L);}])],
+                        [SOXTLIB="SoQt"
+                         HAVE_QT5="yes"])],[SOXTLIB="no"])
+        if test x$SOXTLIB = xno; then
+            CXX="$tmp_CXX"
+        fi
+    fi
+fi
+
+LIBS=$tmp_LIBS
+LDFLAGS=$tmp_LDFLAGS
+CPPFLAGS=$tmp_CPPFLAGS
+
+if (test x$COIN3D = xyes && test x$SOXTLIB = xno); then
+    AC_CHECK_PROG(HAVE_SOXT_CONFIG, soxt-config, true, false)
+    if test x$HAVE_SOXT_CONFIG = "xtrue"; then
+	SOXT_LIBS="`soxt-config --libs`"
+	SOXT_LDFLAGS="`soxt-config --ldflags`"
+	SOXT_INCLUDES="`soxt-config --cppflags`"
+    fi
+    tmp_LIBS=$LIBS
+    LIBS="$LIBS $DEPS_LIBS $SOXT_LIBS"
+    tmp_LDFLAGS=$LDFLAGS
+    LDFLAGS="$LDFLAGS $SOXT_LDFLAGS"
+    AC_CHECK_LIB([SoXt],abort,SOXTLIB="SoXt",SOXTLIB="no")
+    LIBS=$tmp_LIBS
+    LDFLAGS=$tmp_LDFLAGS
+fi
+
+if test x$SOXTLIB = "xno"; then
+	{ echo "configure: error: Coin3d SoQt/SoXt Library is not installed"; PLAUT04_TEST=no; }
+else
+{
+	if test x$HAVE_SOXT_CONFIG = "xfalse"; then
+		SOXT_LIBS="-lCoin -l$SOXTLIB"
+		if test x$HAVE_COIN_CONFIG = "xtrue"; then
+			SOXT_LIBS="$COIN_LIBS -l$SOXTLIB"
+			SOXT_LDFLAGS=$COIN_LDFLAGS
 		fi
-		DEPS_LIBS="$SOXT_LDFLAGS $DEPS_LIBS $SOXT_LIBS"
-		DEPS_INCLUDES="$DEPS_INCLUDES $SOXT_INCLUDES"
-		echo "configure: Coin3d $SOXTLIB OK. $DEPS_INCLUDES $DEPS_LIBS";
-	}
 	fi
+	DEPS_LIBS="$SOXT_LDFLAGS $DEPS_LIBS $SOXT_LIBS"
+	DEPS_INCLUDES="$DEPS_INCLUDES $SOXT_INCLUDES"
+	echo "configure: Coin3d $SOXTLIB OK. $DEPS_INCLUDES $DEPS_LIBS";
 }
 fi
 
@@ -341,7 +354,7 @@ if (test x$HAVE_SOXT_CONFIG = "xtrue" || test x$HAVE_SOQT_CONFIG = "xtrue" || \
         MOCPATH=""
         if test x$HAVE_QT5 = xyes; then
             MOCNAMES="moc-qt5 moc"
-            MOCPATH="`pkg-config --variable=host_bins Qt5Core`"
+            PKG_CHECK_VAR(MOCPATH,Qt5Core,host_bins)
         elif ( echo $SOXT_LIBS | grep QtGui > /dev/null ); then
             MOCNAMES="moc-qt4 moc"
         fi

@@ -591,8 +591,14 @@ SOXT_OBJS_R3B
 SOXT_OBJS
 PLAUT04
 MOC
+MOCPATH
 HAVE_SOXT_CONFIG
 HAVE_CXX11
+QT_LIBS
+QT_CFLAGS
+PKG_CONFIG_LIBDIR
+PKG_CONFIG_PATH
+PKG_CONFIG
 HAVE_SOQT_CONFIG
 HAVE_COIN_CONFIG
 ac_ct_CXX
@@ -705,7 +711,13 @@ XMKMF
 CPP
 CXX
 CXXFLAGS
-CCC'
+CCC
+PKG_CONFIG
+PKG_CONFIG_PATH
+PKG_CONFIG_LIBDIR
+QT_CFLAGS
+QT_LIBS
+MOCPATH'
 
 
 # Initialize some variables set by options.
@@ -1361,6 +1373,14 @@ Some influential environment variables:
   CPP         C preprocessor
   CXX         C++ compiler command
   CXXFLAGS    C++ compiler flags
+  PKG_CONFIG  path to pkg-config utility
+  PKG_CONFIG_PATH
+              directories to add to pkg-config's search path
+  PKG_CONFIG_LIBDIR
+              path overriding pkg-config's built-in search path
+  QT_CFLAGS   C compiler flags for QT, overriding pkg-config
+  QT_LIBS     linker flags for QT, overriding pkg-config
+  MOCPATH     value of host_bins for Qt5Core, overriding pkg-config
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -6250,7 +6270,7 @@ fi
 LIBS=$tmp_LIBS
 LDFLAGS=$tmp_LDFLAGS
 CPPFLAGS=$tmp_CPPFLAGS
-HAVE_QT5="no"
+SOXTLIB="no"
 if test x$COIN3D = "xno"; then
 {
 	echo "configure: error: COIN3D is not installed";
@@ -6374,6 +6394,7 @@ fi
 		fi
 	}
 	fi
+	ENABLE_PLAUT04_QT="no"
 }
 else
 {
@@ -6381,9 +6402,11 @@ else
 	SOXT_LDFLAGS=$COIN_LDFLAGS
 	SOXT_LIBS=$COIN_LIBS
 	SOXT_INCLUDES=$COIN_INCLUDES
-	SOXTLIB="no"
-	if test x$ENABLE_PLAUT04_QT = xyes; then
-	    # Extract the first word of "soqt-config", so it can be a program name with args.
+}
+fi
+
+if test x$ENABLE_PLAUT04_QT = xyes; then
+    # Extract the first word of "soqt-config", so it can be a program name with args.
 set dummy soqt-config; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
@@ -6421,20 +6444,17 @@ $as_echo "no" >&6; }
 fi
 
 
-	    if test x$HAVE_SOQT_CONFIG = "xtrue"; then
-		SOXT_LIBS="`soqt-config --libs`"
-		SOXT_LDFLAGS="`soqt-config --ldflags`"
-		SOXT_INCLUDES="`soqt-config --cppflags` -DSOQT_DLL"
-	    else
-		SOXT_LIBS="$SOXT_LIBS -lSoQt"
-	    fi
-	    tmp_LIBS=$LIBS
-	    LIBS="$LIBS $DEPS_LIBS $SOXT_LIBS"
-	    tmp_LDFLAGS=$LDFLAGS
-	    LDFLAGS="$LDFLAGS $SOXT_LDFLAGS"
-	    tmp_CPPFLAGS=$CPPFLAGS
-	    CPPFLAGS="$CPPFLAGS $SOXT_INCLUDES"
-	    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+    if test x$HAVE_SOQT_CONFIG = "xtrue"; then
+	SOXT_LIBS="`soqt-config --libs`"
+	SOXT_LDFLAGS="`soqt-config --ldflags`"
+	SOXT_INCLUDES="`soqt-config --cppflags` -DSOQT_DLL"
+    else
+	SOXT_LIBS="$SOXT_LIBS -lSoQt"
+    fi
+    LIBS="$tmp_LIBS $DEPS_LIBS $SOXT_LIBS"
+    LDFLAGS="$tmp_LDFLAGS $SOXT_LDFLAGS"
+    CPPFLAGS="$tmp_CPPFLAGS $SOXT_INCLUDES"
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <Inventor/Qt/SoQt.h>
                     int main(void){(void)SoQt::init((const char *)0L);}
@@ -6444,7 +6464,7 @@ if ac_fn_cxx_try_link "$LINENO"; then :
 else
   # -lXi is a workaround for Fedora Core 5
 	      tmp_LIBS1="$LIBS"
-		   LIBS="$LIBS -lXi"
+               LIBS="$LIBS -lXi"
 	       tmp_SOXT_LIBS="$SOXT_LIBS"
 	       SOXT_LIBS="$SOXT_LIBS -lXi"
 	       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -6454,10 +6474,226 @@ else
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
   SOXTLIB="SoQt"
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+fi
+
+HAVE_QT5="no"
+if (test x$ENABLE_PLAUT04_QT = xyes && test x$SOXTLIB = xno); then
+
+
+
+
+
+
+
+if test "x$ac_cv_env_PKG_CONFIG_set" != "xset"; then
+	if test -n "$ac_tool_prefix"; then
+  # Extract the first word of "${ac_tool_prefix}pkg-config", so it can be a program name with args.
+set dummy ${ac_tool_prefix}pkg-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_PKG_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
 else
-  #check for Qt5
-           tmp_CXX="$CXX"
-              ax_cxx_compile_alternatives="11 0x"    ax_cxx_compile_cxx11_required=true
+  case $PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
+if test -n "$PKG_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PKG_CONFIG" >&5
+$as_echo "$PKG_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+fi
+if test -z "$ac_cv_path_PKG_CONFIG"; then
+  ac_pt_PKG_CONFIG=$PKG_CONFIG
+  # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_ac_pt_PKG_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $ac_pt_PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_ac_pt_PKG_CONFIG="$ac_pt_PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_ac_pt_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+ac_pt_PKG_CONFIG=$ac_cv_path_ac_pt_PKG_CONFIG
+if test -n "$ac_pt_PKG_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_pt_PKG_CONFIG" >&5
+$as_echo "$ac_pt_PKG_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+  if test "x$ac_pt_PKG_CONFIG" = x; then
+    PKG_CONFIG=""
+  else
+    case $cross_compiling:$ac_tool_warned in
+yes:)
+{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
+$as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
+ac_tool_warned=yes ;;
+esac
+    PKG_CONFIG=$ac_pt_PKG_CONFIG
+  fi
+else
+  PKG_CONFIG="$ac_cv_path_PKG_CONFIG"
+fi
+
+fi
+if test -n "$PKG_CONFIG"; then
+	_pkg_min_version=0.28
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking pkg-config is at least version $_pkg_min_version" >&5
+$as_echo_n "checking pkg-config is at least version $_pkg_min_version... " >&6; }
+	if $PKG_CONFIG --atleast-pkgconfig-version $_pkg_min_version; then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	else
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+		PKG_CONFIG=""
+	fi
+fi
+    #explicitly look for Qt4 (sometimes necessary on Mac OS)
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for QtCore QtGui QtOpenGL" >&5
+$as_echo_n "checking for QtCore QtGui QtOpenGL... " >&6; }
+
+if test -n "$QT_CFLAGS"; then
+    pkg_cv_QT_CFLAGS="$QT_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"QtCore QtGui QtOpenGL\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "QtCore QtGui QtOpenGL") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_QT_CFLAGS=`$PKG_CONFIG --cflags "QtCore QtGui QtOpenGL" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$QT_LIBS"; then
+    pkg_cv_QT_LIBS="$QT_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"QtCore QtGui QtOpenGL\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "QtCore QtGui QtOpenGL") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_QT_LIBS=`$PKG_CONFIG --libs "QtCore QtGui QtOpenGL" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        QT_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "QtCore QtGui QtOpenGL" 2>&1`
+        else
+	        QT_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "QtCore QtGui QtOpenGL" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$QT_PKG_ERRORS" >&5
+
+	SOXTLIB="no"
+elif test $pkg_failed = untried; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	SOXTLIB="no"
+else
+	QT_CFLAGS=$pkg_cv_QT_CFLAGS
+	QT_LIBS=$pkg_cv_QT_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	SOXT_LIBS="$tmp_SOXT_LIBS $QT_LIBS"
+        LIBS="$tmp_LIBS1 $QT_LIBS"
+        SOXT_INCLUDES="$SOXT_INCLUDES $QT_CFLAGS"
+	CPPFLAGS="$CPPFLAGS $QT_CFLAGS"
+	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <Inventor/Qt/SoQt.h>
+                        int main(void){(void)SoQt::init((const char *)0L);}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"; then :
+  SOXTLIB="SoQt"
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+fi
+
+    if test x$SOXTLIB = xno; then
+        #check for C++11 and Qt5
+        tmp_CXX="$CXX"
+          ax_cxx_compile_alternatives="11 0x"    ax_cxx_compile_cxx11_required=true
   ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -6817,50 +7053,103 @@ $as_echo "#define HAVE_CXX11 1" >>confdefs.h
   fi
 
 
-            SOXT_LIBS="$tmp_SOXT_LIBS `pkg-config --libs 'Qt5Core Qt5Gui Qt5OpenGL'` -fPIC"
-		    LIBS="$tmp_LIBS1 `pkg-config --libs 'Qt5Core Qt5Gui Qt5OpenGL'` -fPIC"
-		    SOXT_INCLUDES="$SOXT_INCLUDES `pkg-config --cflags 'Qt5Core Qt5Gui Qt5OpenGL'` -fPIC"
-		    CPPFLAGS="$CPPFLAGS `pkg-config --cflags 'Qt5Core Qt5Gui Qt5OpenGL'` -fPIC"
-		    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Qt5Core Qt5Gui Qt5OpenGL" >&5
+$as_echo_n "checking for Qt5Core Qt5Gui Qt5OpenGL... " >&6; }
+
+if test -n "$QT_CFLAGS"; then
+    pkg_cv_QT_CFLAGS="$QT_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"Qt5Core Qt5Gui Qt5OpenGL\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "Qt5Core Qt5Gui Qt5OpenGL") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_QT_CFLAGS=`$PKG_CONFIG --cflags "Qt5Core Qt5Gui Qt5OpenGL" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$QT_LIBS"; then
+    pkg_cv_QT_LIBS="$QT_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"Qt5Core Qt5Gui Qt5OpenGL\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "Qt5Core Qt5Gui Qt5OpenGL") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_QT_LIBS=`$PKG_CONFIG --libs "Qt5Core Qt5Gui Qt5OpenGL" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        QT_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "Qt5Core Qt5Gui Qt5OpenGL" 2>&1`
+        else
+	        QT_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "Qt5Core Qt5Gui Qt5OpenGL" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$QT_PKG_ERRORS" >&5
+
+	SOXTLIB="no"
+elif test $pkg_failed = untried; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	SOXTLIB="no"
+else
+	QT_CFLAGS=$pkg_cv_QT_CFLAGS
+	QT_LIBS=$pkg_cv_QT_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	SOXT_LIBS="$tmp_SOXT_LIBS $QT_LIBS -fPIC"
+            LIBS="$tmp_LIBS1 $QT_LIBS -fPIC"
+            SOXT_INCLUDES="$SOXT_INCLUDES $QT_CFLAGS -fPIC"
+            CPPFLAGS="$CPPFLAGS $QT_CFLAGS -fPIC"
+            cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <Inventor/Qt/SoQt.h>
-                     int main(void){(void)SoQt::init((const char *)0L);}
+                         int main(void){(void)SoQt::init((const char *)0L);}
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
   SOXTLIB="SoQt"
-                 HAVE_QT5="yes"
-else
-  #explicitly look for Qt4 (sometimes necessary on Mac OS)
-              CXX="$tmp_CXX"
-		      SOXT_LIBS="$tmp_SOXT_LIBS `pkg-config --libs 'QtCore QtGui QtOpenGL'`"
-		      LIBS="$tmp_LIBS1 `pkg-config --libs 'QtCore QtGui QtOpenGL'`"
-		      SOXT_INCLUDES="$SOXT_INCLUDES `pkg-config --cflags 'QtCore QtGui QtOpenGL'`"
-		      CPPFLAGS="$CPPFLAGS `pkg-config --cflags 'QtCore QtGui QtOpenGL'`"
-		      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <Inventor/Qt/SoQt.h>
-                     int main(void){(void)SoQt::init((const char *)0L);}
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"; then :
-  SOXTLIB="no"
+                         HAVE_QT5="yes"
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
+        if test x$SOXTLIB = xno; then
+            CXX="$tmp_CXX"
+        fi
+    fi
 fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-	    LIBS=$tmp_LIBS
-	    LDFLAGS=$tmp_LDFLAGS
-	    CPPFLAGS=$tmp_CPPFLAGS
-	fi
-	if test x$SOXTLIB = xno; then
-	    # Extract the first word of "soxt-config", so it can be a program name with args.
+
+LIBS=$tmp_LIBS
+LDFLAGS=$tmp_LDFLAGS
+CPPFLAGS=$tmp_CPPFLAGS
+
+if (test x$COIN3D = xyes && test x$SOXTLIB = xno); then
+    # Extract the first word of "soxt-config", so it can be a program name with args.
 set dummy soxt-config; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
@@ -6898,16 +7187,16 @@ $as_echo "no" >&6; }
 fi
 
 
-	    if test x$HAVE_SOXT_CONFIG = "xtrue"; then
-		SOXT_LIBS="`soxt-config --libs`"
-		SOXT_LDFLAGS="`soxt-config --ldflags`"
-		SOXT_INCLUDES="`soxt-config --cppflags`"
-	    fi
-	    tmp_LIBS=$LIBS
-	    LIBS="$LIBS $DEPS_LIBS $SOXT_LIBS"
-	    tmp_LDFLAGS=$LDFLAGS
-	    LDFLAGS="$LDFLAGS $SOXT_LDFLAGS"
-	    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for abort in -lSoXt" >&5
+    if test x$HAVE_SOXT_CONFIG = "xtrue"; then
+	SOXT_LIBS="`soxt-config --libs`"
+	SOXT_LDFLAGS="`soxt-config --ldflags`"
+	SOXT_INCLUDES="`soxt-config --cppflags`"
+    fi
+    tmp_LIBS=$LIBS
+    LIBS="$LIBS $DEPS_LIBS $SOXT_LIBS"
+    tmp_LDFLAGS=$LDFLAGS
+    LDFLAGS="$LDFLAGS $SOXT_LDFLAGS"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for abort in -lSoXt" >&5
 $as_echo_n "checking for abort in -lSoXt... " >&6; }
 if ${ac_cv_lib_SoXt_abort+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -6957,25 +7246,24 @@ else
   SOXTLIB="no"
 fi
 
-	    LIBS=$tmp_LIBS
-	    LDFLAGS=$tmp_LDFLAGS
-	fi
-	if test x$SOXTLIB = "xno"; then
-		{ echo "configure: error: Coin3d SoQt/SoXt Library is not installed"; PLAUT04_TEST=no; }
-	else
-	{
-		if test x$HAVE_SOXT_CONFIG = "xfalse"; then
-			SOXT_LIBS="-lCoin -l$SOXTLIB"
-			if test x$HAVE_COIN_CONFIG = "xtrue"; then
-				SOXT_LIBS="$COIN_LIBS -l$SOXTLIB"
-				SOXT_LDFLAGS=$COIN_LDFLAGS
-			fi
+    LIBS=$tmp_LIBS
+    LDFLAGS=$tmp_LDFLAGS
+fi
+
+if test x$SOXTLIB = "xno"; then
+	{ echo "configure: error: Coin3d SoQt/SoXt Library is not installed"; PLAUT04_TEST=no; }
+else
+{
+	if test x$HAVE_SOXT_CONFIG = "xfalse"; then
+		SOXT_LIBS="-lCoin -l$SOXTLIB"
+		if test x$HAVE_COIN_CONFIG = "xtrue"; then
+			SOXT_LIBS="$COIN_LIBS -l$SOXTLIB"
+			SOXT_LDFLAGS=$COIN_LDFLAGS
 		fi
-		DEPS_LIBS="$SOXT_LDFLAGS $DEPS_LIBS $SOXT_LIBS"
-		DEPS_INCLUDES="$DEPS_INCLUDES $SOXT_INCLUDES"
-		echo "configure: Coin3d $SOXTLIB OK. $DEPS_INCLUDES $DEPS_LIBS";
-	}
 	fi
+	DEPS_LIBS="$SOXT_LDFLAGS $DEPS_LIBS $SOXT_LIBS"
+	DEPS_INCLUDES="$DEPS_INCLUDES $SOXT_INCLUDES"
+	echo "configure: Coin3d $SOXTLIB OK. $DEPS_INCLUDES $DEPS_LIBS";
 }
 fi
 
@@ -6992,7 +7280,29 @@ if (test x$HAVE_SOXT_CONFIG = "xtrue" || test x$HAVE_SOQT_CONFIG = "xtrue" || \
         MOCPATH=""
         if test x$HAVE_QT5 = xyes; then
             MOCNAMES="moc-qt5 moc"
-            MOCPATH="`pkg-config --variable=host_bins Qt5Core`"
+
+if test -n "$MOCPATH"; then
+    pkg_cv_MOCPATH="$MOCPATH"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"Qt5Core\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "Qt5Core") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_MOCPATH=`$PKG_CONFIG --variable="host_bins" "Qt5Core" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+MOCPATH=$pkg_cv_MOCPATH
+
+if test "x$MOCPATH" = x""; then :
+
+fi
         elif ( echo $SOXT_LIBS | grep QtGui > /dev/null ); then
             MOCNAMES="moc-qt4 moc"
         fi
