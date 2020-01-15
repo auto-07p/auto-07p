@@ -270,7 +270,9 @@ else
                     int main(void){(void)SoQt::init((const char *)0L);}])],
                [SOXTLIB="SoQt"],
             #check for Qt5
-           [SOXT_LIBS="$tmp_SOXT_LIBS `pkg-config --libs 'Qt5Core Qt5Gui Qt5OpenGL'` -fPIC"
+           [tmp_CXX="$CXX"
+            AX_CXX_COMPILE_STDCXX(11,noext)
+            SOXT_LIBS="$tmp_SOXT_LIBS `pkg-config --libs 'Qt5Core Qt5Gui Qt5OpenGL'` -fPIC"
 		    LIBS="$tmp_LIBS1 `pkg-config --libs 'Qt5Core Qt5Gui Qt5OpenGL'` -fPIC"
 		    SOXT_INCLUDES="$SOXT_INCLUDES `pkg-config --cflags 'Qt5Core Qt5Gui Qt5OpenGL'` -fPIC"
 		    CPPFLAGS="$CPPFLAGS `pkg-config --cflags 'Qt5Core Qt5Gui Qt5OpenGL'` -fPIC"
@@ -278,7 +280,8 @@ else
                      int main(void){(void)SoQt::init((const char *)0L);}])],
                 [SOXTLIB="SoQt"],
               #explicitly look for Qt4 (sometimes necessary on Mac OS)
-              [SOXT_LIBS="$tmp_SOXT_LIBS `pkg-config --libs 'QtCore QtGui QtOpenGL'`"
+              [CXX="$tmp_CXX"
+		      SOXT_LIBS="$tmp_SOXT_LIBS `pkg-config --libs 'QtCore QtGui QtOpenGL'`"
 		      LIBS="$tmp_LIBS1 `pkg-config --libs 'QtCore QtGui QtOpenGL'`"
 		      SOXT_INCLUDES="$SOXT_INCLUDES `pkg-config --cflags 'QtCore QtGui QtOpenGL'`"
 		      CPPFLAGS="$CPPFLAGS `pkg-config --cflags 'QtCore QtGui QtOpenGL'`"
