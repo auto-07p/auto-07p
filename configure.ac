@@ -210,6 +210,7 @@ fi
 LIBS=$tmp_LIBS
 LDFLAGS=$tmp_LDFLAGS
 CPPFLAGS=$tmp_CPPFLAGS
+HAVE_QT5="no"
 if test x$COIN3D = "xno"; then
 {
 	echo "configure: error: COIN3D is not installed"; 
@@ -278,7 +279,8 @@ else
 		    CPPFLAGS="$CPPFLAGS `pkg-config --cflags 'Qt5Core Qt5Gui Qt5OpenGL'` -fPIC"
 		    AC_LINK_IFELSE([AC_LANG_SOURCE([#include <Inventor/Qt/SoQt.h>
                      int main(void){(void)SoQt::init((const char *)0L);}])],
-                [SOXTLIB="SoQt"],
+                [SOXTLIB="SoQt"
+                 HAVE_QT5="yes"],
               #explicitly look for Qt4 (sometimes necessary on Mac OS)
               [CXX="$tmp_CXX"
 		      SOXT_LIBS="$tmp_SOXT_LIBS `pkg-config --libs 'QtCore QtGui QtOpenGL'`"
@@ -337,11 +339,11 @@ if (test x$HAVE_SOXT_CONFIG = "xtrue" || test x$HAVE_SOQT_CONFIG = "xtrue" || \
     else
         MOCNAMES="moc-qt3 moc"
         MOCPATH=""
-        if ( echo $SOXT_LIBS | grep QtGui > /dev/null ); then
-            MOCNAMES="moc-qt4 moc"
-        elif ( echo $SOXT_LIBS | grep Qt5Gui > /dev/null ); then
+        if test x$HAVE_QT5 = xyes; then
             MOCNAMES="moc-qt5 moc"
             MOCPATH="`pkg-config --variable=host_bins Qt5Core`"
+        elif ( echo $SOXT_LIBS | grep QtGui > /dev/null ); then
+            MOCNAMES="moc-qt4 moc"
         fi
 	if test -n "$QTDIR"; then
 	    mocpath=$QTDIR/bin:$PATH

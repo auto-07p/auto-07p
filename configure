@@ -6250,6 +6250,7 @@ fi
 LIBS=$tmp_LIBS
 LDFLAGS=$tmp_LDFLAGS
 CPPFLAGS=$tmp_CPPFLAGS
+HAVE_QT5="no"
 if test x$COIN3D = "xno"; then
 {
 	echo "configure: error: COIN3D is not installed";
@@ -6827,6 +6828,7 @@ $as_echo "#define HAVE_CXX11 1" >>confdefs.h
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
   SOXTLIB="SoQt"
+                 HAVE_QT5="yes"
 else
   #explicitly look for Qt4 (sometimes necessary on Mac OS)
               CXX="$tmp_CXX"
@@ -6988,11 +6990,11 @@ if (test x$HAVE_SOXT_CONFIG = "xtrue" || test x$HAVE_SOQT_CONFIG = "xtrue" || \
     else
         MOCNAMES="moc-qt3 moc"
         MOCPATH=""
-        if ( echo $SOXT_LIBS | grep QtGui > /dev/null ); then
-            MOCNAMES="moc-qt4 moc"
-        elif ( echo $SOXT_LIBS | grep Qt5Gui > /dev/null ); then
+        if test x$HAVE_QT5 = xyes; then
             MOCNAMES="moc-qt5 moc"
             MOCPATH="`pkg-config --variable=host_bins Qt5Core`"
+        elif ( echo $SOXT_LIBS | grep QtGui > /dev/null ); then
+            MOCNAMES="moc-qt4 moc"
         fi
 	if test -n "$QTDIR"; then
 	    mocpath=$QTDIR/bin:$PATH
