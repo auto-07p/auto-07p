@@ -183,10 +183,11 @@ C
       IPLTCH=IPLTBL(NDXPLT)+IPEN
       KBMUPX=KBMUP(NDXPLT)
       KBMUPY=KBMUP(NDXPLT+2)
-      DO 10 I=1,NO
-      CALL TOUTPT(IPLTCH)
-      KBEAMX=KBEAMX+KBMUPX
-10    KBEAMY=KBEAMY+KBMUPY
+      DO I=1,NO
+         CALL TOUTPT(IPLTCH)
+         KBEAMX=KBEAMX+KBMUPX
+         KBEAMY=KBEAMY+KBMUPY
+      ENDDO
       RETURN
       END
 C
@@ -802,12 +803,14 @@ C
       ENDDO
       GO TO 10
 50    J=KTBLSZ-1
-      DO 60 K=I,J
-60    ITBTBL(K)=ITBTBL(K+1)
+      DO K=I,J
+        ITBTBL(K)=ITBTBL(K+1)
+      ENDDO
       ITBTBL(KTBLSZ)=0
       GO TO 10
-20    DO 21 II=1,KTBLSZ
-21    ITBTBL(II)=0
+20    DO II=1,KTBLSZ
+        ITBTBL(II)=0
+      ENDDO
 10    RETURN
       END
 C
@@ -849,8 +852,9 @@ C
       CALL TOUTPT(31)
       CALL TOUTPT(29)
       KMOVEF=1
-      DO 5 I=1,5
-5     KPCHAR(I)=-1
+      DO I=1,5
+        KPCHAR(I)=-1
+      ENDDO
       CALL XYCNVT(KBEAMX,KBEAMY)
 10    KDASHT=L
       RETURN
@@ -881,17 +885,19 @@ C
       IF(KDASHT .EQ. 0)GO TO 330
       IF(KDASHT .EQ. IDTYPE)GO TO 170
       ICHAR=KDASHT
-      DO 140 NO=1,10
-120   IF(ICHAR.EQ.0)GO TO 150
-      I=ICHAR-((ICHAR/10)*10)
-      ICHAR=ICHAR/10
-      IF(I.EQ.0)GO TO 120
-140   WORK(NO)=U(I)
+      DO NO=1,10
+120     IF(ICHAR.EQ.0)GO TO 150
+        I=ICHAR-((ICHAR/10)*10)
+        ICHAR=ICHAR/10
+        IF(I.EQ.0)GO TO 120
+        WORK(NO)=U(I)
+      ENDDO
       NO=11
 150   NO=NO-1
-      DO 160 I=1,NO
-      ISUB=NO+1-I
-160   DTABL(I)=WORK(ISUB)
+      DO I=1,NO
+        ISUB=NO+1-I
+        DTABL(I)=WORK(ISUB)
+      ENDDO
       D1=DTABL(1)
       NUM=NO-1
       DO 165 K=1,NUM
@@ -996,10 +1002,12 @@ C
       INCLUDE 'plautcom.f'
       DIMENSION RARRAY(60),IB(41),RB(19)
       EQUIVALENCE (IB(1),KMOFLG(1)),(RB(1),TMINVX)
-      DO 100 I=1,19
-100   RARRAY(I)=RB(I)
-      DO 101 I=1,41
-101   RARRAY(I+19)=IB(I)
+      DO I=1,19
+        RARRAY(I)=RB(I)
+      ENDDO
+      DO I=1,41
+        RARRAY(I+19)=IB(I)
+      ENDDO
       RETURN
       END
 C
@@ -1007,10 +1015,12 @@ C
       INCLUDE 'plautcom.f'
       DIMENSION RARRAY(60),IB(41),RB(19)
       EQUIVALENCE (IB(1),KMOFLG(1)),(RB(1),TMINVX)
-      DO 100 I=1,19
-100   RB(I)=RARRAY(I)
-      DO 101 I=1,41
-101   IB(I)=INT(RARRAY(I+19))
+      DO I=1,19
+        RB(I)=RARRAY(I)
+      ENDDO
+      DO I=1,41
+        IB(I)=INT(RARRAY(I+19))
+      ENDDO
       IF(KTERM .GT. 1)CALL CHRSIZ(KSIZEF)
       IF(KTERM .GT. 2)CALL CWSEND
       CALL RECOVR
@@ -1218,8 +1228,9 @@ C
       INCLUDE 'plautcom.f'
       IF(KBAUDR.LE.0)GO TO 20
       KOUNT = ITIME * KBAUDR
-      DO 10 J=1,KOUNT
-10    CALL TOUTPT(22)
+      DO J=1,KOUNT
+        CALL TOUTPT(22)
+      ENDDO
 20    RETURN
       END
 C
@@ -1227,8 +1238,9 @@ C
       INCLUDE 'plautcom.f'
       IF(KKMODE.EQ.1)GO TO 10
       CALL TOUTPT(31)
-      DO 112 II=1,5
-112   KPCHAR(II)=-1
+      DO II=1,5
+        KPCHAR(II)=-1
+      ENDDO
       KKMODE=1
 10    CALL TOUTPT(29)
       KMOVEF=1
@@ -1245,8 +1257,9 @@ C
       SUBROUTINE PNTMOD
       INCLUDE 'plautcom.f'
       CALL TOUTPT(31)
-      DO 111 II=1,5
-111   KPCHAR(II)=-1
+      DO II=1,5
+        KPCHAR(II)=-1
+      ENDDO
       KKMODE=2
       IF(KTERM .GE. 3)CALL TOUTPT(28)
       RETURN
@@ -1401,12 +1414,13 @@ C
       INCLUDE 'plautcom.f'
       DIMENSION IADE(72),IA1(1)
       ITEMP=NCHAR
-      DO 10 I=1,NCHAR,72
-      ISEND=72
-      IF(ITEMP .LT. 72)ISEND=ITEMP
-      CALL KA12AS(ISEND,IA1(I),IADE)
-      CALL ANSTR(ISEND,IADE)
-10    ITEMP=ITEMP-72
+      DO I=1,NCHAR,72
+        ISEND=72
+        IF(ITEMP .LT. 72)ISEND=ITEMP
+        CALL KA12AS(ISEND,IA1(I),IADE)
+        CALL ANSTR(ISEND,IADE)
+        ITEMP=ITEMP-72
+      ENDDO
       RETURN
       END
 C
@@ -1414,11 +1428,12 @@ C
       INCLUDE 'plautcom.f'
       DIMENSION IADE(72)
       ITEMP = NCHAR
-      DO 10 I=1,NCHAR,72
-      ISEND = MIN0(ITEMP,72)
-      CALL KAM2AS(ISEND)
-      CALL ANSTR(ISEND,IADE)
-10    ITEMP = ITEMP - 72
+      DO I=1,NCHAR,72
+        ISEND = MIN0(ITEMP,72)
+        CALL KAM2AS(ISEND)
+        CALL ANSTR(ISEND,IADE)
+        ITEMP = ITEMP - 72
+      ENDDO
       RETURN
       END
 C
@@ -1481,9 +1496,10 @@ C
                     
 20    IF(LAST.GT.LEN)LAST = LEN
       NXTOUT = 0
-      DO 40 I=FIRST,LAST
-      NXTOUT = NXTOUT + 1
-40    IOUT(NXTOUT) = IADE(I)
+      DO I=FIRST,LAST
+        NXTOUT = NXTOUT + 1
+        IOUT(NXTOUT) = IADE(I)
+      ENDDO
       WRITE(KWRITE,101)char(iout(1))
       if(nxtout.gt.1)then
         do 99 i=2,nxtout
@@ -1583,8 +1599,9 @@ C
       INCLUDE 'plautcom.f'
       INTEGER KA1(1), KADE(1)
       IF(NCHAR .LE. 0)RETURN
-      DO 100 I=1,NCHAR
-100   KA1(I) = KADE(I)
+      DO I=1,NCHAR
+        KA1(I) = KADE(I)
+      ENDDO
       RETURN
       END
 C
@@ -1592,8 +1609,9 @@ C
       INCLUDE 'plautcom.f'
       INTEGER KA1(1), KADE(1)
       IF(NCHAR .LE. 0)RETURN
-      DO 100 I=1,NCHAR
-100   KADE(I) = KA1(I)
+      DO I=1,NCHAR
+        KADE(I) = KA1(I)
+      ENDDO
       RETURN
       END
 C

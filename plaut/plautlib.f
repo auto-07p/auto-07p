@@ -2014,9 +2014,10 @@ C---
         IF(LAB(J+1:J+1).NE.' ')  GO TO 2
  3      J = J - 1
         IDF = (NCHR-J)/2
-        DO 4 IP=1,J
+        DO IP=1,J
           IDF      = IDF + 1
- 4        ADJ(IDF:IDF) = LAB(IP:IP)
+          ADJ(IDF:IDF) = LAB(IP:IP)
+        ENDDO
         RETURN
         END
 C-----------------------------------------------------------------------
@@ -2036,9 +2037,10 @@ C---
         IF(LAB(J+1:J+1).NE.' ')  GO TO 2
  3      J   = J-1
         IDF = NCHR - J
-        DO 4 IP=1,J
+        DO IP=1,J
           IDF      = IDF + 1
- 4        ADJ(IDF:IDF) = LAB(IP:IP)
+          ADJ(IDF:IDF) = LAB(IP:IP)
+        ENDDO
         RETURN
         END
 C-----------------------------------------------------------------------
@@ -2057,8 +2059,9 @@ C---
         IF(LAB(J:J).NE.' ')      GO TO 2
         IF(LAB(J+1:J+1).NE.' ')  GO TO 2
  3      J = J - 1
-        DO 4 IP=1,J
- 4        ADJ(IP:IP) = LAB(IP:IP)
+        DO IP=1,J
+          ADJ(IP:IP) = LAB(IP:IP)
+        ENDDO
         RETURN
         END
 C-----------------------------------------------------------------------
@@ -2921,8 +2924,9 @@ C---                                    *SAVE CURVE MAP
        BLKSZE = BLKSZE - NUMPTS * NA1
  2     CONTINUE
 C---                                    *SKIP TO THE NEXT BLOCK
-       DO 60 I = 1,BLKSZE
-60       READ(18,*)
+       DO I = 1,BLKSZE
+         READ(18,*)
+       ENDDO
        GO TO 15
 80     IF (POINT) THEN
          CALL LGRPHS(MP,PNTS)
@@ -5198,8 +5202,9 @@ C---                                    *GET NEW LABELS FROM USER
               PRNUM  = .FALSE.
             ELSE
               NUMLB = CNUM
-              DO 105 I=1,CNUM
- 105            ENLAB(I) = CLAB(I)
+              DO I=1,CNUM
+                ENLAB(I) = CLAB(I)
+              ENDDO
             END IF
             ST3D  = .FALSE.
             IDP2C = 0
