@@ -4,16 +4,25 @@ on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: ubuntu-18.04
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, ubuntu-20.04]
     steps:
     - uses: actions/checkout@v1
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install gfortran libsoqt4-dev libmotif-dev
+        sudo apt-get install gfortran libmotif-dev
         sudo apt-get install python-matplotlib python3-matplotlib
         sudo apt-get install openmpi-bin libopenmpi-dev
         sudo apt-get install texlive texlive-latex-extra transfig
+    - name: Install SoQt for Ubuntu 18.04
+      if: matrix.os == 'ubuntu-18.04'
+      run: sudo apt-get install libsoqt4-dev
+    - name: Install SoQt for Ubuntu 20.04
+      if: matrix.os == 'ubuntu-20.04'
+      run: sudo apt-get install libsoqt520-dev
     - name: Compile
       run: |
         # compile auto
