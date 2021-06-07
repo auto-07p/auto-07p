@@ -28,7 +28,7 @@ jobs:
         eval "$(/usr/libexec/path_helper)"
         sudo tlmgr update --self
         sudo tlmgr update --all
-        sudo tlmgr install moreverb
+        sudo tlmgr install moreverb subfigure xspace
         pip install matplotlib
         pip3 install matplotlib
     - name: Install packages for Ubuntu 18.04 only
