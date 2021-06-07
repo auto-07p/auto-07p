@@ -26,6 +26,7 @@ jobs:
         brew link qt@5 --force
         brew install basictex fig2dev
         eval "$(/usr/libexec/path_helper)"
+        sudo tlmgr update --self
         pip install matplotlib
         pip3 install matplotlib
     - name: Install packages for Ubuntu 18.04 only
