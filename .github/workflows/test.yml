@@ -41,7 +41,7 @@ jobs:
         # compile manual
         if [ "$RUNNER_OS" == "macOS" ]; then
           eval "$(/usr/libexec/path_helper)"
-          tlmgr install collection-latexextra
+          sudo tlmgr install collection-latexextra
         fi
         make -C doc auto.pdf ../plaut04/doc/userguide.pdf
     - name: Run test (python2)
