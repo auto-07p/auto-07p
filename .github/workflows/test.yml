@@ -21,7 +21,8 @@ jobs:
     - name: Install dependencies (macOS)
       if: runner.os == 'macOS'
       run: |
-        brew install qt@5 openmotif gfortran open-mpi
+        brew reinstall gfortran
+        brew install qt@5 openmotif open-mpi
         brew link qt@5 --force
         brew install basictex fig2dev
         pip install matplotlib
