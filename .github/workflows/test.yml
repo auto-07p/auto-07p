@@ -21,9 +21,11 @@ jobs:
     - name: Install dependencies (macOS)
       if: runner.os == 'macOS'
       run: |
-        brew install qt@5 openmotif open-mpi
+        brew install qt@5 openmotif gfortran open-mpi
+        brew link qt@5 --force
         brew install basictex fig2dev
         pip install matplotlib
+        pip3 install matplotlib
     - name: Install packages for Ubuntu 18.04 only
       if: matrix.os == 'ubuntu-18.04'
       run: sudo apt-get install libsoqt4-dev python-matplotlib
