@@ -18,6 +18,7 @@
 module autompi
 
 use auto_constants, only: autoparameters, niap, nrap
+use mpi
 !$ use omp_lib
 
 implicit none
@@ -31,8 +32,6 @@ public :: mpigats
 
 integer, parameter :: AUTO_MPI_KILL_MESSAGE = 0, AUTO_MPI_SOLVBV_MESSAGE = 1
 integer, parameter :: AUTO_MPI_INIT_MESSAGE = 2
-
-include 'mpif.h'
 
 contains
 
