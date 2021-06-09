@@ -22,7 +22,7 @@ jobs:
       if: runner.os == 'macOS'
       run: |
         brew reinstall gfortran
-        brew install qt@5 openmotif open-mpi
+        brew install qt@5 openmotif open-mpi coin3d
         brew link qt@5 --force
         brew install basictex fig2dev
         eval "$(/usr/libexec/path_helper)"
