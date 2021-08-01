@@ -81,6 +81,10 @@ class FigureCanvasTkAggRedraw(FigureCanvasTkAgg):
         else:
             [d["minx"],d["maxx"]] = ax.get_xlim()
             [d["miny"],d["maxy"]] = ax.get_ylim()
+        fig = ax.get_figure()
+        dpi = fig.get_dpi()
+        d["realwidth"] = fig.get_figwidth()*dpi
+        d["realheight"] = fig.get_figheight()*dpi
         for k in list(d):
             # don't adjust any unchanged settings
             if k == "cur_lims":
@@ -97,13 +101,10 @@ class FigureCanvasTkAggRedraw(FigureCanvasTkAgg):
             return
         FigureCanvasTkAgg.draw(self)
 
+    # MPL 2.2+ always calls draw() and never show() (deprecated)
+    # Older MPLs call one or the other.
     def show(self):
-        fig = self.grapher.ax.get_figure() 
-        dpi = fig.get_dpi()
-        self.grapher._configNoDraw(
-            realwidth=fig.get_figwidth()*dpi,
-            realheight=fig.get_figheight()*dpi)
-        self.redraw()
+        self.draw()
 
 class BasicGrapher(grapher.BasicGrapher):
     """Documentation string for Basic Grapher
