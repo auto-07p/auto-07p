@@ -51,6 +51,9 @@ jobs:
     - name: Run test (python2)
       run: |
         export OMPI_MCA_btl="^openib"
+        if [ "$RUNNER_OS" == "macOS" ]; then
+          export OMP_NUM_THREADS=1
+        fi
         cd test
         python2 ../python/auto all.auto
         mv *_log07p python2log.txt
@@ -65,6 +68,9 @@ jobs:
     - name: Run test (python3)
       run: |
         export OMPI_MCA_btl="^openib"
+        if [ "$RUNNER_OS" == "macOS" ]; then
+          export OMP_NUM_THREADS=1
+        fi
         cd test
         python3 ../python/auto all.auto
         mv *_log07p python3log.txt
