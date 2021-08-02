@@ -83,21 +83,22 @@ jobs:
         name: python3verification
         path: test/verification
     - name: Run test (MPI + python3)
-      if: runner.os == 'Linux'
       run: |
-        export AUTO_COMMAND_PREFIX="mpirun -n 2"
-        export OMP_NUM_THREADS=1
-        export OMPI_MCA_btl="^openib"
-        cd test
-        python3 ../python/auto all.auto
-        mv *_log07p python3mpilog.txt
+        if [ "$RUNNER_OS" == "macOS" ]; then
+          touch test/python3mpilog.txt
+        else
+          export AUTO_COMMAND_PREFIX="mpirun -n 2"
+          export OMP_NUM_THREADS=1
+          export OMPI_MCA_btl="^openib"
+          cd test
+          python3 ../python/auto all.auto
+          mv *_log07p python3mpilog.txt
+        fi
     - uses: actions/upload-artifact@v1
       with:
         name: python3mpilog
-        if: runner.os == 'Linux'
         path: test/python3mpilog.txt
     - uses: actions/upload-artifact@v1
       with:
         name: python3mpiverification
-        if: runner.os == 'Linux'
         path: test/verification
