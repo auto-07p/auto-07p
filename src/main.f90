@@ -68,7 +68,7 @@
           CALL CLEANUP()
           IF(KEYS)EXIT
        ENDDO
-       CALL AUTOSTOP()
+       CALL MPIEND()
 
  301  FORMAT(/,' Total Time ',E12.3)
 
