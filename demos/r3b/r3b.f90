@@ -164,6 +164,9 @@
    zp = U(6)
 
    d1 = SQRT((x+mu)**2 + y**2 + z**2)
+   ! PVLS is called for initialization of MPI workers, but results are not
+   ! used. In that case all variables are 0.
+   IF(d1==0)RETURN
    d2 = SQRT( (x-1+mu)**2 + y**2 + z**2 )
 
    EU = (x**2 + y**2)/2 + (1-mu)/d1 + mu/d2
