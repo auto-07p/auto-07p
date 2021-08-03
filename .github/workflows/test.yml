@@ -41,7 +41,7 @@ jobs:
     - name: Compile
       run: |
         # compile auto
-        ./configure --enable-gui --with-mpi
+        FFLAGS="-g -ffpe-trap=invalid,zero,overflow -finit-real=snan" ./configure --enable-gui --with-mpi
         make
         # compile manual
         if [ "$RUNNER_OS" == "macOS" ]; then
