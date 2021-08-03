@@ -169,7 +169,7 @@
           NBC = AINT(GETP("NBC",0,U))
           IF (NBC == 15) THEN
              PAR(22) = GETP("BV1",10,U) - 10
-          ELSEIF (NBC == 17)
+          ELSEIF (NBC == 17) THEN
              ! check if Lin vector initialized:
              IF (DOT_PRODUCT(PAR(24:26),PAR(24:26)) > 0) RETURN
              DO i=1,3
