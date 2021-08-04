@@ -71,7 +71,7 @@ compile: $(OBJ)
 ../lib/io.o: io.f90 ../lib/support.o ../lib/compat.o
 	$(FC) $(FFLAGS) $(OPT) -c io.f90 -o $@
 #
-../lib/mesh.o: mesh.f90
+../lib/mesh.o: mesh.f90 ../lib/mpi.o
 	$(FC) $(FFLAGS) $(OPT) -c mesh.f90 -o $@
 #
 ../lib/auto_constants.o: auto_constants.f90 ../include/auto.h
