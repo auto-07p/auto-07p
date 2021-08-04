@@ -205,7 +205,10 @@ def us(name,templates=None):
         info("Conversion done : converted file saved as %s\n"%sfile)
     files = glob.glob("fcon*") + ["fort.2", "fort.3"]
     for f in files:
-        os.remove(f)
+        try:
+            os.remove(f)
+        except OSError:
+            pass
 commandUserData = command(us,alias=['userdata'])
 
 
