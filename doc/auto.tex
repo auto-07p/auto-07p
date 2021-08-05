@@ -861,11 +861,12 @@ omitted:
 \item[{\tt BCND}]
 \begin{itemize}
 \item
-Derivatives with respect to the two boundary conditions
-are specified in {\tt DBC(1:NBC, 1:NBC)} and {\tt DBC(1:NBC, NBC+1:2*NBC)},
+Derivatives of the boundary conditions with respect to phase-space
+variables at the two boundary points
+are specified in {\tt DBC(1:NBC, 1:NDIM)} and {\tt DBC(1:NBC, NDIM+1:2*NDIM)},
 respectively.
 \item
-Parameter derivatives go into {\tt DBC(1:NBC, 2*NBC+1:2*NBC+NPAR)}.
+Parameter derivatives go into {\tt DBC(1:NBC, 2*NDIM+1:2*NDIM+NPAR)}.
 \end{itemize}
 \item[{\tt ICND}]
 \begin{itemize}
