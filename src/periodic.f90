@@ -1929,7 +1929,7 @@ CONTAINS
        LOC=2
        DO J=2,NDM
           IF(EV(J)==CMPLX( HUGE(1.0D0), HUGE(1.0D0), KIND(1.0D0) ))CYCLE
-          ! do not swap complex multipliers
+          ! do not select a complex multiplier
           IF(AIMAG(EV(J))/=0)CYCLE
           AZM1= ABS( EV(J) - V )
           IF(AZM1<AMIN)THEN
@@ -1939,7 +1939,11 @@ CONTAINS
        ENDDO
        IF(LOC.NE.2) THEN
           ZTMP=EV(LOC)
-          EV(LOC)=EV(2)
+          ! shift EV(2:LOC-1) to EV(3:LOC) to preserve ordering
+          ! (a+bi, a-bi) for complex multipliers.
+          DO J=LOC-1,2,-1
+             EV(J+1)=EV(J)
+          ENDDO
           EV(2)=ZTMP
        ENDIF
     ENDIF
