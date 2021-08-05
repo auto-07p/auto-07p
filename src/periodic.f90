@@ -1922,13 +1922,15 @@ CONTAINS
           ! For PD: Find the multiplier closest to z=-1.
           V=-1.d0
        ELSE
-          ! For LP: Find the multiplier closest to z=-1.
+          ! For LP: Find the multiplier closest to z=1.
           V=1.d0
        ENDIF
        AMIN=HUGE(1.d0)
        LOC=2
        DO J=2,NDM
           IF(EV(J)==CMPLX( HUGE(1.0D0), HUGE(1.0D0), KIND(1.0D0) ))CYCLE
+          ! do not swap complex multipliers
+          IF(AIMAG(EV(J))/=0)CYCLE
           AZM1= ABS( EV(J) - V )
           IF(AZM1<AMIN)THEN
              AMIN=AZM1
