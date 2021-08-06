@@ -23,7 +23,8 @@ jobs:
       run: |
         brew reinstall gfortran
         brew install cmake qt@5 openmotif open-mpi coin3d
-        export PATH=/usr/local/opt/qt5/bin:$PATH
+        export PATH="/usr/local/opt/qt@5/bin:$PATH"
+        export PKG_CONFIG_PATH="/usr/local/opt/qt@5/lib/pkgconfig:/usr/local/lib/pkgconfig"
         curl -O -L https://github.com/coin3d/soqt/releases/download/SoQt-1.6.0/soqt-1.6.0-src.tar.gz
         tar xf soqt-1.6.0-src.tar.gz
         cd soqt/build
