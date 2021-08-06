@@ -58,6 +58,10 @@ jobs:
           eval "$(/usr/libexec/path_helper)"
         fi
         make -C doc auto.pdf ../plaut04/doc/userguide.pdf
+    - uses: actions/upload-artifact@v1
+      with:
+        name: config.log
+        path: config.log
     - name: Run test (python2)
       run: |
         export OMPI_MCA_btl="^openib"
