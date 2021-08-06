@@ -250,11 +250,12 @@ else
 fi
 
 if test x$ENABLE_PLAUT04_QT = xyes; then
-    PKG_CHECK_MODULES(SOQT, [SoQt], [
-        HAVE_SOQT_CONFIG=true
-	SOXT_INCLUDES="$SOQT_CFLAGS -fPIC"
-	SOXT_LIBS="$SOQT_LIBS -lSoQt -fPIC"
-    ], [
+    #PKG_CHECK_MODULES(SOQT, [SoQt], [
+    #    HAVE_SOQT_CONFIG=true
+    #	SOXT_INCLUDES="$SOQT_CFLAGS -fPIC"
+    #	SOXT_LIBS="$SOQT_LIBS -lSoQt -fPIC"
+    #    AX_CXX_COMPILE_STDCXX(11,noext)
+    #], [
         AC_CHECK_PROG(HAVE_SOQT_CONFIG, soqt-config, true, false)
         if test x$HAVE_SOQT_CONFIG = "xtrue"; then
 	    SOXT_LIBS="`soqt-config --libs`"
@@ -262,7 +263,7 @@ if test x$ENABLE_PLAUT04_QT = xyes; then
 	    SOXT_INCLUDES="`soqt-config --cppflags` -DSOQT_DLL"
         else
 	    SOXT_LIBS="$SOXT_LIBS -lSoQt"
-        fi])
+        fi#])
     LIBS="$tmp_LIBS $DEPS_LIBS $SOXT_LIBS"
     LDFLAGS="$tmp_LDFLAGS $SOXT_LDFLAGS"
     CPPFLAGS="$tmp_CPPFLAGS $SOXT_INCLUDES"
