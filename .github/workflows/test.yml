@@ -22,8 +22,14 @@ jobs:
       if: runner.os == 'macOS'
       run: |
         brew reinstall gfortran
-        brew install qt@5 openmotif open-mpi coin3d
-        brew link qt@5 --force
+        brew install cmake qt@5 openmotif open-mpi coin3d
+        export PATH=/usr/local/opt/qt5/bin:$PATH
+        curl -O -L https://github.com/coin3d/soqt/releases/download/SoQt-1.6.0/soqt-1.6.0-src.tar.gz
+        tar xf soqt-1.6.0-src.tar.gz
+        cd soqt/build
+        cmake ..
+        make
+        sudo make install
         brew install basictex fig2dev
         eval "$(/usr/libexec/path_helper)"
         sudo tlmgr update --self
@@ -32,12 +38,6 @@ jobs:
         brew install python-tk
         pip install matplotlib
         pip3 install matplotlib
-        curl -O -L https://github.com/coin3d/soqt/releases/download/SoQt-1.6.0/soqt-1.6.0-src.tar.gz
-        tar xf soqt-1.6.0-src.tar.gz
-        cd soqt/build
-        cmake ..
-        make
-        sudo make install
     - name: Install packages for Ubuntu 18.04 only
       if: matrix.os == 'ubuntu-18.04'
       run: sudo apt-get install libsoqt4-dev python-matplotlib
