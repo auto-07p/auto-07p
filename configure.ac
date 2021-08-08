@@ -33,10 +33,6 @@ AC_ARG_ENABLE(gui,
 [  --enable-gui            Compile the Motif based GUI package (default: no)],
 [ENABLE_GUI=$enableval],ENABLE_GUI=no)
 
-AC_ARG_ENABLE(tek2ps,
-[  --enable-tek2ps         Compile the Tek2ps conversion utility (default: yes)],
-[ENABLE_TEK2PS=$enableval],ENABLE_TEK2PS=yes)
-
 AC_SUBST(OPT_FLAG)
 
 dnl Checks for programs.
@@ -164,13 +160,6 @@ else
    GUI=""
 fi
 AC_SUBST(GUI)
-
-if test x$ENABLE_TEK2PS = xyes; then
-   TEK2PS=tek2ps
-else
-   TEK2PS=""
-fi
-AC_SUBST(TEK2PS)
 
 dnl AC_HAVE_LIBRARY([m])
 
@@ -390,7 +379,7 @@ AC_SUBST(SOXT_OBJS_R3B)
 
 AC_SUBST(DEPS_LIBS)
 AC_SUBST(DEPS_INCLUDES)
-AC_OUTPUT(Makefile src/Makefile util/Makefile gui/Makefile tek2ps/Makefile plaut/Makefile plaut04/Makefile plaut04/src/Makefile cmds/cmds.make cmds/Makefile gui/auto.makefile cmds/compat.sh)
+AC_OUTPUT(Makefile src/Makefile util/Makefile gui/Makefile plaut/Makefile plaut04/Makefile plaut04/src/Makefile cmds/cmds.make cmds/Makefile gui/auto.makefile cmds/compat.sh)
 
 if test x$no_x = xyes && test x$ENABLE_GUI = xyes; then
   echo "***************************************************"

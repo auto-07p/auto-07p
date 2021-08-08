@@ -27,7 +27,6 @@ doc/auto.pdf
 gui/auto.makefile
 plaut04/doc/userguide.pdf
 plaut04/src/gmainqt.moc.c++
-tek2ps/tek2ps
 test/verification/*.html
 test/*_log*
 demos/python/test/

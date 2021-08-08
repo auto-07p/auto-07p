@@ -7,7 +7,7 @@
 SHELL=/bin/sh
 @SET_MAKE@
 #
-all: src cmds util @GUI@ @PLAUT@ @PLAUT04@ @TEK2PS@
+all: src cmds util @GUI@ @PLAUT@ @PLAUT04@
 cmd: src cmds util @PLAUT@
 
 src: .FORCE
@@ -33,15 +33,11 @@ plaut: .FORCE
 plaut04: .FORCE
 	cd ./plaut04;$(MAKE)
 
-tek2ps: .FORCE
-	cd ./tek2ps;$(MAKE)
-
 #
 clean:
 	cd ./gui;$(MAKE) clean
 	cd ./plaut;$(MAKE) clean
 	cd ./plaut04;$(MAKE) clean
-	cd ./tek2ps;$(MAKE) clean
 	cd ./doc;$(MAKE) clean
 #
 superclean:  clean
@@ -58,7 +54,7 @@ superclean:  clean
 	rm -f python/*.pyc python/graphics/*.pyc
 	rm -f test/*.pyc test/*_log07p* test/verification/*.html
 	rm -f Makefile cmds/Makefile gui/Makefile plaut/Makefile src/Makefile \
-	  tek2ps/Makefile gui/auto.makefile include/config.h cmds/cmds.make \
+	  gui/auto.makefile include/config.h cmds/cmds.make \
 	  cmds/compat.sh util/Makefile
 	@echo "Super cleaning ... done"
 

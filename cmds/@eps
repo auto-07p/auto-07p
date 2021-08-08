@@ -1,2 +1,2 @@
 #!/bin/sh
-cat $1 | "$AUTO_DIR"/tek2ps/tek2ps > $1.eps
+tek2plot -T ps $1 > $1.eps

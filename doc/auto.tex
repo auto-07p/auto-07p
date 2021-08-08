@@ -270,9 +270,9 @@ compilers (\filef{src/unix.f90}), and if that fails too, uses a set of
 dummy replacement routines (\filef{src/compat.f90}), which could be
 edited for some obscure installations.
 
-The PostScript conversion command \commandf{@ps} is compiled by
-default. Alternatively you can type \commandf{make} in the directory
-\filef{auto/07p/tek2ps}.
+The PostScript conversion command \commandf{@ps} uses
+\commandf{tek2plot} from GNU plotutils,
+see \url{https://www.gnu.org/software/plotutils/}.
 To generate the on-line manual, type \commandf{make} in
 \filef{auto/07p/doc}, which depends on the presence of xfig's
 (transfig) fig2dev utility.
@@ -299,7 +299,7 @@ Fedora and Red Hat and its derivatives:
 \begin{itemize}
 \item Python: \filef{python-matplotlib-tk} and \filef{ipython}.
 \item {\cal PLAUT04}: \filef{SoQt-devel} and \filef{qt-config}.
-\item {\cal PLAUT}: \filef{xterm}.
+\item {\cal PLAUT}: \filef{xterm} and \filef{plotutils}.
 \item GUI94: \filef{motif-devel}.
 \item manual: \LaTeX (\filef{texlive-*.noarch}) and \filef{transfig}.
 \end{itemize}
@@ -307,7 +307,7 @@ and the following for Ubuntu and Debian:
 \begin{itemize}
 \item Python: \filef{python-matplotlib} and \filef{ipython}.
 \item {\cal PLAUT04}: SoQt (\filef{libsoqt4-dev}).
-\item {\cal PLAUT}: \filef{xterm}.
+\item {\cal PLAUT}: \filef{xterm} and \filef{plotutils}.
 \item GUI94: \filef{libmotif-dev}.
 \item manual: \LaTeX (\filef{texlive}, \filef{texlive-latex-extra}, and \filef{transfig}.
 \end{itemize}
