@@ -7250,7 +7250,7 @@ else
 fi
 
 if (test x$HAVE_SOXT_CONFIG = "xtrue" || test x$HAVE_SOQT_CONFIG = "xtrue" || \
-    test x$no_x != xyes) && \
+    test x$no_x != xyes || test x$SOXTLIB != "xno") && \
    test x$ENABLE_PLAUT04 = xyes && test x$PLAUT04_TEST = xyes; then
     PLAUT04=plaut04
     if test x$SOXTLIB = "xSoXt"; then
