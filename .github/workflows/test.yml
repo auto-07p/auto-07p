@@ -7,16 +7,37 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-18.04, ubuntu-20.04]
+        os: [ubuntu-18.04, ubuntu-20.04, macos-10.15]
     steps:
     - uses: actions/checkout@v1
-    - name: Install dependencies
+    - name: Install dependencies (Linux)
+      if: runner.os == 'Linux'
       run: |
         sudo apt-get update
         sudo apt-get install gfortran libmotif-dev
         sudo apt-get install python3-matplotlib
         sudo apt-get install openmpi-bin libopenmpi-dev
         sudo apt-get install texlive texlive-latex-extra transfig
+    - name: Install dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew reinstall gfortran
+        brew install cmake qt@5 openmotif open-mpi coin3d
+        export PATH="/usr/local/opt/qt@5/bin:$PATH"
+        curl -O -L https://github.com/coin3d/soqt/releases/download/SoQt-1.6.0/soqt-1.6.0-src.tar.gz
+        tar xf soqt-1.6.0-src.tar.gz
+        cd soqt/build
+        cmake ..
+        make
+        sudo make install
+        brew install basictex fig2dev
+        eval "$(/usr/libexec/path_helper)"
+        sudo tlmgr update --self
+        sudo tlmgr update --all
+        sudo tlmgr install moreverb subfigure
+        brew install python-tk
+        pip install matplotlib
+        pip3 install matplotlib
     - name: Install packages for Ubuntu 18.04 only
       if: matrix.os == 'ubuntu-18.04'
       run: sudo apt-get install libsoqt4-dev python-matplotlib
@@ -26,16 +47,25 @@ jobs:
     - name: Compile
       run: |
         # compile auto
+        if [ "$RUNNER_OS" == "macOS" ]; then
+          export PATH="/usr/local/opt/qt@5/bin:$PATH"
+          export PKG_CONFIG_PATH="/usr/local/opt/qt@5/lib/pkgconfig"
+          eval "$(/usr/libexec/path_helper)"
+        fi
         ./configure --enable-gui --with-mpi
         make
         # compile manual
         make -C doc auto.pdf ../plaut04/doc/userguide.pdf
     - name: Run test (python2)
       run: |
-        export OMPI_MCA_btl="^openib"
-        cd test
-        python2 ../python/auto all.auto
-        mv *_log07p python2log.txt
+        if [ "$RUNNER_OS" == "macOS" ]; then
+          touch test/python2log.txt
+        else
+          export OMPI_MCA_btl="^openib"
+          cd test
+          python2 ../python/auto all.auto
+          mv *_log07p python2log.txt
+        fi
     - uses: actions/upload-artifact@v1
       with:
         name: python2log
@@ -46,10 +76,14 @@ jobs:
         path: test/verification
     - name: Run test (python3)
       run: |
-        export OMPI_MCA_btl="^openib"
-        cd test
-        python3 ../python/auto all.auto
-        mv *_log07p python3log.txt
+        if [ "$RUNNER_OS" == "macOS" ]; then
+          touch test/python3log.txt
+        else
+          export OMPI_MCA_btl="^openib"
+          cd test
+          python3 ../python/auto all.auto
+          mv *_log07p python3log.txt
+        fi
     - uses: actions/upload-artifact@v1
       with:
         name: python3log
@@ -60,12 +94,16 @@ jobs:
         path: test/verification
     - name: Run test (MPI + python3)
       run: |
-        export AUTO_COMMAND_PREFIX="mpirun -n 2"
-        export OMP_NUM_THREADS=1
-        export OMPI_MCA_btl="^openib"
-        cd test
-        python3 ../python/auto all.auto
-        mv *_log07p python3mpilog.txt
+        if [ "$RUNNER_OS" == "macOS" ]; then
+          touch test/python3mpilog.txt
+        else
+          export AUTO_COMMAND_PREFIX="mpirun -n 2"
+          export OMP_NUM_THREADS=1
+          export OMPI_MCA_btl="^openib"
+          cd test
+          python3 ../python/auto all.auto
+          mv *_log07p python3mpilog.txt
+        fi
     - uses: actions/upload-artifact@v1
       with:
         name: python3mpilog
