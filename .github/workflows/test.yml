@@ -58,14 +58,10 @@ jobs:
         make -C doc auto.pdf ../plaut04/doc/userguide.pdf
     - name: Run test (python2)
       run: |
-        if [ "$RUNNER_OS" == "macOS" ]; then
-          touch test/python2log.txt
-        else
-          export OMPI_MCA_btl="^openib"
-          cd test
-          python2 ../python/auto all.auto
-          mv *_log07p python2log.txt
-        fi
+        export OMPI_MCA_btl="^openib"
+        cd test
+        python2 ../python/auto all.auto
+        mv *_log07p python2log.txt
     - uses: actions/upload-artifact@v1
       with:
         name: python2log
@@ -76,14 +72,10 @@ jobs:
         path: test/verification
     - name: Run test (python3)
       run: |
-        if [ "$RUNNER_OS" == "macOS" ]; then
-          touch test/python3log.txt
-        else
-          export OMPI_MCA_btl="^openib"
-          cd test
-          python3 ../python/auto all.auto
-          mv *_log07p python3log.txt
-        fi
+        export OMPI_MCA_btl="^openib"
+        cd test
+        python3 ../python/auto all.auto
+        mv *_log07p python3log.txt
     - uses: actions/upload-artifact@v1
       with:
         name: python3log
