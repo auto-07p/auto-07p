@@ -6562,8 +6562,7 @@ else
 	COIN_LIBS=$pkg_cv_COIN_LIBS
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-	COIN_INCLUDES=$COIN_CFLAGS; HAVE_COIN_CONFIG=t
-rue
+	COIN_INCLUDES=$COIN_CFLAGS; HAVE_COIN_CONFIG=true
 fi
 tmp_LIBS=$LIBS
 LIBS="$LIBS $DEPS_LIBS $COIN_LIBS"
