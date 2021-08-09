@@ -5,6 +5,14 @@
 #   Redone by Randy C. Paffenroth 1999 for use with a configure script and python
 #   front end.
 SHELL=/bin/sh
+INSTALL=@INSTALL@
+INSTALL_DATA=@INSTALL_DATA@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+bindir=@bindir@
+libdir=@libdir@
+autodir=@libdir@/auto-07p
+SED=@SED@
 @SET_MAKE@
 #
 all: src cmds util @GUI@ @PLAUT@ @PLAUT04@
@@ -57,6 +65,44 @@ superclean:  clean
 	  gui/auto.makefile include/config.h cmds/cmds.make \
 	  cmds/compat.sh util/Makefile
 	@echo "Super cleaning ... done"
+
+install:
+	$(INSTALL) -d $(DESTDIR)$(bindir)
+	$(INSTALL) bin/auto $(DESTDIR)$(bindir)/auto
+	$(INSTALL) bin/autox $(DESTDIR)$(bindir)/autox
+	$(SED) -i 's@AUTO_DIR=.*@AUTO_DIR=$(autodir)@' $(DESTDIR)$(bindir)/auto $(DESTDIR)$(bindir)/autox
+	$(INSTALL) -d $(DESTDIR)$(autodir)/python/auto/graphics
+	$(INSTALL_DATA) python/auto/*.py $(DESTDIR)$(autodir)/python/auto/
+	$(INSTALL_DATA) python/auto/graphics/*.py $(DESTDIR)/$(autodir)/python/auto/graphics/
+	$(INSTALL) -d $(DESTDIR)$(autodir)/include $(DESTDIR)$(autodir)/cmds
+	$(INSTALL) -d $(DESTDIR)$(autodir)/lib $(DESTDIR)$(autodir)/bin
+	$(INSTALL_DATA) include/auto_f2c.h $(DESTDIR)$(autodir)/include
+	$(INSTALL_DATA) include/config.h $(DESTDIR)$(autodir)/include
+	$(INSTALL) bin/autlab bin/[d-z]* $(DESTDIR)$(libdir)/auto-07p/bin
+	$(INSTALL) cmds/@* $(DESTDIR)$(libdir)/auto-07p/cmds
+	$(INSTALL_DATA) cmds/[a-zA-Z]* $(DESTDIR)$(autodir)/cmds
+	$(INSTALL_DATA) lib/* $(DESTDIR)$(autodir)/lib/
+	$(INSTALL) -d $(DESTDIR)$(autodir)/doc
+	if [ -f doc/auto.pdf ]; then \
+		$(INSTALL_DATA) doc/auto.pdf $(DESTDIR)$(autodir)/doc; \
+	fi
+	$(INSTALL) -d $(DESTDIR)$(autodir)/plaut04/doc $(DESTDIR)$(autodir)/plaut04/widgets
+	if [ -f plaut04/doc/userguide.pdf ]; then \
+		$(INSTALL_DATA) plaut04/doc/userguide.pdf $(DESTDIR)$(autodir)/plaut04/doc; \
+	fi
+	$(INSTALL_DATA) plaut04/widgets/* $(DESTDIR)$(autodir)/plaut04/widgets
+	$(INSTALL) -d $(DESTDIR)$(autodir)/demos
+	for d in demos/*; do \
+		$(INSTALL) -d $(DESTDIR)$(autodir)/$$d; \
+		for f in $$d/*; do \
+			if [ -d $$f ]; then \
+				$(INSTALL) -d $(DESTDIR)$(autodir)/$$f; \
+				$(INSTALL_DATA) $$f/* $(DESTDIR)$(autodir)/$$f; \
+			else \
+				$(INSTALL_DATA) $$f $(DESTDIR)$(autodir)/$$d; \
+			fi; \
+		done; \
+	done
 
 .FORCE:
 
