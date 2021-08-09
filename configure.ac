@@ -266,26 +266,28 @@ if (test x$ENABLE_PLAUT04_QT = xyes && test x$SOXTLIB = xno); then
     PKG_PROG_PKG_CONFIG(0.28)
     #explicitly look for Qt4 (sometimes necessary on Mac OS)
     PKG_CHECK_MODULES(QT, [QtCore QtGui QtOpenGL],
-       [SOXT_LIBS="$tmp_SOXT_LIBS $QT_LIBS"
-        LIBS="$tmp_LIBS1 $QT_LIBS"
-        SOXT_INCLUDES="$SOXT_INCLUDES $QT_CFLAGS"
+       [LIBS="$tmp_LIBS1 $QT_LIBS"
 	CPPFLAGS="$CPPFLAGS $QT_CFLAGS"
-	AC_LINK_IFELSE([AC_LANG_SOURCE([#include <Inventor/Qt/SoQt.h>
+	AC_RUN_IFELSE([AC_LANG_SOURCE([#include <Inventor/Qt/SoQt.h>
                         int main(void){(void)SoQt::init((const char *)0L);}])],
-        [SOXTLIB="SoQt"])],[SOXTLIB="no"])
-
+        [SOXTLIB="SoQt"
+	 SOXT_INCLUDES="$SOXT_INCLUDES $QT_CFLAGS"
+	 SOXT_LIBS="$tmp_SOXT_LIBS $QT_LIBS"
+	])],[SOXTLIB="no"],[SOXTLIB="no"])
     if test x$SOXTLIB = xno; then
         #check for C++11 and Qt5
         tmp_CXX="$CXX"
         AX_CXX_COMPILE_STDCXX(11,noext)
+        unset QT_LIBS
+        unset QT_CFLAGS
         PKG_CHECK_MODULES(QT, [Qt5Core Qt5Gui Qt5OpenGL],
-           [SOXT_LIBS="$tmp_SOXT_LIBS $QT_LIBS -fPIC"
-            LIBS="$tmp_LIBS1 $QT_LIBS -fPIC"
-            SOXT_INCLUDES="$SOXT_INCLUDES $QT_CFLAGS -fPIC"
+           [LIBS="$tmp_LIBS1 $QT_LIBS -fPIC"
             CPPFLAGS="$CPPFLAGS $QT_CFLAGS -fPIC"
             AC_LINK_IFELSE([AC_LANG_SOURCE([#include <Inventor/Qt/SoQt.h>
                          int main(void){(void)SoQt::init((const char *)0L);}])],
                         [SOXTLIB="SoQt"
+			 SOXT_LIBS="$tmp_SOXT_LIBS $QT_LIBS -fPIC"
+			 SOXT_INCLUDES="$SOXT_INCLUDES $QT_CFLAGS -fPIC"
                          HAVE_QT5="yes"])],[SOXTLIB="no"])
         if test x$SOXTLIB = xno; then
             CXX="$tmp_CXX"
