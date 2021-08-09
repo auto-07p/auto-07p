@@ -168,15 +168,18 @@ AC_PROG_CXX
 AC_LANG(C++)
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM()],[HAVE_CXX="yes"],[HAVE_CXX="no"])
 PLAUT04_TEST=yes
-AC_CHECK_PROG(HAVE_COIN_CONFIG, coin-config, true, false)
-COIN_LIBS="-lCoin"
 COIN_LDFLAGS=
 COIN_INCLUDES=
-if test x$HAVE_COIN_CONFIG = "xtrue"; then
+PKG_PROG_PKG_CONFIG(0.28)
+PKG_CHECK_MODULES(COIN, [Coin], [COIN_INCLUDES=$COIN_CFLAGS; HAVE_COIN_CONFIG=t
+rue], [
+    COIN_LIBS="-lCoin"
+    AC_CHECK_PROG(HAVE_COIN_CONFIG, coin-config, true, false)
+    if test x$HAVE_COIN_CONFIG = "xtrue"; then
 	COIN_LIBS="`coin-config --libs`"
 	COIN_LDFLAGS="`coin-config --ldflags`"
 	COIN_INCLUDES="`coin-config --cppflags`"
-fi
+    fi])
 tmp_LIBS=$LIBS
 LIBS="$LIBS $DEPS_LIBS $COIN_LIBS"
 tmp_LDFLAGS=$LDFLAGS
@@ -264,7 +267,6 @@ fi
 
 HAVE_QT5="no"
 if (test x$ENABLE_PLAUT04_QT = xyes && test x$SOXTLIB = xno); then
-    PKG_PROG_PKG_CONFIG(0.28)
     #explicitly look for Qt4 (sometimes necessary on Mac OS)
     PKG_CHECK_MODULES(QT, [QtCore QtGui QtOpenGL],
        [LIBS="$tmp_LIBS1 $QT_LIBS"
