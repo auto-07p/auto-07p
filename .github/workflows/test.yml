@@ -34,7 +34,7 @@ jobs:
         eval "$(/usr/libexec/path_helper)"
         sudo tlmgr update --self
         sudo tlmgr update --all
-        sudo tlmgr install moreverb subfigure
+        sudo tlmgr install moreverb
         brew install python-tk
         pip install matplotlib
         pip3 install matplotlib
