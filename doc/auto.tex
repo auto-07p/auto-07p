@@ -234,7 +234,7 @@ To use the Python CLUI and the ``@pp'' {\cal PyPLAUT} plotter it
 is strongly recommended to install NumPy
 (\url{https://numpy.org}), TkInter, and
 Matplotlib (\url{https://matplotlib.org/}).
-Python itself needs to be at least version 2.3 or higher, but 2.7 or
+Python itself needs to be at least version 2.3 or higher, but 3.6 or
 higher is strongly recommended.
 For enhanced interactive use of the Python CLUI it is also worth
 installing IPython (\url{https://ipython.org}).
@@ -305,11 +305,11 @@ Fedora and Red Hat and its derivatives:
 \end{itemize}
 and the following for Ubuntu and Debian:
 \begin{itemize}
-\item Python: \filef{python-matplotlib} and \filef{ipython}.
-\item {\cal PLAUT04}: SoQt (\filef{libsoqt4-dev}).
+\item Python: \filef{python-matplotlib} or \filef{python3-matplotlib} and \filef{ipython}.
+\item {\cal PLAUT04}: SoQt (\filef{libsoqt4-dev} or \filef{libsoqt520-dev}).
 \item {\cal PLAUT}: \filef{xterm} and \filef{plotutils}.
 \item GUI94: \filef{libmotif-dev}.
-\item manual: \LaTeX (\filef{texlive}, \filef{texlive-latex-extra}, and \filef{transfig}.
+\item manual: \LaTeX (\filef{texlive}, \filef{texlive-latex-extra}, and \filef{transfig}).
 \end{itemize}
 Other distributions may have packages with similar names.
 
@@ -324,10 +324,32 @@ the location of these libraries, for instance {\tt /usr/local/lib}.
 you have the development tools installed (via \commandf{xcode-select
  --install}) or by installing XCode from the App Store.
 You do not need to start an X server to run AUTO.
-Furthermore, the following packages are recommended:
+
+You can use Homebrew, see \url{https://brew.sh/}, to install most
+dependencies:
+\begin{itemize}
+\item Gfortran: \filef{brew install gfortran}
+\item Python: \filef{brew install python-tk; pip3 install matplotlib}
+\item {\cal PLAUT04}: \filef{brew install cmake qt@5 coin3d}\\
+You will then need to compile SoQt from source using a tarball available at
+\url{https://github.com/coin3d/soqt/releases}.
+\begin{verbatim}
+export PATH="/usr/local/opt/qt@5/bin:$PATH"
+export PKG_CONFIG_PATH="/usr/local/opt/qt@5/lib/pkgconfig:$PKG_CONFIG_PATH"
+tar xf soqt-1.6.0-src.tar.gz
+cd soqt/build
+cmake ..
+make
+sudo make install
+\end{verbatim}
+\item GUI94: \filef{brew install openmotif}
+\item manual: \LaTeX\xspace, and \filef{transfig} via \filef{brew install fig2dev}
+\end{itemize}
+
+Alternatively, the following methods have been used instead of
+Homebrew but are not as well tested:
 \begin{itemize}
 \item Gfortran: See \url{http://gcc.gnu.org/wiki/GFortranBinaries}.
-Alternatively you can use Homebrew, see \url{https://brew.sh/}.
 \item Python:
 The default system Python in Mac OS is usable.
 There are other alternatives, for instance Anaconda
@@ -336,23 +358,6 @@ at \url{https://docs.conda.io/en/latest/miniconda.html}.
 To be able to plot in the Python CLUI in some versions of Mac OS,
 \AUTO uses \filef{pythonw} instead of \filef{python}.
 This should happen automatically.
-\item {\cal PLAUT04}: PLAUT04 is more involved, as it depends on Qt version 4
-which is no longer supported. You can still install it using Homebrew via
-\url{https://github.com/cartr/homebrew-qt4/blob/master/README.md}.
-You will then need to compile Coin and SoQt from source using the
-zipfiles available at
-\url{https://bitbucket.org/Coin3D/coin/downloads/} and
-\url{https://bitbucket.org/Coin3D/soqt/downloads/}.
-For SoQt to compile properly, you may need to patch its configure script
-and then compile as follows:
-\begin{verbatim}
-sed -i -e 's/^\(LIBS=\$sim_ac_uniqued_list\)$/# \1/' configure
-sh configure
-make
-sudo make install
-\end{verbatim}
-\item GUI94: This is possible with Homebrew via \commandf{brew install openmotif}.
-\item manual: \LaTeX\xspace and transfig (comes with xfig).
 \end{itemize}
 
 \subsection{Installation on Windows}
