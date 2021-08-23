@@ -72,6 +72,7 @@ install:
 	$(INSTALL) bin/autox $(DESTDIR)$(bindir)/autox
 	$(SED) -i 's@AUTO_DIR=.*@AUTO_DIR=$(autodir)@' $(DESTDIR)$(bindir)/auto $(DESTDIR)$(bindir)/autox
 	$(INSTALL) -d $(DESTDIR)$(autodir)/python/auto/graphics
+	$(INSTALL_DATA) .autorc $(DESTDIR)$(autodir)
 	$(INSTALL_DATA) python/auto/*.py $(DESTDIR)$(autodir)/python/auto/
 	$(INSTALL_DATA) python/auto/graphics/*.py $(DESTDIR)/$(autodir)/python/auto/graphics/
 	$(INSTALL) -d $(DESTDIR)$(autodir)/include $(DESTDIR)$(autodir)/cmds
@@ -90,6 +91,7 @@ install:
 	if [ -f plaut04/doc/userguide.pdf ]; then \
 		$(INSTALL_DATA) plaut04/doc/userguide.pdf $(DESTDIR)$(autodir)/plaut04/doc; \
 	fi
+	$(INSTALL_DATA) plaut04/*.rc $(DESTDIR)$(autodir)/plaut04
 	$(INSTALL_DATA) plaut04/widgets/* $(DESTDIR)$(autodir)/plaut04/widgets
 	$(INSTALL) -d $(DESTDIR)$(autodir)/demos
 	for d in demos/*; do \
