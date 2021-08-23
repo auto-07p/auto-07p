@@ -23,12 +23,13 @@ jobs:
       run: |
         brew reinstall gfortran
         brew install cmake qt@5 openmotif open-mpi coin3d
+        brew link qt@5 --force
         export PATH="/usr/local/opt/qt@5/bin:$PATH"
         curl -O -L https://github.com/coin3d/soqt/releases/download/SoQt-1.6.0/soqt-1.6.0-src.tar.gz
         tar xf soqt-1.6.0-src.tar.gz
         cd soqt/build
         cmake ..
-        make
+        make -j3
         sudo make install
         brew install basictex fig2dev
         brew install python-tk
@@ -44,8 +45,6 @@ jobs:
       run: |
         # compile auto
         if [ "$RUNNER_OS" == "macOS" ]; then
-          export PATH="/usr/local/opt/qt@5/bin:$PATH"
-          export PKG_CONFIG_PATH="/usr/local/opt/qt@5/lib/pkgconfig"
           eval "$(/usr/libexec/path_helper)"
         fi
         ./configure --enable-gui --with-mpi
