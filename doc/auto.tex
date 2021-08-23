@@ -331,20 +331,23 @@ dependencies:
 \begin{itemize}
 \item Gfortran: \filef{brew install gfortran}
 \item Python: \filef{brew install python-tk; pip3 install matplotlib}
-\item {\cal PLAUT04}: \filef{brew install cmake qt@5 coin3d}\\
+\item {\cal PLAUT04}: \filef{brew install cmake qt@5 coin3d; brew link qt@5 --force}\\
 You will then need to compile SoQt from source using a tarball available at
-\url{https://github.com/coin3d/soqt/releases}.
-\begin{verbatim}
+\url{https://github.com/coin3d/soqt/releases}, for example:\\
+{\small \begin{boxedverbatim}
 export PATH="/usr/local/opt/qt@5/bin:$PATH"
-export PKG_CONFIG_PATH="/usr/local/opt/qt@5/lib/pkgconfig:$PKG_CONFIG_PATH"
+curl -O -L \
+  https://github.com/coin3d/soqt/releases/download/SoQt-1.6.0/soqt-1.6.0-src.tar.gz
 tar xf soqt-1.6.0-src.tar.gz
 cd soqt/build
 cmake ..
 make
 sudo make install
-\end{verbatim}
+\end{boxedverbatim}
+}
 \item GUI94: \filef{brew install openmotif}
-\item manual: \LaTeX\xspace, and \filef{transfig} via \filef{brew install fig2dev}
+\item manual: \LaTeX\xspace, and \filef{transfig} via \filef{brew
+  install basictex fig2dev; eval "\$(/usr/libexec/path\_helper)"}
 \end{itemize}
 
 Alternatively, the following methods have been used instead of
