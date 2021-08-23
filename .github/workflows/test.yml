@@ -17,7 +17,7 @@ jobs:
         sudo apt-get install gfortran libmotif-dev
         sudo apt-get install python3-matplotlib
         sudo apt-get install openmpi-bin libopenmpi-dev
-        sudo apt-get install texlive texlive-latex-extra transfig
+        sudo apt-get install texlive texlive-latex-recommended transfig
     - name: Install dependencies (macOS)
       if: runner.os == 'macOS'
       run: |
