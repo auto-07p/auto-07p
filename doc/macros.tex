@@ -37,3 +37,10 @@
 % A font for filenames
 %\newcommand{\filef}[1]{{\tt #1}}
 \newcommand{\filef}[1]{\textsf{#1}}
+
+% emulated boxedverbatim from moreverb with fancyvrb
+\newenvironment{boxedverbatim}
+{\VerbatimEnvironment
+ \begin{SaveVerbatim}{VerbEnv}}
+ {\end{SaveVerbatim}
+  \fbox{\BUseVerbatim{VerbEnv}}}
