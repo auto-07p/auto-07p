@@ -39,7 +39,7 @@ jobs:
       run: sudo apt-get install libsoqt4-dev python-matplotlib
     - name: Install packages for Ubuntu 20.04 only
       if: matrix.os == 'ubuntu-20.04'
-      run: sudo apt-get install libsoqt520-dev python-tk python-numpy
+      run: sudo apt-get install libsoqt520-dev python-tk python-numpy texlive-latex-extra
     - name: Compile
       run: |
         # compile auto
