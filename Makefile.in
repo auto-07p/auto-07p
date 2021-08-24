@@ -113,7 +113,7 @@ install-strip:
 	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' install
 
 check:
-	cd test && unset DISPLAY && python ../python/auto all.auto
+	cd test && unset DISPLAY && OMP_NUM_THREADS=2 python ../python/auto all.auto
 
 .FORCE:
 
