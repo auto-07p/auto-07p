@@ -199,17 +199,31 @@ to check your system for required compilers and libraries.
 Once the \filef{configure} script has finished you 
 may then type \commandf{make} to compile \AUTO
 and its ancillary software.
+
 The \filef{configure} script is designed to detect the details
 of your system which \AUTO requires to compile successfully.
 If either the \filef{configure} script or the \filef{make} command
 should fail, you may assist the \filef{configure} script by giving
 it various command line options.  Please type \commandf{./configure --help}
-for more details.
+for more details. Of particular interest here is
+\commandf{./configure --enable-debug} which, if the GNU Fortran
+compiler is used, enables bounds checking and floating point traps at
+the expense of speed.
+
 Upon compilation, you may type 
 \commandf{make clean}  
 to remove unnecessary files.
 
-To run \AUTO you need to set your environment variables correctly.
+Subsequently \commandf{make install} (or \commandf{sudo make install})
+will install \commandf{auto} and
+\commandf{autox} executables in \filef{\$prefix/bin} and other files under
+\filef{\$prefix/lib/auto-07p} where \filef{\$prefix} equals
+\filef{/usr/local} by default. Note however that for a single user
+\commandf{make install} is not necessary, and \AUTO can be directly
+used from where it was extracted.
+
+To run \AUTO directly in this way you need to set your environment
+variables correctly.
 Assuming \AUTO is installed in your home directory, the following
 commands set your environment variables so that you will be able to
 run the \AUTO commands, and may be placed into your \filef{.login},
