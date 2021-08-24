@@ -85,6 +85,7 @@ install: all
 	$(INSTALL) bin/autlab bin/[d-z]* $(DESTDIR)$(libdir)/auto-07p/bin
 	$(INSTALL) cmds/@* $(DESTDIR)$(libdir)/auto-07p/cmds
 	$(INSTALL_DATA) cmds/[a-zA-Z]* $(DESTDIR)$(autodir)/cmds
+	$(SED) -i 's@\(AUTO_DIR[ =]\).*@\1$(autodir)@' $(DESTDIR)$(autodir)/cmds/auto.env $(DESTDIR)$(autodir)/cmds/auto.env.sh
 	$(INSTALL_PROGRAM) -m 644 lib/* $(DESTDIR)$(autodir)/lib/
 	$(INSTALL) -d $(DESTDIR)$(autodir)/doc
 	if [ -f doc/auto.pdf ]; then \

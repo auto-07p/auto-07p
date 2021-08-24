@@ -218,7 +218,9 @@ Subsequently \commandf{make install} (or \commandf{sudo make install})
 will install \commandf{auto} and
 \commandf{autox} executables in \filef{\$prefix/bin} and other files under
 \filef{\$prefix/lib/auto-07p} where \filef{\$prefix} equals
-\filef{/usr/local} by default. Note however that for a single user
+\filef{/usr/local} by default, and can be set using
+\commandf{./configure --prefix=...} in the usual way.
+Note however that for a single user
 \commandf{make install} is not necessary, and \AUTO can be directly
 used from where it was extracted.
 
@@ -3616,10 +3618,14 @@ Run a shell command.
 %==============================================================================
 Apart from the Python commands described in the previous chapter,
 {\cal AUTO} can also be run with the GUI described in Chapter~\ref{ch:GUI},
-or using the Unix commands described below. These Unix commands run both
-directly in the shell and at the {\tt AUTO} Python prompt.
-The {\cal AUTO} aliases must have been activated; see Section~\ref{sec:Installation}; 
-and an equations-file {\tt xxx.f90} 
+or using the Unix commands described below. These Unix commands can be run
+directly in the shell provided that the {\cal AUTO} aliases have been
+activated by extending \filef{\$PATH} and setting \filef{\$AUTO\_DIR};
+see Section~\ref{sec:Installation}.
+They also run at the {\tt AUTO} Python prompt without need for
+activation.
+
+Similar to the Python interface an equations-file {\tt xxx.f90}
 and a corresponding constants-file {\tt c.xxx} 
 (see Section~\ref{ch:User_supplied_files})
 must be in the current user directory.
