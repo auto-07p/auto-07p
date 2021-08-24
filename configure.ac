@@ -17,6 +17,10 @@ AC_ARG_WITH(mpi,
 [  --with-mpi              Try to use MPI (default: no)],
 [mpi=$withval],[mpi="no"])
 
+AC_ARG_ENABLE(debug,
+[  --enable-debug          Enable extra floating point/bounds debugging (default: no)],
+[ENABLE_DEBUG=$enableval],[ENABLE_DEBUG="no"])
+
 AC_ARG_ENABLE(plaut,
 [  --enable-plaut          Compile the Plaut plotting package (default: yes)],
 [ENABLE_PLAUT=$enableval],ENABLE_PLAUT=yes)
@@ -71,6 +75,11 @@ if test x$FCFLAGS != "x"; then
   FFLAGS=$FCFLAGS
 fi
 AC_PROG_FC
+if test x$FFLAGS = "x"; then
+  if test $ac_cv_prog_fc_g = yes; then
+    FFLAGS="-g"
+  fi
+fi
 AC_FC_SRCEXT(f90)
 AC_FC_FREEFORM(,
   echo Fortran 77 compilers no longer work to compile AUTO.
@@ -128,6 +137,11 @@ CC=$realcc
 if test x$openmp = "xyes"; then
   # Check for OpenMP.  If it exists we try to use it.
   AX_OPENMP(FFLAGS="$FFLAGS $OPENMP_FCFLAGS",openmp="no")
+fi
+if test x$ENABLE_DEBUG = "xyes"; then
+  if test $ac_cv_fc_compiler_gnu = yes; then
+    FFLAGS="$FFLAGS -ffpe-trap=invalid,zero,overflow -finit-real=snan -fcheck=bounds"
+  fi
 fi
 AC_LANG_POP
 

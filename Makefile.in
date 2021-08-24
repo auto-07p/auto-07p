@@ -7,6 +7,7 @@
 SHELL=/bin/sh
 INSTALL=@INSTALL@
 INSTALL_DATA=@INSTALL_DATA@
+INSTALL_PROGRAM=@INSTALL_PROGRAM@
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 bindir=@bindir@
@@ -68,7 +69,7 @@ superclean:  clean
 #
 distclean:  superclean
 
-install:
+install: all
 	$(INSTALL) -d $(DESTDIR)$(bindir)
 	$(INSTALL) bin/auto $(DESTDIR)$(bindir)/auto
 	$(INSTALL) bin/autox $(DESTDIR)$(bindir)/autox
@@ -84,7 +85,7 @@ install:
 	$(INSTALL) bin/autlab bin/[d-z]* $(DESTDIR)$(libdir)/auto-07p/bin
 	$(INSTALL) cmds/@* $(DESTDIR)$(libdir)/auto-07p/cmds
 	$(INSTALL_DATA) cmds/[a-zA-Z]* $(DESTDIR)$(autodir)/cmds
-	$(INSTALL_DATA) lib/* $(DESTDIR)$(autodir)/lib/
+	$(INSTALL_PROGRAM) -m 644 lib/* $(DESTDIR)$(autodir)/lib/
 	$(INSTALL) -d $(DESTDIR)$(autodir)/doc
 	if [ -f doc/auto.pdf ]; then \
 		$(INSTALL_DATA) doc/auto.pdf $(DESTDIR)$(autodir)/doc; \
@@ -107,6 +108,9 @@ install:
 			fi; \
 		done; \
 	done
+
+install-strip:
+	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' install
 
 check:
 	cd test && unset DISPLAY && python ../python/auto all.auto

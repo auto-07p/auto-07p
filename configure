@@ -691,6 +691,7 @@ enable_option_checking
 with_optimization_flags
 with_openmp
 with_mpi
+enable_debug
 enable_plaut
 enable_plaut04
 enable_plaut04_qt
@@ -1347,6 +1348,7 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --enable-debug          Enable extra floating point/bounds debugging (default: no)
   --enable-plaut          Compile the Plaut plotting package (default: yes)
   --enable-plaut04        Compile the Plaut04 plotting package (default: yes)
   --enable-plaut04-qt     Try to use QT instead of Motif/LessTif for Plaut04 (default: yes)
@@ -2296,6 +2298,14 @@ if test "${with_mpi+set}" = set; then :
   withval=$with_mpi; mpi=$withval
 else
   mpi="no"
+fi
+
+
+# Check whether --enable-debug was given.
+if test "${enable_debug+set}" = set; then :
+  enableval=$enable_debug; ENABLE_DEBUG=$enableval
+else
+  ENABLE_DEBUG="no"
 fi
 
 
@@ -3610,6 +3620,11 @@ ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
 ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_fc_compiler_gnu
 
+if test x$FFLAGS = "x"; then
+  if test $ac_cv_prog_fc_g = yes; then
+    FFLAGS="-g"
+  fi
+fi
 
 ac_ext=${ac_fc_srcext-f}
 ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
@@ -4680,6 +4695,11 @@ else
   FFLAGS="$FFLAGS $OPENMP_FCFLAGS"
 fi
 
+fi
+if test x$ENABLE_DEBUG = "xyes"; then
+  if test $ac_cv_fc_compiler_gnu = yes; then
+    FFLAGS="$FFLAGS -ffpe-trap=invalid,zero,overflow -finit-real=snan -fcheck=bounds"
+  fi
 fi
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
