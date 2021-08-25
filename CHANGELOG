@@ -1,3 +1,63 @@
+0.9.3:
+* Main AUTO
+  - Split MPI broadcast for scaling factor off parameter/rds broadcast.
+    This simplifies some parameter passing.
+  - Fix bashisms in helper scripts (https://bugs.debian.org/772189, Sergey B Kirpichev)
+  - Fix loss of precision for one call of CMPLX
+  - Use DSTEST instead of uninitialized RDS in diagnostics when converged already.
+  - Fix compilation with GCC 10, by making DGEMV calls consistent. This fixes #8.
+  - Use "use mpi" instead of include mpif.h.
+    This avoids issues with gcc 10 argument mismatches and is still compatible
+    with many older MPIs.
+  - Don't use STOP for normal termination.
+    This avoids reporting innocent floating point exceptions.
+  - Fix parallel make for building.
+  - Implement MPI parallel version of RNRM2 (RNRM2P) and RINTG (RINTGP)
+    The serial ones gave incorrect results.
+  - Add "make install" and "make install-strip" targets
+  - Add "make check" and "make distclean" targets.
+  - Use -g by default, introduce --enable-debug configure flag for extra debugging.
+    --enable-debug sets extra FP and bound checking flags for GNU Fortran.
+  - Preserve order for complex multipliers when sorting Floquet
+    multipliers, and do not select a complex multiplier by accident when
+    the second multiplier should be 1 or -1 (on PD/LP curves). Fixes #15.
+  - Zero initialize Jacobian matrices in HomCont.
+    Some demos such as "she" don't fill them completely, causing use of
+    uninitialized variables.
+* Python
+  - Fix display of labels in interactive plots for Matplotlib 2.2 and
+    newer. Thanks to Edgardo Villar Sepulveda for reporting.
+  - Catch IOError for fcon cleanup. Avoids issues with macOS.
+* PLAUT04
+  - Update header for current stable Inventor version (2.1.5) (#4) (B Thomas)
+  - Fix failure to set SOXTLIB in configure with Open Inventor. Fixes #4 (B Thomas)
+  - Support Qt5 with SoQt
+  - Flatten autoconf configuration and use pkg-config autoconf macros for Coin and Qt
+* PLAUT
+  - Replace do termination labels with ENDDO
+    This fixes warnings such as
+    Warning: Fortran 2018 deleted feature: DO termination statement
+    which is not END DO or CONTINUE with label 10 at (1)
+  - Remove tek2ps, use tek2plot from GNU plotutils instead.
+    tek2ps has a copyright incompatible with the rest of AUTO, prohibiting
+    commercial redistribution, which is a problem for some Linux distributions.
+    Although it is rarely used any more, tek2plot from GNU plotutils can be
+    easily used as an alternative to tek2ps.
+* Testing
+  - CI: Run GitHub Actions tests on Ubuntu 18.04, 20.04 and macOS 10.15.
+* Manual
+  - Fix documentation for Jacobian of the boundary conditions.
+    Thanks to @giuseppetomassetti for spotting this. Fixes #17
+  - Eliminate use of moreverb/subfigure packages, instead use fancyvrb/subfig.
+    This way a more basic TeX installation is sufficient, e.g.
+    basictex on a Mac.
+  - Update macOS installation instructions (using Homebrew).
+* Demos
+  - Avoid MX in abcb demo, by decreasing NMX to avoid numerical noise
+  - Increase NTST in fnb demo, for better reproducibility
+  - Tighten NBC check in snh and pcl demos.
+    This avoids MPI workers (where NBC=0) trying to compute the Lin vector.
+  - Check for MPI worker in PVLS for r3b demo
 0.9.2:
 * Main AUTO
   - Print eigenvalues in Hopf detection function if following a
