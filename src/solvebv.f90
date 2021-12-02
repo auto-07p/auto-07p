@@ -1127,15 +1127,15 @@
           ENDDO
        ENDIF
        IF(IFST.EQ.1)THEN
-          DO IR=1,NOV
-             DO IC=1,NOV
+          DO IC=1,NOV
+             DO IR=1,NOV
                 S1(IR,IC,I1)=A1(IR,IC,I0)
+             ENDDO
+             DO IR=1,NRC
+                CC(IR,IC,I1+1)=CC(IR,IC,I1+1)+C2(IR,IC,I1)
              ENDDO
           ENDDO
           DO IR=1,NRC
-             DO IC=1,NOV
-                CC(IR,IC,I1+1)=CC(IR,IC,I1+1)+C2(IR,IC,I1)
-             ENDDO
              DO IC=1,NCB
                 DD(IC,IR,I2)=DD(IC,IR,I2)+DD(IC,IR,I1)
              ENDDO
@@ -1170,8 +1170,8 @@
        DOUBLE PRECISION, INTENT(INOUT) :: FAA1(NOV),FAA2(NOV),FC(*)
 
 ! Local
-       INTEGER K1,K2,IR,IC,IPIV1,IPIV2,JPIV,JPIV1,JPIV2,ITMP
-       DOUBLE PRECISION PIV1,PIV2,TPIV,TMP
+       INTEGER K1,K2,IR,IC,L,IPIV1,IPIV2,JPIV,ITMP
+       DOUBLE PRECISION PIV,TPIV,TMP
 
          DO K1=1,NOV
             DO K2=1,NOV
@@ -1180,57 +1180,52 @@
             ENDDO
          ENDDO
 
-         DO K1=1,NOV
-            IAMAX(K1)=IDAMAX(NOV,A21(K1,1),NOV)
-         ENDDO
-         DO K1=1,NOV
-            IAMAX(NOV+K1)=IDAMAX(NOV,A12(K1,1),NOV)
+         DO IC=1,NOV
+            IPIV1=IDAMAX(NOV,A21(1,IC),1)
+            IPIV2=IDAMAX(NOV,A12(1,IC),1)
+            IF(DABS(A21(IPIV1,IC)).GE.DABS(A12(IPIV2,IC)))THEN
+               IAMAX(IC)=IPIV1
+            ELSE
+               IAMAX(IC)=IPIV2+NOV
+            ENDIF
          ENDDO
 
          DO IC=1,NOV
 
 ! Complete pivoting; rows are swapped physically, columns also
-            PIV1 = 0.d0
-            IPIV1 = IC
+            PIV = 0.d0
+            JPIV = IC
             DO K1=IC,NOV
-               TPIV=DABS(A21(K1,IAMAX(K1)))
-               IF(PIV1.LT.TPIV)THEN
-                  PIV1   = TPIV
-                  IPIV1  = K1
+               IPIV1 = IAMAX(K1)
+               IF(IPIV1.LE.NOV)THEN
+                  TPIV=DABS(A21(IPIV1,K1))
+               ELSE
+                  TPIV=DABS(A12(IPIV1-NOV,K1))
                ENDIF
+               IF(PIV.LT.TPIV)THEN
+                  PIV    = TPIV
+                  JPIV   = K1
+              ENDIF
             ENDDO
-            JPIV1=IAMAX(IPIV1)
-
-            PIV2 = 0.d0
-            IPIV2 = 1
-            DO K1=1,NOV
-               TPIV=DABS(A12(K1,IAMAX(NOV+K1)))
-               IF(PIV2.LT.TPIV)THEN
-                  PIV2   = TPIV
-                  IPIV2  = K1
-               ENDIF
-            ENDDO
-            JPIV2=IAMAX(NOV+IPIV2)
+            IPIV1=IAMAX(JPIV)
+            IPR(IC)=IPIV1
 
 ! rows and columns are swapped physically
 
-            IF(PIV1.GE.PIV2)THEN
-               JPIV        = JPIV1
-               IPR(IC)     = IPIV1
+            IF(IPIV1.LE.NOV)THEN
                IF(IC.NE.IPIV1) &
                   CALL REDSWP(IC,NOV,NCB, &
                     S11(IC,1),S11(IPIV1,1),A21(IC,1),A21(IPIV1,1), &
                     S21(IC,1),S21(IPIV1,1),BB1(1,IC),BB1(1,IPIV1), &
                     FAA1(IC),FAA1(IPIV1))
             ELSE
-               JPIV        = JPIV2
-               IPR(IC)     = NOV+IPIV2
+               IPIV2       = IPIV1-NOV
                CALL REDSWP(IC,NOV,NCB, &
                     S11(IC,1),A11(IPIV2,1),A21(IC,1),A12(IPIV2,1), &
                     S21(IC,1),A22(IPIV2,1),BB1(1,IC),BB2(1,IPIV2), &
                     FAA1(IC),FAA2(IPIV2))
             ENDIF
-            IAMAX(IPR(IC)) = IAMAX(IC)
+            IAMAX(JPIV) = IAMAX(IC)
             IPC(IC) = JPIV
             IF(JPIV.NE.IC)THEN
                DO IR=1,NOV
@@ -1241,33 +1236,50 @@
                   A21(IR,IC)   = A21(IR,JPIV)
                   A21(IR,JPIV) = TMP
                ENDDO
+               DO IR=1,NRC
+                  TMP          = CC2(IR,IC)
+                  CC2(IR,IC)   = CC2(IR,JPIV)
+                  CC2(IR,JPIV) = TMP
+               ENDDO
             ENDIF
 
 ! End of pivoting; Elimination starts here
 
             DO IR=IC+1,NOV
-               CALL REDELIM(IC,NOV,NOV,NCB,IAMAX(IR),JPIV,     &
-                    A21(IR,1),A21(IC,1),S11(IR,1),S11(IC,1),   &
-                    S21(IR,1),S21(IC,1),BB1(1,IR),BB1(1,IC),   &
-                    FAA1(IR),FAA1(IC))
+               A21(IR,IC) = A21(IR,IC)/A21(IC,IC)
+            ENDDO
+            DO IR=1,NOV
+               A12(IR,IC) = A12(IR,IC)/A21(IC,IC)
+            ENDDO
+            DO IR=1,NRC
+               CC2(IR,IC) = CC2(IR,IC)/A21(IC,IC)
+            ENDDO
+            DO L=IC+1,NOV
+               CALL REDELIM(IC,NOV,NRC,IAMAX(L),IPIV1,&
+                    A21(1,L),A21(1,IC),A12(1,L),A12(1,IC),CC2(1,L),CC2(1,IC))
+            ENDDO
+            ITMP=0
+            DO L=1,NOV
+               CALL REDELIM(IC,NOV,NRC,ITMP,IPIV1,&
+                    S11(1,L),A21(1,IC),A11(1,L),A12(1,IC),CC1(1,L),CC2(1,IC))
+               CALL REDELIM(IC,NOV,NRC,ITMP,IPIV1,&
+                    S21(1,L),A21(1,IC),A22(1,L),A12(1,IC),CC3(1,L),CC2(1,IC))
+            ENDDO
+            IF(NLLV==0)THEN
+               CALL REDELIM(IC,NOV,NRC,ITMP,IPIV1,&
+                    FAA1,A21(1,IC),FAA2,A12(1,IC),FC,CC2(1,IC))
+            ENDIF
+
+            DO IR=IC+1,NOV
+               CALL REDELIMBD(NCB,A21(IR,IC),BB1(1,IR),BB1(1,IC))
             ENDDO
 
             DO IR=1,NOV
-               CALL REDELIM(IC,NOV,NOV,NCB,IAMAX(NOV+IR),JPIV, &
-                    A12(IR,1),A21(IC,1),A11(IR,1),S11(IC,1),   &
-                    A22(IR,1),S21(IC,1),BB2(1,IR),BB1(1,IC),   &
-                    FAA2(IR),FAA1(IC))
+               CALL REDELIMBD(NCB,A12(IR,IC),BB2(1,IR),BB1(1,IC))
             ENDDO
 
             DO IR=1,NRC
-               TMP          = CC2(IR,IC)
-               CC2(IR,IC)   = CC2(IR,JPIV)
-               CC2(IR,JPIV) = TMP
-               ITMP=0
-               CALL REDELIM(IC,NOV,NRC,NCB,ITMP,JPIV,          &
-                    CC2(IR,1),A21(IC,1),CC1(IR,1),S11(IC,1),   &
-                    CC3(IR,1),S21(IC,1),DD(1,IR),BB1(1,IC),    &
-                    FC(IR),FAA1(IC))
+               CALL REDELIMBD(NCB,CC2(IR,IC),DD(1,IR),BB1(1,IC))
             ENDDO
          ENDDO
 
@@ -1310,59 +1322,83 @@
        END SUBROUTINE REDSWP
 
 !      ---------- -------
-       SUBROUTINE REDELIM(IC,NOV,NR,NCB,IAMAX,JPIV,A12,A21,A11,S11,A22,S21,&
-            BB2,BB1,F2,F1)
+       SUBROUTINE REDELIM(IC,NOV,NRC,IAMAX,IPIV,S11,A21,A11,A12,CC1,CC2)
 
-       INTEGER, INTENT(IN) :: IC,NOV,NR,NCB,JPIV
+       INTEGER, INTENT(IN) :: IC,NOV,NRC,IPIV
        INTEGER, INTENT(INOUT) :: IAMAX
-       DOUBLE PRECISION, INTENT(INOUT) :: A12(NR,NOV),A11(NR,NOV),A22(NR,NOV),BB2(NCB),F2
-       DOUBLE PRECISION, INTENT(IN) :: A21(NOV,NOV),S11(NOV,NOV),S21(NOV,NOV),BB1(NCB),F1
+       DOUBLE PRECISION, INTENT(INOUT) :: S11(NOV),A11(NOV),CC1(NRC)
+       DOUBLE PRECISION, INTENT(IN) :: A21(NOV),A12(NOV),CC2(NRC)
 
        INTEGER L
        DOUBLE PRECISION RM,V,PPIV,TPIV
 
-       RM = A12(1,IC)/A21(1,IC)
-       A12(1,IC) = RM
+       RM = S11(IC)
 
        IF(RM.NE.0.0)THEN
           IF(IAMAX.EQ.0)THEN
              DO L=IC+1,NOV
-                A12(1,L)=A12(1,L)-RM*A21(1,L)
+                S11(L)=S11(L)-RM*A21(L)
+             ENDDO
+             DO L=1,NOV
+                A11(L)=A11(L)-RM*A12(L)
              ENDDO
           ELSE
              PPIV=0d0
              IAMAX=IC+1
              DO L=IC+1,NOV
-                V=A12(1,L)-RM*A21(1,L)
-!     Also recalculate absolute maximum for current row
-                A12(1,L)=V
+                V=S11(L)-RM*A21(L)
+!     Also recalculate absolute maximum for current column
+                S11(L)=V
                 TPIV=DABS(V)
                 IF(PPIV.LT.TPIV)THEN
                    PPIV=TPIV
                    IAMAX=L
                 ENDIF
              ENDDO
+             DO L=1,NOV
+                V=A11(L)-RM*A12(L)
+                A11(L)=V
+                TPIV=DABS(V)
+                IF(PPIV.LT.TPIV)THEN
+                   PPIV=TPIV
+                   IAMAX=NOV+L
+                ENDIF
+             ENDDO
           ENDIF
-          DO L=1,NOV
-             A11(1,L) = A11(1,L)-RM*S11(1,L)
-             A22(1,L) = A22(1,L)-RM*S21(1,L)
+          DO L=1,NRC
+             CC1(L) = CC1(L)-RM*CC2(L)
           ENDDO
-          DO L=1,NCB
-             BB2(L) = BB2(L)-RM*BB1(L)
-          ENDDO
-          IF(NLLV==0)THEN
-             F2 = F2-RM*F1
-          ENDIF
-       ELSEIF(IAMAX.EQ.JPIV)THEN
-!     recalculate absolute maximum for current row
+       ELSEIF(IAMAX.EQ.IPIV)THEN
+!     recalculate absolute maximum for current column
           IF(IC<NOV)THEN
-             IAMAX = IC+IDAMAX(NOV-IC,A12(1,IC+1),NOV)
+             IAMAX = IC+IDAMAX(NOV-IC,S11(IC+1),1)
+             L = IDAMAX(NOV,A11,1)
+             IF(DABS(A11(L)).GT.DABS(S11(IAMAX)))THEN
+                IAMAX = NOV+L
+             ENDIF
           ENDIF
        ELSEIF(IAMAX.EQ.IC)THEN
-          IAMAX = JPIV
+          IAMAX = IPIV
        ENDIF
 
        END SUBROUTINE REDELIM
+
+!      ---------- --------
+       SUBROUTINE REDELIMBD(NCB,RM,BB2,BB1)
+
+       INTEGER, INTENT(IN) :: NCB
+       DOUBLE PRECISION, INTENT(INOUT) :: BB2(NCB)
+       DOUBLE PRECISION, INTENT(IN) :: RM,BB1(NCB)
+
+       INTEGER L
+
+       IF(RM.NE.0.0)THEN
+          DO L=1,NCB
+             BB2(L) = BB2(L)-RM*BB1(L)
+          ENDDO
+       ENDIF
+
+       END SUBROUTINE REDELIMBD
 
 !      ---------- ---------
        SUBROUTINE REDRHSBLK(A21,FAA1,A12,FAA2,CC,FC,NOV,NRC,IPR)
