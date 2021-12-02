@@ -857,7 +857,21 @@
                C(IR,JPIV)=C(IR,IC)
                C(IR,IC)=RM
                IF(RM.NE.0.0)THEN
-                  CALL SUBRAC(NOV,NCA,C(IR,1),A(IRP,1),IC+1,RM)
+                  DO L=IC+1,NCA-NOV
+                     C(IR,L)=C(IR,L)-RM*A(IRP,L)
+                  ENDDO
+               ENDIF
+            ENDDO
+            DO L=1,NOV
+               RM=A(IRP,L)
+               IF(RM.NE.0.0)THEN
+                  CALL SUBRAC(NRC,NRA,C(1,L),C(1,IC),A(1,L),A(1,IC),IRP+1,RM)
+               ENDIF
+            ENDDO
+            DO L=NCA-NOV+1,NCA
+               RM=A(IRP,L)
+               IF(RM.NE.0.0)THEN
+                  CALL SUBRAC(NRC,NRA,C(1,L),C(1,IC),A(1,L),A(1,IC),IRP+1,RM)
                ENDIF
             ENDDO
             DO L=1,NCB
@@ -898,9 +912,6 @@
       INTEGER L
       DOUBLE PRECISION PPIV,TPIV,V
 
-      DO L=1,NOV
-         A(1,L)=A(1,L)-RM*AP(1,L)
-      ENDDO
       PPIV=0d0
       IAMAX=ICP1
       DO L=ICP1,NRA
@@ -913,25 +924,22 @@
             IAMAX=L
          ENDIF
       ENDDO
-      DO L=NCA-NOV+1,NCA
-         A(1,L)=A(1,L)-RM*AP(1,L)
-      ENDDO
       END SUBROUTINE IMSBRA
 
 !     ---------- ------
-      SUBROUTINE SUBRAC(NOV,NCA,C,AP,ICP1,RM)
+      SUBROUTINE SUBRAC(NRC,NRA,C,CP,A,AP,IRP1,RM)
 ! Arguments
-      DOUBLE PRECISION, INTENT(IN) :: AP(NRA,NCA),RM
-      DOUBLE PRECISION, INTENT(INOUT) :: C(NRC,NCA)
-      INTEGER, INTENT(IN) :: NOV,NCA,ICP1
+      DOUBLE PRECISION, INTENT(IN) :: CP(NRC),AP(NRA),RM
+      DOUBLE PRECISION, INTENT(INOUT) :: C(NRC),A(NRA)
+      INTEGER, INTENT(IN) :: NRC,NRA,IRP1
 ! Local
       INTEGER L
 
-      DO L=1,NOV
-         C(1,L)=C(1,L)-RM*AP(1,L)
+      DO L=IRP1,NRA
+         A(L)=A(L)-RM*AP(L)
       ENDDO
-      DO L=ICP1,NCA
-         C(1,L)=C(1,L)-RM*AP(1,L)
+      DO L=1,NRC
+         C(L)=C(L)-RM*CP(L)
       ENDDO
       END SUBROUTINE SUBRAC
 
