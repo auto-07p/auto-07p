@@ -1438,30 +1438,31 @@
       NRC     = NFC-NBC
 
 ! Copy
-      DO I=1,NOV
-         DO J=1,NOV
+      DO J=1,NOV
+         DO I=1,NOV
             E(I,J)     = A1(I,J,1)
             P0(I,J)    = A1(I,J,1)
             E(I,NOV+J) = A2(I,J,NA)
             P1(I,J)    = A2(I,J,NA)
          ENDDO
-         DO J=1,NCB
-            E(I,2*NOV+J) = BB(I,J,NA)
-         ENDDO
-      ENDDO
-
-      DO I=1,NBC
-         DO J=1,2*NOV+NCB
-            E(NOV+I,J)     = CDBC(I,J)
-         ENDDO
-      ENDDO
-      DO I=1,NRC
-         DO J=1,NOV
+         DO I=1,NRC
             E(NOV+NBC+I,J)       = CC(I,J,1)
             E(NOV+NBC+I,NOV+J)   = C2(I,J,NA)
          ENDDO
-         DO J=1,NCB
+      ENDDO
+
+      DO J=1,NCB
+         DO I=1,NOV
+            E(I,2*NOV+J) = BB(I,J,NA)
+         ENDDO
+         DO I=1,NRC
             E(NOV+NBC+I,2*NOV+J) = D(I,J)
+         ENDDO
+      ENDDO
+
+      DO J=1,2*NOV+NCB
+         DO I=1,NBC
+            E(NOV+I,J)     = CDBC(I,J)
          ENDDO
       ENDDO
 
