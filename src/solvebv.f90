@@ -136,7 +136,7 @@
 
          IF(.NOT.ALLOCATED(A))THEN
             ALLOCATE(A(NCLM,NROW,NA),B(NFPR,NROW,NA))
-            ALLOCATE(C(NCLM,NRC,NA),D(NFPR,NRC))
+            ALLOCATE(C(NCLM,NRC,NA),D(NRC,NFPR))
             ALLOCATE(A1(NDIM,NDIM,NA2),A2(NDIM,NDIM,NA2))
             ALLOCATE(S1(NDIM,NDIM,NA2-1),S2(NDIM,NDIM,NA2-1))
             ALLOCATE(BB(NDIM,NFPR,NA2),CC(NRC,NDIM,NA2))
@@ -154,8 +154,8 @@
       IF(IAM.EQ.0)THEN
          CALL SUBVBC(NDIM,NTST*NCOL,NBC,NFPR,BCNI, &
                  AP,PAR,NPAR,ICP,CDBC,FC,UPS,IFST)
-         CALL SETFCDD(IFST,D,FC(NBC+1),NFPR,NINT)
-         CALL SUBVPSA(NFPR,RDS,D(1,NRC),FC(NFC),RLCUR,RLOLD,RLDOT,THL,IFST)
+         CALL SETFCDD(IFST,D,FC(NBC+1),NFPR,NRC)
+         CALL SUBVPSA(NRC,NFPR,RDS,D(NRC,1),FC(NFC),RLCUR,RLOLD,RLDOT,THL,IFST)
       ENDIF
 !     The matrices D and FC are unused in all nodes except the first.
 
@@ -196,14 +196,14 @@
       SUBROUTINE SETFCDD(IFST,DD,FC,NCB,NRC)
 
       INTEGER, INTENT(IN) :: IFST,NCB,NRC
-      DOUBLE PRECISION FC(*),DD(NCB,*)
+      DOUBLE PRECISION FC(NRC),DD(NRC,NCB)
 
       INTEGER I,J
 
-      DO I=1,NRC
+      DO I=1,NRC-1
         IF(IFST.EQ.1)THEN
           DO J=1,NCB
-            DD(J,I)=0.0D0
+            DD(I,J)=0.0D0
           ENDDO
         ENDIF
         FC(I)=0.0D0
@@ -259,7 +259,7 @@
        END SUBROUTINE SUBVBC
 
 !     ---------- -------
-      SUBROUTINE SUBVPSA(NCB,RDS,DDPA,FCPA,RLCUR,RLOLD,RLDOT,THL,IFST)
+      SUBROUTINE SUBVPSA(NRC,NCB,RDS,DDPA,FCPA,RLCUR,RLOLD,RLDOT,THL,IFST)
 
       USE MESH
 
@@ -267,10 +267,10 @@
 !     * creating the parameter dependent pseudo-arclength parts of FC and D:
 !       (the bottom element FCPA and row DDPA)
 
-      INTEGER, INTENT(IN) :: NCB,IFST
+      INTEGER, INTENT(IN) :: NRC,NCB,IFST
       DOUBLE PRECISION, INTENT(IN) :: RDS,THL(NCB)
       DOUBLE PRECISION, INTENT(IN) :: RLCUR(NCB),RLOLD(NCB),RLDOT(NCB)
-      DOUBLE PRECISION, INTENT(OUT) :: DDPA(NCB),FCPA
+      DOUBLE PRECISION, INTENT(OUT) :: DDPA(NRC,NCB),FCPA
 
 ! Local
       INTEGER I
@@ -281,7 +281,7 @@
        RLSUM=0.d0
        DO I=1,NCB
           IF(IFST.EQ.1)THEN
-             DDPA(I)=THL(I)*RLDOT(I)
+             DDPA(1,I)=THL(I)*RLDOT(I)
           ENDIF
           RLSUM=RLSUM+THL(I)*(RLCUR(I)-RLOLD(I))*RLDOT(I)
        ENDDO
@@ -671,7 +671,7 @@
       INTEGER, INTENT(IN) :: NCA,NCB,NFC,IAM,KWT,IT,NT
       DOUBLE PRECISION, INTENT(OUT) :: DET
       DOUBLE PRECISION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NFC-NBC,*)
-      DOUBLE PRECISION D(NCB,*),DD(NFC-NBC,NCB,*)
+      DOUBLE PRECISION D(NFC-NBC,NCB),DD(NFC-NBC,NCB,*)
       DOUBLE PRECISION FA(NRA,*),FAA(NOV,*),FC(*),FCFC(NFC-NBC,*)
       DOUBLE PRECISION, INTENT(OUT) :: P0(*),P1(*)
       DOUBLE PRECISION A1(NOV,NOV,*),A2(NOV,NOV,*)
@@ -744,7 +744,7 @@
          DO J=1,NRC
             IF(IFST.EQ.1)THEN
                DO K=1,NCB
-                  D(K,J)=D(K,J)+DD(J,K,NTSTNA)
+                  D(J,K)=D(J,K)+DD(J,K,NTSTNA)
                ENDDO
             ENDIF
             IF(NLLV.EQ.0)THEN
@@ -1426,7 +1426,7 @@
 ! Arguments
       INTEGER   NA,NFC,NBC,NOV,NCB,IDB,NLLV
       DOUBLE PRECISION E(NOV+NFC,*),CC(NFC-NBC,NOV,*),C2(NFC-NBC,NOV,*)
-      DOUBLE PRECISION CDBC(2*NOV+NCB,NBC),D(NCB,*)
+      DOUBLE PRECISION CDBC(2*NOV+NCB,NBC),D(NFC-NBC,NCB)
       DOUBLE PRECISION, INTENT(OUT) :: P0(NOV,*),P1(NOV,*)
       DOUBLE PRECISION A1(NOV,NOV,*),FAA(NOV,*),A2(NOV,NOV,*)
       DOUBLE PRECISION BB(NOV,NCB,*),FC(*),FCC(*)
@@ -1464,7 +1464,7 @@
             E(NOV+NBC+I,NOV+J)   = C2(I,J,NA)
          ENDDO
          DO J=1,NCB
-            E(NOV+NBC+I,2*NOV+J) = D(J,I)
+            E(NOV+NBC+I,2*NOV+J) = D(I,J)
          ENDDO
       ENDDO
 
@@ -1713,7 +1713,7 @@
 
       INTEGER, INTENT(IN) :: NA,NRA,NCA,NCB,NFC,NBC,IFST,NLLV
       DOUBLE PRECISION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NFC-NBC,*)
-      DOUBLE PRECISION CDBC(2*(NCA-NRA)+NCB,NBC),D(NCB,*),DD(NFC-NBC,NCB,*)
+      DOUBLE PRECISION CDBC(2*(NCA-NRA)+NCB,NBC),D(NFC-NBC,NCB),DD(NFC-NBC,NCB,*)
       DOUBLE PRECISION FA(NRA,*),FC(*),FCFC(NFC-NBC,*)
 
       INTEGER I,IR,IC
@@ -1753,7 +1753,7 @@
        ALLOCATE(D1(NCB))
        DO IR=1,NFC-NBC
          DO IC=1,NCB
-           D1(IC)=D(IC,IR)
+           D1(IC)=D(IR,IC)
            IF(IFST==1)THEN
               DO I=1,NA
                  D1(IC)=D1(IC)+DD(IR,IC,I)
