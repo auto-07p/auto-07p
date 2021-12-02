@@ -126,7 +126,7 @@
             ISHAPE(7:8)=SHAPE(CDBC)
             IF(ISHAPE(1)/=NCLM.OR.ISHAPE(2)/=NROW.OR.ISHAPE(3)/=NA    &
            .OR.ISHAPE(4)/=NRC.OR.ISHAPE(5)/=NDIM.OR.ISHAPE(6)/=NA2 &
-           .OR.ISHAPE(7)/=2*NDIM+NFPR.OR.ISHAPE(8)/=NBC)THEN
+           .OR.ISHAPE(7)/=NBC.OR.ISHAPE(8)/=2*NDIM+NFPR)THEN
 !              Free floating point arrays
                DEALLOCATE(A,B,C,D,A1,A2,S1,S2,BB,CC,C2,CDBC,DD)
 !              Free integer arrays
@@ -140,7 +140,7 @@
             ALLOCATE(A1(NDIM,NDIM,NA2),A2(NDIM,NDIM,NA2))
             ALLOCATE(S1(NDIM,NDIM,NA2-1),S2(NDIM,NDIM,NA2-1))
             ALLOCATE(BB(NDIM,NFPR,NA2),CC(NRC,NDIM,NA2))
-            ALLOCATE(C2(NRC,NDIM,NA2),CDBC(2*NDIM+NFPR,NBC))
+            ALLOCATE(C2(NRC,NDIM,NA2),CDBC(NBC,2*NDIM+NFPR))
             ALLOCATE(DD(NRC,NFPR,NA2))
 
             ALLOCATE(ICF(NCLM,NA),IRF(NROW,NA),IPR(NDIM,NA2-1))
@@ -224,7 +224,7 @@
 
       TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
       INTEGER NDIM,NTNC,NBC,NCB,ICP(*),IFST,NPAR
-      DOUBLE PRECISION CDBC(2*NDIM+NCB,NBC)
+      DOUBLE PRECISION CDBC(NBC,2*NDIM+NCB)
       DOUBLE PRECISION UPS(NDIM,0:NTNC),FC(*),PAR(*)
 
 ! Local
@@ -246,11 +246,11 @@
             FC(I)=-FBC(I)
             IF(IFST.EQ.1)THEN
                DO K=1,NDIM
-                  CDBC(K,I)=DBC(I,K)
-                  CDBC(NDIM+K,I)=DBC(I,NDIM+K)
+                  CDBC(I,K)=DBC(I,K)
+                  CDBC(I,NDIM+K)=DBC(I,NDIM+K)
                ENDDO
                DO K=1,NCB
-                  CDBC(2*NDIM+K,I)=DBC(I,2*NDIM+ICP(K))
+                  CDBC(I,2*NDIM+K)=DBC(I,2*NDIM+ICP(K))
                ENDDO
             ENDIF
          ENDDO    
@@ -1426,7 +1426,7 @@
 ! Arguments
       INTEGER   NA,NFC,NBC,NOV,NCB,IDB,NLLV
       DOUBLE PRECISION E(NOV+NFC,*),CC(NFC-NBC,NOV,*),C2(NFC-NBC,NOV,*)
-      DOUBLE PRECISION CDBC(2*NOV+NCB,NBC),D(NFC-NBC,NCB)
+      DOUBLE PRECISION CDBC(NBC,2*NOV+NCB),D(NFC-NBC,NCB)
       DOUBLE PRECISION, INTENT(OUT) :: P0(NOV,*),P1(NOV,*)
       DOUBLE PRECISION A1(NOV,NOV,*),FAA(NOV,*),A2(NOV,NOV,*)
       DOUBLE PRECISION BB(NOV,NCB,*),FC(*),FCC(*)
@@ -1455,7 +1455,7 @@
 
       DO I=1,NBC
          DO J=1,2*NOV+NCB
-            E(NOV+I,J)     = CDBC(J,I)
+            E(NOV+I,J)     = CDBC(I,J)
          ENDDO
       ENDDO
       DO I=1,NRC
@@ -1713,7 +1713,7 @@
 
       INTEGER, INTENT(IN) :: NA,NRA,NCA,NCB,NFC,NBC,IFST,NLLV
       DOUBLE PRECISION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NFC-NBC,*)
-      DOUBLE PRECISION CDBC(2*(NCA-NRA)+NCB,NBC),D(NFC-NBC,NCB),DD(NFC-NBC,NCB,*)
+      DOUBLE PRECISION CDBC(NBC,2*(NCA-NRA)+NCB),D(NFC-NBC,NCB),DD(NFC-NBC,NCB,*)
       DOUBLE PRECISION FA(NRA,*),FC(*),FCFC(NFC-NBC,*)
 
       INTEGER I,IR,IC
@@ -1739,16 +1739,16 @@
            IF(IR.GT.NBC)THEN
              WRITE(9,103)(C(IC,IR-NBC,I),IC=1,NCA)
            ELSEIF(I.EQ.1)THEN
-             WRITE(9,103)(CDBC(IC,IR),IC=1,NCA-NRA)
+             WRITE(9,103)(CDBC(IR,IC),IC=1,NCA-NRA)
            ELSEIF(I.EQ.NA)THEN
-             WRITE(9,103)(CDBC(NCA-NRA+IC,IR),IC=1,NCA-NRA)
+             WRITE(9,103)(CDBC(IR,NCA-NRA+IC),IC=1,NCA-NRA)
            ENDIF
          ENDDO
        ENDDO
 
        WRITE(9,105)
        DO IR=1,NBC
-         WRITE(9,103)(CDBC(2*(NCA-NRA)+IC,IR),IC=1,NCB),FC(IR)
+         WRITE(9,103)(CDBC(IR,2*(NCA-NRA)+IC),IC=1,NCB),FC(IR)
        ENDDO
        ALLOCATE(D1(NCB))
        DO IR=1,NFC-NBC
