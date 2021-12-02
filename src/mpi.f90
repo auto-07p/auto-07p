@@ -121,7 +121,7 @@ subroutine mpireduce(a1,a2,bb,cc,c2,dd,faa,fcfc,ntst,nov,ncb,nrc,ifst,nllv,&
   integer, intent(in) :: ntst,nov,ncb,nrc,ifst,nllv,lo,hi,level
   double precision, intent(inout) :: a1(nov,nov,*),a2(nov,nov,*),bb(nov,ncb,*)
   double precision, intent(inout) :: cc(nrc,nov,*),c2(nrc,nov,*)
-  double precision, intent(inout) :: dd(ncb,nrc,*),faa(nov,*)
+  double precision, intent(inout) :: dd(nrc,ncb,*),faa(nov,*)
   double precision, intent(inout) :: fcfc(nrc,*)
 
   integer :: iam,kwt,mid,nlo,nmid1,hi1,mid1,base,na
