@@ -141,7 +141,7 @@
             ALLOCATE(S1(NDIM,NDIM,NA2-1),S2(NDIM,NDIM,NA2-1))
             ALLOCATE(BB(NDIM,NFPR,NA2),CC(NRC,NDIM,NA2))
             ALLOCATE(C2(NRC,NDIM,NA2),CDBC(2*NDIM+NFPR,NBC))
-            ALLOCATE(DD(NFPR,NRC,NA2))
+            ALLOCATE(DD(NRC,NFPR,NA2))
 
             ALLOCATE(ICF(NCLM,NA),IRF(NROW,NA),IPR(NDIM,NA2-1))
             ALLOCATE(IPC(NDIM,NA2-1))
@@ -300,7 +300,7 @@
       TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
       INTEGER ICP(*),IRF(NRA,*),ICF(NCA,*),IDB,NLLV
       DOUBLE PRECISION AA(NCA,NRA,*),BB(NCB,NRA,*),CC(NCA,NRC,*)
-      DOUBLE PRECISION DD(NCB,NRC,*),FA(NRA,*),FCFC(NRC,*)
+      DOUBLE PRECISION DD(NRC,NCB,*),FA(NRA,*),FCFC(NRC,*)
       DOUBLE PRECISION UPS(NDIM,0:*),UOLDPS(NDIM,0:*),RLOLD(NCB),UDOTPS(NDIM,0:*)
       DOUBLE PRECISION UPOLDP(NDIM,0:*),DTM(*),PAR(*),THU(*)
 
@@ -337,7 +337,7 @@
       TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
       INTEGER NDIM,N,NCOL,NINT,NCB,NRC,NRA,NCA,ICP(*),NPAR
       DOUBLE PRECISION AA(NCA,NRA,*),BB(NCB,NRA,*),CC(NCA,NRC,*)
-      DOUBLE PRECISION DD(NCB,NRC,*),UPS(NDIM,0:*),UOLDPS(NDIM,0:*),RLOLD(NCB)
+      DOUBLE PRECISION DD(NRC,NCB,*),UPS(NDIM,0:*),UOLDPS(NDIM,0:*),RLOLD(NCB)
       DOUBLE PRECISION UDOTPS(NDIM,0:*),UPOLDP(NDIM,0:*),FA(NRA,*),FC(NRC,*)
       DOUBLE PRECISION DTM(*),PAR(*),THU(*)
       DOUBLE PRECISION WI(0:*),WP(0:NCOL,*),WT(0:NCOL,*)
@@ -496,7 +496,7 @@
       DOUBLE PRECISION, INTENT(IN) :: UOLDPS(*),UPOLDP(*),DTM,WI,THU(*)
       DOUBLE PRECISION, INTENT(OUT) :: CC(NCA,*),FICD(*),DICD(NINT,*)
       DOUBLE PRECISION, INTENT(OUT) :: UIC(*),UID(*),UIP(*)
-      DOUBLE PRECISION, INTENT(INOUT) :: UIO(*),DD(NCB,*),FC(*)
+      DOUBLE PRECISION, INTENT(INOUT) :: UIO(*),DD(NINT+1,NCB),FC(*)
 
 ! Local
       INTEGER I,M
@@ -516,7 +516,7 @@
                   CC(I,M)=DTM*WI*DICD(M,I)
                ENDDO
                DO I=1,NCB
-                  DD(I,M)=DD(I,M)+DTM*WI*DICD(M,NDIM+ICP(I))
+                  DD(M,I)=DD(M,I)+DTM*WI*DICD(M,NDIM+ICP(I))
                ENDDO
             ENDIF
             IF(NLLV.EQ.0)THEN
@@ -671,7 +671,7 @@
       INTEGER, INTENT(IN) :: NCA,NCB,NFC,IAM,KWT,IT,NT
       DOUBLE PRECISION, INTENT(OUT) :: DET
       DOUBLE PRECISION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NFC-NBC,*)
-      DOUBLE PRECISION D(NCB,*),DD(NCB,NFC-NBC,*)
+      DOUBLE PRECISION D(NCB,*),DD(NFC-NBC,NCB,*)
       DOUBLE PRECISION FA(NRA,*),FAA(NOV,*),FC(*),FCFC(NFC-NBC,*)
       DOUBLE PRECISION, INTENT(OUT) :: P0(*),P1(*)
       DOUBLE PRECISION A1(NOV,NOV,*),A2(NOV,NOV,*)
@@ -744,7 +744,7 @@
          DO J=1,NRC
             IF(IFST.EQ.1)THEN
                DO K=1,NCB
-                  D(K,J)=D(K,J)+DD(K,J,NTSTNA)
+                  D(K,J)=D(K,J)+DD(J,K,NTSTNA)
                ENDDO
             ENDIF
             IF(NLLV.EQ.0)THEN
@@ -780,7 +780,7 @@
       INTEGER, INTENT(IN) :: NOV,NRA,NCA,NCB,NRC,NLLV
       INTEGER, INTENT(OUT) :: ICF(NCA),IRF(NRA)
       DOUBLE PRECISION, INTENT(INOUT) :: A(NCA,NRA),B(NCB,NRA)
-      DOUBLE PRECISION, INTENT(INOUT) :: C(NCA,NRC),D(NCB,NRC)
+      DOUBLE PRECISION, INTENT(INOUT) :: C(NCA,NRC),D(NRC,NCB)
       DOUBLE PRECISION, INTENT(INOUT) :: FA(NRA),FC(NRC)
       INTEGER, INTENT(INOUT) :: IAMAX(NRA)
 ! Local
@@ -865,7 +865,7 @@
                IF(RM.NE.0.0)THEN
                   CALL SUBRAC(NOV,NCA,C(1,IR),A(1,IRP),IC+1,RM)
                   DO L=1,NCB
-                     D(L,IR)=D(L,IR)-RM*B(L,IRP)
+                     D(IR,L)=D(IR,L)-RM*B(L,IRP)
                   ENDDO
                   IF(NLLV.EQ.0)THEN
                      FC(IR)=FC(IR)-RM*FA(IRP)
@@ -1040,15 +1040,14 @@
       DOUBLE PRECISION, INTENT(INOUT) :: BB(NOV,NCB,*)
       DOUBLE PRECISION, INTENT(OUT) :: S1(NOV,NOV,*),S2(NOV,NOV,*)
       DOUBLE PRECISION, INTENT(INOUT) :: CC(NRC,NOV,*),C2(NRC,NOV,*)
-      DOUBLE PRECISION, INTENT(INOUT) :: DD(NCB,NRC,*),FAA(NOV,*),FCFC(NRC,*)
+      DOUBLE PRECISION, INTENT(INOUT) :: DD(NRC,NCB,*),FAA(NOV,*),FCFC(NRC,*)
 
 ! Local 
       INTEGER IAMAX,PLO,PHI,NA,MPLO,MPHI
       LOGICAL DOMPI
       ALLOCATABLE IAMAX(:)
-      DOUBLE PRECISION, ALLOCATABLE :: DTMP(:,:)
 
-      ALLOCATE(IAMAX(2*NOV),DTMP(NRC,NCB))
+      ALLOCATE(IAMAX(NOV))
 
       MPLO = (IAM*NTST+KWT-1)/KWT+1
       MPHI = ((IAM+1)*NTST+KWT-1)/KWT
@@ -1136,22 +1135,16 @@
                 CC(IR,IC,I1+1)=CC(IR,IC,I1+1)+C2(IR,IC,I1)
              ENDDO
           ENDDO
-          DO IR=1,NRC
-             DO IC=1,NCB
-                DD(IC,IR,I2)=DD(IC,IR,I2)+DD(IC,IR,I1)
-                DTMP(IR,IC)=DD(IC,IR,I2)
+          DO IC=1,NCB
+             DO IR=1,NRC
+                DD(IR,IC,I2)=DD(IR,IC,I2)+DD(IR,IC,I1)
              ENDDO
           ENDDO
 
           CALL REDBLK(S1(1,1,I1),A2(1,1,I1),  S2(1,1,I1),BB(1,1,I1),FAA(1,I1), &
                       A1(1,1,I0),A1(1,1,I1+1),A2(1,1,I2),BB(1,1,I2),FAA(1,I2), &
-                      CC(1,1,I0),CC(1,1,I1+1),C2(1,1,I2),DTMP,FCFC(1,I2),&
+                      CC(1,1,I0),CC(1,1,I1+1),C2(1,1,I2),DD(1,1,I2),FCFC(1,I2),&
                       IPC(1,I1),IPR(1,I1),IAMAX,NOV,NCB,NRC)
-          DO IR=1,NRC
-             DO IC=1,NCB
-                DD(IC,IR,I2)=DTMP(IR,IC)
-             ENDDO
-          ENDDO
        ELSEIF(NLLV==0)THEN
           CALL REDRHSBLK(A2(1,1,I1),FAA(1,I1),    &
                A1(1,1,I1+1),FAA(1,I2),            &
@@ -1168,7 +1161,7 @@
 
 ! Arguments
        INTEGER, INTENT(IN) :: NOV,NCB,NRC
-       INTEGER, INTENT(OUT) :: IPC(NOV),IPR(NOV),IAMAX(NOV*2)
+       INTEGER, INTENT(OUT) :: IPC(NOV),IPR(NOV),IAMAX(NOV)
        DOUBLE PRECISION, INTENT(INOUT) :: S11(NOV,NOV),A21(NOV,NOV)
        DOUBLE PRECISION, INTENT(OUT)   :: S21(NOV,NOV),A11(NOV,NOV)
        DOUBLE PRECISION, INTENT(INOUT) :: A12(NOV,NOV),A22(NOV,NOV)
@@ -1717,7 +1710,7 @@
 
       INTEGER, INTENT(IN) :: NA,NRA,NCA,NCB,NFC,NBC,IFST,NLLV
       DOUBLE PRECISION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NFC-NBC,*)
-      DOUBLE PRECISION CDBC(2*(NCA-NRA)+NCB,NBC),D(NCB,*),DD(NCB,NFC-NBC,*)
+      DOUBLE PRECISION CDBC(2*(NCA-NRA)+NCB,NBC),D(NCB,*),DD(NFC-NBC,NCB,*)
       DOUBLE PRECISION FA(NRA,*),FC(*),FCFC(NFC-NBC,*)
 
       INTEGER I,IR,IC
@@ -1760,7 +1753,7 @@
            D1(IC)=D(IC,IR)
            IF(IFST==1)THEN
               DO I=1,NA
-                 D1(IC)=D1(IC)+DD(IC,IR,I)
+                 D1(IC)=D1(IC)+DD(IR,IC,I)
               ENDDO
            ENDIF
          ENDDO
