@@ -135,7 +135,7 @@
          ENDIF
 
          IF(.NOT.ALLOCATED(A))THEN
-            ALLOCATE(A(NCLM,NROW,NA),B(NFPR,NROW,NA))
+            ALLOCATE(A(NCLM,NROW,NA),B(NROW,NFPR,NA))
             ALLOCATE(C(NCLM,NRC,NA),D(NRC,NFPR))
             ALLOCATE(A1(NDIM,NDIM,NA2),A2(NDIM,NDIM,NA2))
             ALLOCATE(S1(NDIM,NDIM,NA2-1),S2(NDIM,NDIM,NA2-1))
@@ -299,7 +299,7 @@
       INTEGER NDIM,NA,NCOL,NINT,NCB,NRC,NRA,NCA,IFST,IAM,IT,NT,NPAR
       TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
       INTEGER ICP(*),IRF(NRA,*),ICF(NCA,*),IDB,NLLV
-      DOUBLE PRECISION AA(NCA,NRA,*),BB(NCB,NRA,*),CC(NCA,NRC,*)
+      DOUBLE PRECISION AA(NCA,NRA,*),BB(NRA,NCB,*),CC(NCA,NRC,*)
       DOUBLE PRECISION DD(NRC,NCB,*),FA(NRA,*),FCFC(NRC,*)
       DOUBLE PRECISION UPS(NDIM,0:*),UOLDPS(NDIM,0:*),RLOLD(NCB),UDOTPS(NDIM,0:*)
       DOUBLE PRECISION UPOLDP(NDIM,0:*),DTM(*),PAR(*),THU(*)
@@ -336,7 +336,7 @@
 
       TYPE(AUTOPARAMETERS), INTENT(IN) :: AP
       INTEGER NDIM,N,NCOL,NINT,NCB,NRC,NRA,NCA,ICP(*),NPAR
-      DOUBLE PRECISION AA(NCA,NRA,*),BB(NCB,NRA,*),CC(NCA,NRC,*)
+      DOUBLE PRECISION AA(NCA,NRA,*),BB(NRA,NCB,*),CC(NCA,NRC,*)
       DOUBLE PRECISION DD(NRC,NCB,*),UPS(NDIM,0:*),UOLDPS(NDIM,0:*),RLOLD(NCB)
       DOUBLE PRECISION UDOTPS(NDIM,0:*),UPOLDP(NDIM,0:*),FA(NRA,*),FC(NRC,*)
       DOUBLE PRECISION DTM(*),PAR(*),THU(*)
@@ -378,7 +378,7 @@
                 WPLOC(IB)=WP(IB,IC)/DTM(J)
              ENDDO
              CALL SBVFUN(NDIM,NCOL,NCB,NCA,FUNI,AP,PRM,ICP,    &
-                  AA(1,IC1,J),BB(1,IC1,J),FA(IC1,J),UPS(1,JJ), &
+                  AA(1,IC1,J),BB(IC1,1,J),FA(IC1,J),UPS(1,JJ), &
                   UOLDPS(1,JJ),UPOLDP(1,JJ),WPLOC,WT(0,IC),DFDU,DFDP, &
                   U,U(NDIM+1),F,IFST,NLLV)
              IF(IFST.EQ.1)THEN
@@ -437,7 +437,7 @@
       DOUBLE PRECISION, INTENT(IN) :: WT(0:NCOL),WPLOC(0:NCOL)
       DOUBLE PRECISION, INTENT(IN) :: UPS(NDIM,0:NCOL)
       DOUBLE PRECISION, INTENT(IN) :: UOLDPS(NDIM,0:NCOL),UPOLDP(NDIM,0:NCOL)
-      DOUBLE PRECISION, INTENT(OUT) :: AA(NCA,*),BB(NCB,*),FA(*),U(*)
+      DOUBLE PRECISION, INTENT(OUT) :: AA(NCA,NDIM),BB(NCA-NDIM,NCB),FA(NDIM),U(NDIM)
       DOUBLE PRECISION, INTENT(INOUT) :: UOLD(*),DFDU(NDIM,*),DFDP(NDIM,*)
       DOUBLE PRECISION, INTENT(OUT) :: F(*)
 
@@ -466,9 +466,9 @@
                AA(IB1+I,I)=AA(IB1+I,I)+WPLOC(IB)
             ENDDO
          ENDDO
-         DO I=1,NDIM
-            DO K=1,NCB
-               BB(K,I)=-DFDP(I,ICP(K))
+         DO K=1,NCB
+            DO I=1,NDIM
+               BB(I,K)=-DFDP(I,ICP(K))
             ENDDO
          ENDDO
       ENDIF
@@ -670,7 +670,7 @@
       INTEGER, INTENT(IN) :: IFST,IDB,NLLV,NOV,NTST,NA,NBC,NRA
       INTEGER, INTENT(IN) :: NCA,NCB,NFC,IAM,KWT,IT,NT
       DOUBLE PRECISION, INTENT(OUT) :: DET
-      DOUBLE PRECISION A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NFC-NBC,*)
+      DOUBLE PRECISION A(NCA,NRA,*),B(NRA,NCB,*),C(NCA,NFC-NBC,*)
       DOUBLE PRECISION D(NFC-NBC,NCB),DD(NFC-NBC,NCB,*)
       DOUBLE PRECISION FA(NRA,*),FAA(NOV,*),FC(*),FCFC(NFC-NBC,*)
       DOUBLE PRECISION, INTENT(OUT) :: P0(*),P1(*)
@@ -779,7 +779,7 @@
 ! Arguments
       INTEGER, INTENT(IN) :: NOV,NRA,NCA,NCB,NRC,NLLV
       INTEGER, INTENT(OUT) :: ICF(NCA),IRF(NRA)
-      DOUBLE PRECISION, INTENT(INOUT) :: A(NCA,NRA),B(NCB,NRA)
+      DOUBLE PRECISION, INTENT(INOUT) :: A(NCA,NRA),B(NRA,NCB)
       DOUBLE PRECISION, INTENT(INOUT) :: C(NCA,NRC),D(NRC,NCB)
       DOUBLE PRECISION, INTENT(INOUT) :: FA(NRA),FC(NRC)
       INTEGER, INTENT(INOUT) :: IAMAX(NRA)
@@ -816,9 +816,9 @@
                   A(L,IRP)=TMP
                ENDDO
                DO L=1,NCB
-                  TMP=B(L,IPIV)
-                  B(L,IPIV)=B(L,IRP)
-                  B(L,IRP)=TMP
+                  TMP=B(IPIV,L)
+                  B(IPIV,L)=B(IRP,L)
+                  B(IRP,L)=TMP
                ENDDO
                TMP=FA(IPIV)
                FA(IPIV)=FA(IRP)
@@ -845,12 +845,6 @@
                A(IC,IR)=RM
                IF(RM.NE.0.0)THEN
                   CALL IMSBRA(NOV,NCA,NRA,A(1,IR),A(1,IRP),IC+1,IAMAX(IR),RM)
-                  DO L=1,NCB
-                     B(L,IR)=B(L,IR)-RM*B(L,IRP)
-                  ENDDO
-                  IF(NLLV.EQ.0)THEN
-                     FA(IR)=FA(IR)-RM*FA(IRP)
-                  ENDIF
                ELSEIF(IAMAX(IR).EQ.JPIV)THEN
                   IAMAX(IR)=IC+IDAMAX(NRA-IC,A(IC+1,IR),1)
                ELSEIF(IAMAX(IR).EQ.IC)THEN
@@ -864,14 +858,30 @@
                C(IC,IR)=RM
                IF(RM.NE.0.0)THEN
                   CALL SUBRAC(NOV,NCA,C(1,IR),A(1,IRP),IC+1,RM)
-                  DO L=1,NCB
-                     D(IR,L)=D(IR,L)-RM*B(L,IRP)
-                  ENDDO
-                  IF(NLLV.EQ.0)THEN
-                     FC(IR)=FC(IR)-RM*FA(IRP)
-                  ENDIF
                ENDIF
             ENDDO
+            DO L=1,NCB
+               RM=B(IRP,L)
+               IF(RM.NE.0.0)THEN
+                  DO IR=IRP+1,NRA
+                     B(IR,L)=B(IR,L)-RM*A(IC,IR)
+                  ENDDO
+                  DO IR=1,NRC
+                     D(IR,L)=D(IR,L)-RM*C(IC,IR)
+                  ENDDO
+               ENDIF
+            ENDDO
+            IF(NLLV.EQ.0)THEN
+               RM=FA(IRP)
+               IF(RM.NE.0.0)THEN
+                  DO IR=IRP+1,NRA
+                     FA(IR)=FA(IR)-RM*A(IC,IR)
+                  ENDDO
+                  DO IR=1,NRC
+                     FC(IR)=FC(IR)-RM*C(IC,IR)
+                  ENDDO
+               ENDIF
+            ENDIF
          ENDDO
 
       CONTAINS
@@ -972,7 +982,7 @@
 ! Arguments
       INTEGER, INTENT(IN) :: NA,NOV,NRA,NCA
       INTEGER, INTENT(IN) :: NCB,NRC
-      DOUBLE PRECISION, INTENT(IN) :: A(NCA,NRA,*),B(NCB,NRA,*),C(NCA,NRC,*)
+      DOUBLE PRECISION, INTENT(IN) :: A(NCA,NRA,*),B(NRA,NCB,*),C(NCA,NRC,*)
       DOUBLE PRECISION, INTENT(OUT) :: A1(NOV,NOV,*),A2(NOV,NOV,*)
       DOUBLE PRECISION, INTENT(OUT) :: BB(NOV,NCB,*),CC(NRC,NOV,*),C2(NRC,NOV,*)
 
@@ -991,8 +1001,10 @@
                A1(IR,IC,I)=A(IC,IR1,I)
                A2(IR,IC,I)=A(IC1,IR1,I)
             ENDDO     
-            DO IC=1,NCB
-               BB(IR,IC,I)=B(IC,IR1,I)
+         ENDDO
+         DO IC=1,NCB
+            DO IR=1,NOV
+               BB(IR,IC,I)=B(NRA-NOV+IR,IC,I)
             ENDDO
          ENDDO
          DO IR=1,NRC
@@ -1662,7 +1674,7 @@
 
 !  Arguments
       INTEGER, INTENT(IN) :: NA,NOV,NRA,NCA,NCB,ICF(NCA,*)
-      DOUBLE PRECISION, INTENT(IN) :: A(NCA,NRA,*),B(NCB,NRA,*),FC(*)
+      DOUBLE PRECISION, INTENT(IN) :: A(NCA,NRA,*),B(NRA,NCB,*),FC(*)
       DOUBLE PRECISION, INTENT(IN) :: SOL(NOV,*)
       DOUBLE PRECISION, INTENT(OUT) :: X(NOV+1:NRA),FA(NRA,*)
 
@@ -1681,7 +1693,7 @@
                SM=SM-A(NRA+J,IR,I)*SOL(J,I+1)
             ENDDO
             DO J=1,NCB
-               SM=SM-B(J,IR,I)*FC(NOV+J)
+               SM=SM-B(IR,J,I)*FC(NOV+J)
             ENDDO
             DO J=IR+1,NRA-NOV
                SM=SM-A(J+NOV,IR,I)*X(J+NOV)
