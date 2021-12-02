@@ -856,11 +856,6 @@
                RM=C(IR,JPIV)/PIV
                C(IR,JPIV)=C(IR,IC)
                C(IR,IC)=RM
-               IF(RM.NE.0.0)THEN
-                  DO L=IC+1,NCA-NOV
-                     C(IR,L)=C(IR,L)-RM*A(IRP,L)
-                  ENDDO
-               ENDIF
             ENDDO
             DO L=1,NOV
                RM=A(IRP,L)
@@ -868,7 +863,7 @@
                   CALL SUBRAC(NRC,NRA,C(1,L),C(1,IC),A(1,L),A(1,IC),IRP+1,RM)
                ENDIF
             ENDDO
-            DO L=NCA-NOV+1,NCA
+            DO L=IC+1,NCA
                RM=A(IRP,L)
                IF(RM.NE.0.0)THEN
                   CALL SUBRAC(NRC,NRA,C(1,L),C(1,IC),A(1,L),A(1,IC),IRP+1,RM)
@@ -917,7 +912,7 @@
       DO L=ICP1,NRA
          V=A(1,L)-RM*AP(1,L)
 !     Also recalculate absolute maximum for current row
-         A(1,L)=V
+         !A(1,L)=V
          TPIV=DABS(V)
          IF(PPIV.LT.TPIV)THEN
             PPIV=TPIV
