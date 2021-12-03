@@ -811,22 +811,6 @@
             ENDDO
 !           **Move indices
             IRF(IRP)=IPIV
-            IF(IRP.NE.IPIV)THEN
-!              **Physically swap rows
-               DO L=1,NCA
-                  TMP=A(IPIV,L)
-                  A(IPIV,L)=A(IRP,L)
-                  A(IRP,L)=TMP
-               ENDDO
-               DO L=1,NCB
-                  TMP=B(IPIV,L)
-                  B(IPIV,L)=B(IRP,L)
-                  B(IRP,L)=TMP
-               ENDDO
-               TMP=FA(IPIV)
-               FA(IPIV)=FA(IRP)
-               FA(IRP)=TMP
-            ENDIF
             ICF(IC)=JPIV
             IF(IC.NE.JPIV)THEN
 !              **Physically swap columns
@@ -838,7 +822,8 @@
                IAMAX(JPIV)=IAMAX(IC)
             ENDIF
 !           **End of pivoting; elimination starts here
-            PIV=A(IRP,JPIV)
+            PIV=A(IPIV,JPIV)
+            A(IPIV,JPIV)=A(IRP,JPIV)
             A(IRP,JPIV)=A(IRP,IC)
             A(IRP,IC)=PIV
             DO IR=IRP+1,NRA
@@ -854,13 +839,25 @@
                C(IR,IC)=RM
             ENDDO
             DO L=1,NOV
-               RM=A(IRP,L)
+!              **Physically swap rows
+               RM=A(IPIV,L)
+               A(IPIV,L)=A(IRP,L)
+               A(IRP,L)=RM
                IF(RM.NE.0.0)THEN
                   CALL SUBRAC(NRC,NRA,C(1,L),C(1,IC),A(1,L),A(1,IC),IRP+1,RM)
                ENDIF
             ENDDO
+            IF(IRP.NE.IPIV)THEN
+               DO L=NOV+1,IC-1
+                  TMP=A(IPIV,L)
+                  A(IPIV,L)=A(IRP,L)
+                  A(IRP,L)=TMP
+               ENDDO
+            ENDIF
             DO L=IC+1,NCA-NOV
-               RM=A(IRP,L)
+               RM=A(IPIV,L)
+               A(IPIV,L)=A(IRP,L)
+               A(IRP,L)=RM
                IF(RM.NE.0.0)THEN
                   CALL IMSBRA(NRC,NRA,C(1,L),C(1,IC),A(1,L),A(1,IC),&
                        IRP+1,IAMAX(L),RM)
@@ -871,13 +868,17 @@
                ENDIF
             ENDDO
             DO L=NCA-NOV+1,NCA
-               RM=A(IRP,L)
+               RM=A(IPIV,L)
+               A(IPIV,L)=A(IRP,L)
+               A(IRP,L)=RM
                IF(RM.NE.0.0)THEN
                   CALL SUBRAC(NRC,NRA,C(1,L),C(1,IC),A(1,L),A(1,IC),IRP+1,RM)
                ENDIF
             ENDDO
             DO L=1,NCB
-               RM=B(IRP,L)
+               RM=B(IPIV,L)
+               B(IPIV,L)=B(IRP,L)
+               B(IRP,L)=RM
                IF(RM.NE.0.0)THEN
                   DO IR=IRP+1,NRA
                      B(IR,L)=B(IR,L)-RM*A(IR,IC)
@@ -888,7 +889,9 @@
                ENDIF
             ENDDO
             IF(NLLV.EQ.0)THEN
-               RM=FA(IRP)
+               RM=FA(IPIV)
+               FA(IPIV)=FA(IRP)
+               FA(IRP)=RM
                IF(RM.NE.0.0)THEN
                   DO IR=IRP+1,NRA
                      FA(IR)=FA(IR)-RM*A(IR,IC)
