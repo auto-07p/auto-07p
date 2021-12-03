@@ -458,18 +458,14 @@
       ENDDO
       CALL FUNI(AP,NDIM,U,UOLD,ICP,PAR,IFST*2,F,DFDU,DFDP)
       IF(IFST.EQ.1)THEN
-         DO I=1,NDIM
-!     use U instead of DFDU in inner loop to better utilize the CPU cache
-            DO J=1,NDIM
-               U(J)=DFDU(I,J)
-            ENDDO
-            DO IB=0,NCOL
-               WTTMP=-WT(IB)
-               IB1=IB*NDIM
-               DO K=1,NDIM
-                  AA(I,IB1+K)=WTTMP*U(K)
+         DO IB=0,NCOL
+            WTTMP=-WT(IB)
+            IB1=IB*NDIM
+            DO K=1,NDIM
+               DO I=1,NDIM
+                  AA(I,IB1+K)=WTTMP*DFDU(I,K)
                ENDDO
-               AA(I,IB1+I)=AA(I,IB1+I)+WPLOC(IB)
+               AA(K,IB1+K)=AA(K,IB1+K)+WPLOC(IB)
             ENDDO
          ENDDO
          DO K=1,NCB
@@ -516,19 +512,23 @@
             UIP(I)=UPOLDP(I)
          ENDDO
          CALL ICNI(AP,NDIM,PAR,ICP,NINT,UIC,UIO,UID,UIP,FICD,IFST*2,DICD)
-         DO M=1,NINT
-            IF(IFST.EQ.1)THEN
-               DO I=1,NDIM
+         IF(IFST.EQ.1)THEN
+            DO I=1,NDIM
+               DO M=1,NINT
                   CC(M,I)=DTM*WI*DICD(M,I)
                ENDDO
-               DO I=1,NCB
+            ENDDO
+            DO I=1,NCB
+               DO M=1,NINT
                   DD(M,I)=DD(M,I)+DTM*WI*DICD(M,NDIM+ICP(I))
                ENDDO
-            ENDIF
-            IF(NLLV.EQ.0)THEN
+            ENDDO
+         ENDIF
+         IF(NLLV.EQ.0)THEN
+            DO M=1,NINT
                FC(M)=FC(M)-DTM*WI*FICD(M)
-            ENDIF
-         ENDDO
+            ENDDO
+         ENDIF
       ENDIF
 !     
 !     Pseudo-arclength equation :
