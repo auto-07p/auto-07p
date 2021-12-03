@@ -381,12 +381,12 @@
                   AA(IC1,1,J),BB(IC1,1,J),FA(IC1,J),UPS(1,JJ), &
                   UOLDPS(1,JJ),UPOLDP(1,JJ),WPLOC,WT(0,IC),DFDU,DFDP, &
                   U,U(NDIM+1),F,IFST,NLLV)
-             IF(IFST.EQ.1)THEN
-                DO K=0,NDIM-1
-                   IAMAX(IC1+K)=NDIM+IDAMAX(NRA-NDIM,AA(IC1+K,NDIM+1,J),NRA)
-                ENDDO
-             ENDIF
           ENDDO
+          IF(IFST.EQ.1)THEN
+             DO IC=NDIM+1,NCA-NDIM
+                IAMAX(IC)=IDAMAX(NRA,AA(1,IC,J),1)
+             ENDDO
+          ENDIF
 !     
 !     Generate CC, DD and FC :
 
@@ -699,8 +699,8 @@
             ALLOCATE(IAMAX(NRA))
             DO J=1,N
                IF(IFST.EQ.1)THEN
-                  DO K=1,NRA
-                     IAMAX(K)= NOV+IDAMAX(NRA-NOV,A(K,NOV+1,J),NRA)
+                  DO K=NOV+1,NCA-NOV
+                     IAMAX(K)= IDAMAX(NRA,A(1,K,J),1)
                   ENDDO
                   CALL CONPAR(NOV,NRA,NCA,A(1,1,J),NCB,B(1,1,J),NRC,   &
                        C(1,1,J),DD(1,1,I+J-1),FA(1,J),FCFC(1,I+J-1),   &
@@ -796,18 +796,21 @@
          DO IC=NOV+1,NCA-NOV
             IRP=IC-NOV
 !           **Search for pivot (Complete pivoting)
-            PIV = ABS(A(IRP,IAMAX(IRP)))
-            IPIV = IRP
-            DO IR=IRP+1,NRA
-               TPIV = ABS(A(IR,IAMAX(IR)))
-               IF(PIV.LT.TPIV)THEN
+            JPIV = IC
+            IPIV = IAMAX(JPIV)
+            PIV = ABS(A(IPIV,JPIV))
+            DO L=IC,NCA-NOV
+               IR = IAMAX(L)
+               TPIV = ABS(A(IR,L))
+               ! prefer lower row for compatibility with older AUTO
+               IF(PIV.LT.TPIV.OR.(PIV.EQ.TPIV.AND.IR.LT.IPIV))THEN
                   PIV = TPIV
                   IPIV = IR
+                  JPIV = L
                ENDIF
             ENDDO
 !           **Move indices
             IRF(IRP)=IPIV
-            JPIV=IAMAX(IPIV)
             IF(IRP.NE.IPIV)THEN
 !              **Physically swap rows
                DO L=1,NCA
@@ -823,7 +826,6 @@
                TMP=FA(IPIV)
                FA(IPIV)=FA(IRP)
                FA(IRP)=TMP
-               IAMAX(IPIV)=IAMAX(IRP)
             ENDIF
             ICF(IC)=JPIV
             IF(IC.NE.JPIV)THEN
@@ -833,6 +835,7 @@
                   A(IR,JPIV)=A(IR,IC)
                   A(IR,IC)=TMP
                ENDDO
+               IAMAX(JPIV)=IAMAX(IC)
             ENDIF
 !           **End of pivoting; elimination starts here
             PIV=A(IRP,JPIV)
@@ -843,13 +846,6 @@
                RM=A(IR,JPIV)/PIV
                A(IR,JPIV)=A(IR,IC)
                A(IR,IC)=RM
-               IF(RM.NE.0.0)THEN
-                  CALL IMSBRA(NOV,NCA,NRA,A(IR,1),A(IRP,1),IC+1,IAMAX(IR),RM)
-               ELSEIF(IAMAX(IR).EQ.JPIV)THEN
-                  IAMAX(IR)=IC+IDAMAX(NRA-IC,A(IR,IC+1),NRA)
-               ELSEIF(IAMAX(IR).EQ.IC)THEN
-                  IAMAX(IR)=JPIV
-               ENDIF
             ENDDO
             DO IR=1,NRC
 !              **Swap columns of C physically
@@ -863,7 +859,18 @@
                   CALL SUBRAC(NRC,NRA,C(1,L),C(1,IC),A(1,L),A(1,IC),IRP+1,RM)
                ENDIF
             ENDDO
-            DO L=IC+1,NCA
+            DO L=IC+1,NCA-NOV
+               RM=A(IRP,L)
+               IF(RM.NE.0.0)THEN
+                  CALL IMSBRA(NRC,NRA,C(1,L),C(1,IC),A(1,L),A(1,IC),&
+                       IRP+1,IAMAX(L),RM)
+               ELSEIF(IAMAX(L).EQ.IPIV)THEN
+                  IAMAX(L)=IRP+IDAMAX(NRA-IRP,A(IRP+1,L),1)
+               ELSEIF(IAMAX(L).EQ.IRP)THEN
+                  IAMAX(L)=IPIV
+               ENDIF
+            ENDDO
+            DO L=NCA-NOV+1,NCA
                RM=A(IRP,L)
                IF(RM.NE.0.0)THEN
                   CALL SUBRAC(NRC,NRA,C(1,L),C(1,IC),A(1,L),A(1,IC),IRP+1,RM)
@@ -896,28 +903,31 @@
       CONTAINS
 
 !     ---------- ------
-      SUBROUTINE IMSBRA(NOV,NCA,NRA,A,AP,ICP1,IAMAX,RM)
+      SUBROUTINE IMSBRA(NRC,NRA,C,CP,A,AP,IRP1,IAMAX,RM)
 
 ! Arguments
-      DOUBLE PRECISION, INTENT(IN) :: AP(NRA,NCA),RM
-      DOUBLE PRECISION, INTENT(INOUT) :: A(NRA,NCA)
-      INTEGER, INTENT(IN) :: NOV,NRA,NCA,ICP1
+      DOUBLE PRECISION, INTENT(IN) :: CP(NRC),AP(NRA),RM
+      DOUBLE PRECISION, INTENT(INOUT) :: C(NRC),A(NRA)
+      INTEGER, INTENT(IN) :: NRC,NRA,IRP1
       INTEGER, INTENT(OUT) :: IAMAX
 ! Local
       INTEGER L
       DOUBLE PRECISION PPIV,TPIV,V
 
       PPIV=0d0
-      IAMAX=ICP1
-      DO L=ICP1,NRA
-         V=A(1,L)-RM*AP(1,L)
-!     Also recalculate absolute maximum for current row
-         !A(1,L)=V
+      IAMAX=IRP1
+      DO L=IRP1,NRA
+         V=A(L)-RM*AP(L)
+!     Also recalculate absolute maximum for current column
+         A(L)=V
          TPIV=DABS(V)
          IF(PPIV.LT.TPIV)THEN
             PPIV=TPIV
             IAMAX=L
          ENDIF
+      ENDDO
+      DO L=1,NRC
+         C(L)=C(L)-RM*CP(L)
       ENDDO
       END SUBROUTINE IMSBRA
 
