@@ -1658,19 +1658,27 @@
          DOUBLE PRECISION SM,TMP
 
 ! Backsubstitution process for 1 block row
-         DO K=NOV,1,-1
-            SM=FAA(K)
-            DO L=1,NOV
+         DO K=1,NOV
+            SOL1(K)=FAA(K)
+         ENDDO
+         DO L=1,NOV
+            DO K=1,NOV
+               SM=SOL1(K)
                SM=SM-FCC(L)*S1(K,L)
                SM=SM-SOL2(L)*S2(K,L)
+               SOL1(K)=SM
             ENDDO
-            DO L=1,NCB
-               SM=SM-FC(L)*BB(K,L)
+         ENDDO
+         DO L=1,NCB
+            DO K=1,NOV
+               SOL1(K)=SOL1(K)-FC(L)*BB(K,L)
             ENDDO
-            DO L=K+1,NOV
-               SM=SM-SOL1(L)*A2(K,L)
+         ENDDO
+         DO L=NOV,1,-1
+            SOL1(L)=SOL1(L)/A2(L,L)
+            DO K=L-1,1,-1
+               SOL1(K)=SOL1(K)-SOL1(L)*A2(K,L)
             ENDDO
-            SOL1(K)=SM/A2(K,K)
          ENDDO
 !     Revert column pivoting on SOL1
          DO K=NOV,1,-1
