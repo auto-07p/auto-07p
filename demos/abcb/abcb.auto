@@ -20,7 +20,7 @@ sw3=load(sw3,ICP=[2,1,11],NMX=50,RL1=10.0)
 run(sw3,sv=pgm+'.3.fw')
 
 print "\n***"+pgm+": run 3: LP continuation (bw)***"
-sb3=run(sw3,DS='-',NTST=56,NMX=45,sv=pgm+'.3.bw')
+sb3=run(sw3,DS='-',NMX=40,sv=pgm+'.3.bw')
 
 print "\n***"+pgm+": run 4: cycle continuation (bw)***"
 sb4=run(sb3('LP1'),ICP=[1,11],ISW=1,NMX=10,NPR=2,sv=pgm+'.4.bw')
