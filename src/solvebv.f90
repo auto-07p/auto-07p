@@ -796,20 +796,17 @@
          DO IC=NOV+1,NCA-NOV
             IRP=IC-NOV
 !           **Search for pivot (Complete pivoting)
+            PIV = ABS(A(IAMAX(IC),IC))
             JPIV = IC
-            IPIV = IAMAX(JPIV)
-            PIV = ABS(A(IPIV,JPIV))
-            DO L=IC,NCA-NOV
-               IR = IAMAX(L)
-               TPIV = ABS(A(IR,L))
-               ! prefer lower row for compatibility with older AUTO
-               IF(PIV.LT.TPIV.OR.(PIV.EQ.TPIV.AND.IR.LT.IPIV))THEN
+            DO L=IC+1,NCA-NOV
+               TPIV = ABS(A(IAMAX(L),L))
+               IF(PIV.LT.TPIV)THEN
                   PIV = TPIV
-                  IPIV = IR
                   JPIV = L
                ENDIF
             ENDDO
 !           **Move indices
+            IPIV=IAMAX(JPIV)
             IRF(IRP)=IPIV
             ICF(IC)=JPIV
             IF(IC.NE.JPIV)THEN
@@ -1221,7 +1218,6 @@
 ! Complete pivoting; rows are swapped physically, columns also
             PIV = 0.d0
             JPIV = IC
-            IPIV2 = IAMAX(JPIV)
             DO K1=IC,NOV
                IPIV1 = IAMAX(K1)
                IF(IPIV1.LE.NOV)THEN
@@ -1229,14 +1225,12 @@
                ELSE
                   TPIV=DABS(A12(IPIV1-NOV,K1))
                ENDIF
-               ! prefer lower row for compatibility with older AUTO
-               IF(PIV.LT.TPIV.OR.(PIV.EQ.TPIV.AND.IPIV1.LT.IPIV2))THEN
+               IF(PIV.LT.TPIV)THEN
                   PIV    = TPIV
-                  IPIV2  = IPIV1
                   JPIV   = K1
               ENDIF
             ENDDO
-            IPIV1=IPIV2
+            IPIV1=IAMAX(JPIV)
             IPR(IC)=IPIV1
 
 ! rows and columns are swapped physically
