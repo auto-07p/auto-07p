@@ -1700,19 +1700,27 @@
 
 ! Backsubstitution in the condensation of parameters; no communication.
       DO I=1,NA
-         DO IR=NRA-NOV,1,-1
-            SM=FA(IR,I)
-            DO J=1,NOV
+         DO IR=1,NRA-NOV
+            X(IR+NOV)=FA(IR,I)
+         ENDDO
+         DO J=1,NOV
+            DO IR=1,NRA-NOV
+               SM=X(IR+NOV)
                SM=SM-A(IR,J,I)*SOL(J,I)
                SM=SM-A(IR,NRA+J,I)*SOL(J,I+1)
+               X(IR+NOV)=SM
             ENDDO
-            DO J=1,NCB
-               SM=SM-B(IR,J,I)*FC(NOV+J)
+         ENDDO
+         DO J=1,NCB
+            DO IR=1,NRA-NOV
+               X(IR+NOV)=X(IR+NOV)-B(IR,J,I)*FC(NOV+J)
             ENDDO
-            DO J=IR+1,NRA-NOV
-               SM=SM-A(IR,J+NOV,I)*X(J+NOV)
+         ENDDO
+         DO J=NRA-NOV,1,-1
+            X(J+NOV)=X(J+NOV)/A(J,NOV+J,I)
+            DO IR=J-1,1,-1
+               X(IR+NOV)=X(IR+NOV)-A(IR,J+NOV,I)*X(J+NOV)
             ENDDO
-            X(NOV+IR)=SM/A(IR,NOV+IR,I)
          ENDDO    
 !        **Copy SOL into FA 
          DO J=1,NOV
