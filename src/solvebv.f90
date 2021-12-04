@@ -1221,6 +1221,7 @@
 ! Complete pivoting; rows are swapped physically, columns also
             PIV = 0.d0
             JPIV = IC
+            IPIV2 = IAMAX(JPIV)
             DO K1=IC,NOV
                IPIV1 = IAMAX(K1)
                IF(IPIV1.LE.NOV)THEN
@@ -1228,12 +1229,14 @@
                ELSE
                   TPIV=DABS(A12(IPIV1-NOV,K1))
                ENDIF
-               IF(PIV.LT.TPIV)THEN
+               ! prefer lower row for compatibility with older AUTO
+               IF(PIV.LT.TPIV.OR.(PIV.EQ.TPIV.AND.IPIV1.LT.IPIV2))THEN
                   PIV    = TPIV
+                  IPIV2  = IPIV1
                   JPIV   = K1
               ENDIF
             ENDDO
-            IPIV1=IAMAX(JPIV)
+            IPIV1=IPIV2
             IPR(IC)=IPIV1
 
 ! rows and columns are swapped physically
