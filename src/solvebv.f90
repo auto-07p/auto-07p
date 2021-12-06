@@ -200,12 +200,14 @@
 
       INTEGER I,J
 
-      DO I=1,NRC-1
-        IF(IFST.EQ.1)THEN
-          DO J=1,NCB
+      IF(IFST.EQ.1)THEN
+        DO J=1,NCB
+          DO I=1,NRC-1
             DD(I,J)=0.0D0
           ENDDO
-        ENDIF
+        ENDDO
+      ENDIF
+      DO I=1,NRC-1
         FC(I)=0.0D0
       ENDDO
 
@@ -244,16 +246,20 @@
          CALL BCNI(AP,NDIM,PAR,ICP,NBC,UBC0,UBC1,FBC,IFST*2,DBC)
          DO I=1,NBC
             FC(I)=-FBC(I)
-            IF(IFST.EQ.1)THEN
-               DO K=1,NDIM
+         ENDDO
+         IF(IFST.EQ.1)THEN
+            DO K=1,NDIM
+               DO I=1,NBC
                   CDBC(I,K)=DBC(I,K)
                   CDBC(I,NDIM+K)=DBC(I,NDIM+K)
                ENDDO
-               DO K=1,NCB
+            ENDDO
+            DO K=1,NCB
+               DO I=1,NBC
                   CDBC(I,2*NDIM+K)=DBC(I,2*NDIM+ICP(K))
                ENDDO
-            ENDIF
-         ENDDO    
+            ENDDO
+         ENDIF
        ENDIF
        DEALLOCATE(UBC0,UBC1,FBC,DBC)
        END SUBROUTINE SUBVBC
@@ -741,16 +747,18 @@
          ELSE
             NTSTNA=NTST
          ENDIF
-         DO J=1,NRC
-            IF(IFST.EQ.1)THEN
-               DO K=1,NCB
+         IF(IFST.EQ.1)THEN
+            DO K=1,NCB
+               DO J=1,NRC
                   D(J,K)=D(J,K)+DD(J,K,NTSTNA)
                ENDDO
-            ENDIF
-            IF(NLLV.EQ.0)THEN
+            ENDDO
+         ENDIF
+         IF(NLLV.EQ.0)THEN
+            DO J=1,NRC
                FC(NBC+J)=FC(NBC+J)+FCFC(J,NTSTNA)
-            ENDIF
-         ENDDO
+            ENDDO
+         ENDIF
          ALLOCATE(FCC(NOV+NFC),E(NOV+NFC,NOV+NFC))
          CALL DIMRGE(E,CC,C2,CDBC,D,FC,                               &
            NTSTNA,NFC,NBC,NOV,NCB,IDB,NLLV,FCC,P0,P1,DET,A1,A2,FAA,BB)
