@@ -283,17 +283,23 @@ class runAUTO:
 
     def __make(self,equation,fcon=False):
         var = self.__getmakevars()
+        auto_dir = self.options["auto_dir"]
+        incdir = os.path.join(auto_dir,"include")
         # figure out equation file name
         src = ""
+        deps = []
         for ext in [".f90",".f",".c"]:
             if os.path.exists(equation+ext):
                 src = equation+ext
+                deps = [src]
+                if ext == ".c":
+                    deps.append(os.path.join(incdir,"auto_f2c.h"))
         if src == "":
             raise AUTOExceptions.AUTORuntimeError(
                 "Neither the equation file %s.f90, nor %s.f, nor %s.c exists."%(
                 equation,equation,equation))
         # compile
-        if not os.path.exists(equation+'.o') or self.__newer([src],
+        if not os.path.exists(equation+'.o') or self.__newer(deps,
                                                              equation+'.o'):
             if src[-1] == 'c':
                 cmd = "%s %s %s -c %s -o %s.o"%(var["CC"],var["CFLAGS"],
@@ -304,11 +310,9 @@ class runAUTO:
             sys.stdout.write(cmd+"\n")
             self.runCommand(cmd)
         # link
-        auto_dir = self.options["auto_dir"]
         libdir = os.path.join(auto_dir,"lib")
         if fcon:
             srcdir = os.path.join(auto_dir,"src")
-            incdir = os.path.join(auto_dir,"include")
             libs = os.path.join(srcdir,"fcon.f")
             deps = [libs] + [os.path.join(incdir,"fcon.h")]
             var["FFLAGS"] = var["FFLAGS"] + " -I" + incdir.replace(" ","\\ ")

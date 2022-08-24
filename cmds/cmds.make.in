@@ -55,6 +55,8 @@ $(EXE): $(OBJ) $(LIBS)
 	  $(CC) $(CFLAGS) $(OPT) -c $< -o $@; \
 	fi
 #
+$(EQUATION_NAME).o: $(AUTO_DIR)/include/auto_f2c.h
+#
 FLAGS=-I$(AUTO_DIR)/include $(OPT)
 FCON=$(AUTO_DIR)/src/fcon.f
 fcon: $(EQUATION_NAME).o $(AUTO_DIR)/src/fcon.f $(AUTO_DIR)/include/fcon.h
