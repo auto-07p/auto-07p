@@ -1,7 +1,5 @@
 AC_INIT(plaut04/src/gmain.c++)
 
-AC_CONFIG_HEADERS(include/config.h)
-
 AC_ARG_VAR(FC, [Choose a Fortran (>=90) compiler other than the default])
 AC_ARG_VAR(MPIFC, [Command to use to compile MPI programs (default:  mpif90)])
 
@@ -118,22 +116,6 @@ AC_LINK_IFELSE([F2KPROG],,[
    FFLAGS="$FFLAGS -Vaxlib",[FCFLAGS=$tmp;COMPAT="compat"])])])
 AC_SUBST(COMPAT)
 AC_MSG_RESULT([$COMPAT.f90])
-AC_FC_DUMMY_MAIN([fc_dummy="yes"],[fc_dummy="no"])
-realcc=$CC
-if test x$fc_dummy = "xno"; then
-    # Use gfortran/g95 to link wrapper functions if possible.
-    # It appears that otherwise AC_FC_WRAPPERS gets confused on Windows,
-    # because of spaces in names such as 'Program Files'
-    CC=$FC
-    # avoid caching previous result
-    $as_unset ac_cv_fc_dummy_main
-    AC_FC_DUMMY_MAIN([fc_dummy="yes"],[fc_dummy="no"])
-fi
-if test x$fc_dummy = "xno"; then
-    AC_MSG_WARN(["Warning: can't link C with Fortran"])
-fi
-AC_FC_WRAPPERS
-CC=$realcc
 if test x$openmp = "xyes"; then
   # Check for OpenMP.  If it exists we try to use it.
   AX_OPENMP(FFLAGS="$FFLAGS $OPENMP_FCFLAGS",openmp="no")

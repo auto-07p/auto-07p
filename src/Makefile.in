@@ -77,9 +77,9 @@ compile: $(OBJ)
 ../lib/auto_constants.o: auto_constants.f90 ../include/auto.h
 	$(FC) $(FFLAGS) $(OPT) -I../include -c auto_constants.f90 -o $@
 #
-../lib/libauto_c.a: user_c.c ../include/auto_f2c.h ../include/config.h
+../lib/libauto_c.a: user_c.f90
 	rm -f $@
-	$(CC) -I../include $(CFLAGS) $(OPT) -c user_c.c -o user_c.o
+	$(FC) $(FFLAGS) $(OPT) -c user_c.f90 -o user_c.o
 	ar cr $@ user_c.o
 	rm -f user_c.o
 #
