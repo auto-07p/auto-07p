@@ -618,7 +618,6 @@ X_CFLAGS
 CPP
 XMKMF
 SET_MAKE
-COMPAT
 FCFLAGS_f90
 ac_ct_FC
 FCFLAGS
@@ -3706,15 +3705,13 @@ ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
 ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_fc_compiler_gnu
 
-# ifc needs -Vaxlib to use FLUSH and ETIME.
-COMPAT="f2003"
 
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for F2003 or pre-F2003 compatibility functions" >&5
-$as_echo_n "checking for F2003 or pre-F2003 compatibility functions... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for F2003" >&5
+$as_echo_n "checking for F2003... " >&6; }
 cat > conftest.$ac_ext <<_ACEOF
 
   program main
+  use, intrinsic :: iso_c_binding
   real t
   character*80 s
   print *,'hello'
@@ -3726,55 +3723,13 @@ cat > conftest.$ac_ext <<_ACEOF
 
 _ACEOF
 if ac_fn_fc_try_link "$LINENO"; then :
-
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: sufficient Fortran 2003 support found" >&5
+$as_echo "sufficient Fortran 2003 support found" >&6; }
 else
-
- COMPAT="unix"; cat > conftest.$ac_ext <<_ACEOF
-
-  program main
-  real t(2),r,etime
-  character*80 s
-  print *,'hello'
-  call flush(6)
-  r=etime(t)
-  t=iargc()
-  call getarg(0,s)
-  end
-
-_ACEOF
-if ac_fn_fc_try_link "$LINENO"; then :
-
-else
-  tmp=$FCFLAGS; FCFLAGS="$FCFLAGS -Vaxlib"
-   cat > conftest.$ac_ext <<_ACEOF
-
-  program main
-  real t(2),r,etime
-  character*80 s
-  print *,'hello'
-  call flush(6)
-  r=etime(t)
-  t=iargc()
-  call getarg(0,s)
-  end
-
-_ACEOF
-if ac_fn_fc_try_link "$LINENO"; then :
-  FFLAGS="$FFLAGS -Vaxlib"
-else
-  FCFLAGS=$tmp;COMPAT="compat"
+  as_fn_error $? "AUTO needs a Fortran compiler with sufficient support for Fortran 2003" "$LINENO" 5
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $COMPAT.f90" >&5
-$as_echo "$COMPAT.f90" >&6; }
 if test x$openmp = "xyes"; then
   # Check for OpenMP.  If it exists we try to use it.
 
@@ -6581,7 +6536,7 @@ fi
 
 
 
-ac_config_files="$ac_config_files Makefile src/Makefile util/Makefile gui/Makefile plaut/Makefile plaut04/Makefile plaut04/src/Makefile cmds/cmds.make cmds/Makefile gui/auto.makefile cmds/compat.sh"
+ac_config_files="$ac_config_files Makefile src/Makefile util/Makefile gui/Makefile plaut/Makefile plaut04/Makefile plaut04/src/Makefile cmds/cmds.make cmds/Makefile gui/auto.makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -7299,7 +7254,6 @@ do
     "cmds/cmds.make") CONFIG_FILES="$CONFIG_FILES cmds/cmds.make" ;;
     "cmds/Makefile") CONFIG_FILES="$CONFIG_FILES cmds/Makefile" ;;
     "gui/auto.makefile") CONFIG_FILES="$CONFIG_FILES gui/auto.makefile" ;;
-    "cmds/compat.sh") CONFIG_FILES="$CONFIG_FILES cmds/compat.sh" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

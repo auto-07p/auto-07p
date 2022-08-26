@@ -84,10 +84,9 @@ AC_FC_FREEFORM(,
   echo Please check with the manual.
   exit 1
 )
-# ifc needs -Vaxlib to use FLUSH and ETIME.
-COMPAT="f2003"
 AC_DEFUN([F2KPROG], [
   program main
+  use, intrinsic :: iso_c_binding
   real t
   character*80 s
   print *,'hello'
@@ -97,25 +96,10 @@ AC_DEFUN([F2KPROG], [
   call get_command_argument(0,s)
   end
 ])
-AC_DEFUN([UNIXPROG], [
-  program main
-  real t(2),r,etime
-  character*80 s
-  print *,'hello'
-  call flush(6)
-  r=etime(t)
-  t=iargc()
-  call getarg(0,s)
-  end
-])
-AC_MSG_CHECKING([for F2003 or pre-F2003 compatibility functions])
-AC_LINK_IFELSE([F2KPROG],,[
- COMPAT="unix"; AC_LINK_IFELSE([UNIXPROG],,
-  [tmp=$FCFLAGS; FCFLAGS="$FCFLAGS -Vaxlib"
-   AC_LINK_IFELSE([UNIXPROG],
-   FFLAGS="$FFLAGS -Vaxlib",[FCFLAGS=$tmp;COMPAT="compat"])])])
-AC_SUBST(COMPAT)
-AC_MSG_RESULT([$COMPAT.f90])
+AC_MSG_CHECKING([for F2003])
+AC_LINK_IFELSE([F2KPROG],
+  [AC_MSG_RESULT([sufficient Fortran 2003 support found])],
+  [AC_MSG_ERROR([AUTO needs a Fortran compiler with sufficient support for Fortran 2003])])
 if test x$openmp = "xyes"; then
   # Check for OpenMP.  If it exists we try to use it.
   AX_OPENMP(FFLAGS="$FFLAGS $OPENMP_FCFLAGS",openmp="no")
@@ -379,7 +363,7 @@ AC_SUBST(SOXT_OBJS_R3B)
 
 AC_SUBST(DEPS_LIBS)
 AC_SUBST(DEPS_INCLUDES)
-AC_OUTPUT(Makefile src/Makefile util/Makefile gui/Makefile plaut/Makefile plaut04/Makefile plaut04/src/Makefile cmds/cmds.make cmds/Makefile gui/auto.makefile cmds/compat.sh)
+AC_OUTPUT(Makefile src/Makefile util/Makefile gui/Makefile plaut/Makefile plaut04/Makefile plaut04/src/Makefile cmds/cmds.make cmds/Makefile gui/auto.makefile)
 
 if test x$no_x = xyes && test x$ENABLE_GUI = xyes; then
   echo "***************************************************"

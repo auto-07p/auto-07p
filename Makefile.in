@@ -64,7 +64,7 @@ superclean:  clean
 	rm -f test/*.pyc test/*_log07p* test/verification/*.html
 	rm -f Makefile cmds/Makefile gui/Makefile plaut/Makefile src/Makefile \
 	  gui/auto.makefile include/config.h cmds/cmds.make \
-	  cmds/compat.sh util/Makefile
+	  util/Makefile
 	@echo "Super cleaning ... done"
 #
 distclean:  superclean

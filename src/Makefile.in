@@ -89,8 +89,8 @@ compile: $(OBJ)
 ../lib/blas.o: blas.f
 	$(FC) $(FFLAGS) $(OPT) -c blas.f -o $@
 #
-../lib/compat.o: @COMPAT@.f90
-	$(FC) $(FFLAGS) $(OPT) -c @COMPAT@.f90 -o $@
+../lib/compat.o: f2003.f90
+	$(FC) $(FFLAGS) $(OPT) -c f2003.f90 -o $@
 #
 ../lib/mpi.o: @MPIFILE@ ../lib/auto_constants.o
 	$(FC) $(FFLAGS) $(OPT) -c @MPIFILE@ -o $@

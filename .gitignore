@@ -22,7 +22,6 @@ cmds/@LB
 cmds/@R
 cmds/@RD
 cmds/cmds.make
-cmds/compat.sh
 doc/auto.pdf
 gui/auto.makefile
 plaut04/doc/userguide.pdf

@@ -8,7 +8,6 @@
 FC=@FC@
 FFLAGS=@FFLAGS@
 OPT=@OPT_FLAG@
-COMPAT=@COMPAT@
 RM=rm -f
 #
 all: ../bin/autlab ../bin/double ../bin/triple \
@@ -48,8 +47,8 @@ utility.o: utility.f90
 ../bin/reduce: reduce.f90 utility.o
 	$(FC) $(FFLAGS) $(OPT) reduce.f90 utility.o -o $@
 #
-compat.o : ../src/$(COMPAT).f90
-	$(FC) $(FFLAGS) $(OPT) -c ../src/$(COMPAT).f90 -o $@
+compat.o : ../src/f2003.f90
+	$(FC) $(FFLAGS) $(OPT) -c ../src/f2003.f90 -o $@
 #
 ../bin/relabel: relabel.f90 compat.o
 	$(FC) $(FFLAGS) $(OPT) relabel.f90 compat.o -o $@

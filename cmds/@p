@@ -1,5 +1,4 @@
 #!/bin/sh
-. compat.sh
 if ( test $# -eq 1 ) then
 	b1=b.$1
 	s1=s.$1
@@ -8,12 +7,6 @@ else
 	b1=fort.7
 	s1=fort.8
 	echo "Plotting fort.7 and fort.8 ..."
-fi
-if test $COMPAT = compat; then
-	cp $b1 fort.17
-	cp $s1 fort.18
-	b1=
-	s1=
 fi
 if [ -x "$AUTO_DIR"/bin/xterm-tek ]; then
 	"$AUTO_DIR"/bin/xterm-tek -bg black -fg white -t -e "$AUTO_DIR"/bin/plaut $b1 $s1 &
