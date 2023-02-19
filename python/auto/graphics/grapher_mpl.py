@@ -314,10 +314,16 @@ class BasicGrapher(grapher.BasicGrapher):
                 elif key == "yticks":
                     self.ax.set_yticks(ticks)
 
+    def removeData(self, name, item):
+        if hasattr(item, "remove"):
+            item.remove()
+        else:
+            getattr(self.ax, name).remove(item)
+
     def _delAllData(self):
         for d in self.data:
             if "mpline" in d:
-                self.ax.lines.remove(d["mpline"])
+                self.removeData("lines", d["mpline"])
         self.data=[]
 
         # set type for next data
@@ -370,7 +376,7 @@ class BasicGrapher(grapher.BasicGrapher):
 
     def _delData(self,index):
         if "mpline" in data[index]:
-            self.ax.lines.remove(data[index]["mpline"])
+            self.removeData("lines", data[index]["mpline"])
         del self.data[index]
 
     def clear(self):
@@ -448,13 +454,13 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
         for l in self.labels:
             for label in l:
                 if "mpline" in label:
-                    self.ax.lines.remove(label["mpline"])
+                    self.removeData("lines", label["mpline"])
                 if "mptext" in label:
-                    self.ax.texts.remove(label["mptext"])
+                    self.removeData("texts", label["mptext"])
                 if "mpsymline" in label:
-                    self.ax.lines.remove(label["mpsymline"])
+                    self.removeData("lines", label["mpsymline"])
                 if "mpsymtext" in label:
-                    self.ax.texts.remove(label["mpsymtext"])
+                    self.removeData("texts", label["mpsymtext"])
         self.labels=[]
         BasicGrapher._delAllData(self)
 
@@ -470,10 +476,10 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
         for labels in self.labels:
             for label in labels:
                 if "mpline" in label:
-                    self.ax.lines.remove(label["mpline"])
+                    self.removeData("lines", label["mpline"])
                     del label["mpline"]
                 if "mptext" in label:
-                    self.ax.texts.remove(label["mptext"])
+                    self.removeData("texts", label["mptext"])
                     del label["mptext"]
 
         if not self.cget("use_labels"):
@@ -582,10 +588,10 @@ class LabeledGrapher(BasicGrapher,grapher.LabeledGrapher):
                 if l is None:
                     continue
                 if "mpsymline" in label:
-                    self.ax.lines.remove(label["mpsymline"])
+                    self.removeData("lines", label["mpsymline"])
                     del label["mpsymline"]
                 if "mpsymtext" in label:
-                    self.ax.texts.remove(label["mpsymtext"])
+                    self.removeData("texts", label["mpsymtext"])
                     del label["mpsymtext"]
                 if not self.cget("use_symbols"):
                     continue
