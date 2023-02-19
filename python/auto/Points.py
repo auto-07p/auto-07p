@@ -40,7 +40,7 @@ def importnumpy():
             import numpy as N
             from numpy import linalg
             fromstring, ndarray, float64, int32, bool8, floating, integer, rank = (
-                N.fromstring, N.ndarray, N.float64, N.int32, N.bool,
+                N.fromstring, N.ndarray, N.float64, N.int32, bool,
                 N.floating, N.integer, N.ndim)
             global _float_types
             global _int_types
