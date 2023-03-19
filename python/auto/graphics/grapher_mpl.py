@@ -6,7 +6,6 @@ try: #MPL 2.2 wants NavigationToolbar2Tk instead
     from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk as NavigationToolbar2TkAgg
 except ImportError:
     from matplotlib.backends.backend_tkagg import NavigationToolbar2TkAgg
-from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 if not AUTOutil.is_notebook():
     matplotlib.use('TkAgg')
