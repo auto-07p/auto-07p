@@ -487,6 +487,16 @@ def ravel(a):
 
 ArrayType = array
 
+def is_notebook():
+    """
+    test if running in jupyter notebook
+    """
+    try:
+        shell = get_ipython().__class__.__name__
+        return shell == 'ZMQInteractiveShell'
+    except NameError:
+        return False
+
 def test():
     a=array([1,2,3,4])
     print("%s"%a[::-1])

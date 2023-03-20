@@ -1770,6 +1770,8 @@ try:
         """
 
         options = kw
+        if AUTOutil.is_notebook():
+            options['hide'] = True
         if type(name) == type("") or name is None:
             name = filenameTemplate(name,templates)
             parsed = None

@@ -1,14 +1,19 @@
 #!/usr/bin/env python
 import matplotlib
-matplotlib.use('TkAgg')
-
+from auto import AUTOutil
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 try: #MPL 2.2 wants NavigationToolbar2Tk instead
     from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk as NavigationToolbar2TkAgg
 except ImportError:
     from matplotlib.backends.backend_tkagg import NavigationToolbar2TkAgg
 from matplotlib.backends.backend_agg import FigureCanvasAgg
-from matplotlib.figure import Figure
+
+if not AUTOutil.is_notebook():
+    matplotlib.use('TkAgg')
+    from matplotlib.figure import Figure
+else:
+    from matplotlib.pyplot import figure as Figure
+
 from matplotlib.lines import Line2D
 from matplotlib.axes import Axes
 from matplotlib.ticker import AutoLocator, FixedLocator
@@ -116,7 +121,10 @@ class BasicGrapher(grapher.BasicGrapher):
         self.ax2d = self.ax
         self.ax3d = None
         if kw.get("hide"):
-            self.canvas = FigureCanvasAgg(self.ax.get_figure())
+            if AUTOutil.is_notebook():
+                self.canvas = self.ax.get_figure().canvas
+            else:
+                self.canvas = FigureCanvasAgg(self.ax.get_figure())
         else:
             self.canvas = FigureCanvasTkAggRedraw(self,parent)
             tk_widget = self.canvas.get_tk_widget()
