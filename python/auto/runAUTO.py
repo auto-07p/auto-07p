@@ -246,7 +246,7 @@ class runAUTO:
             os.remove("fort.2")
         if os.path.exists("fort.3"):
             os.remove("fort.3")
-        if constants["homcont"] is not None:
+        if constants.get("homcont") is not None:
             constants["homcont"].writeFilename("fort.12")
         elif os.path.exists("fort.12"):
             os.remove("fort.12")
