@@ -21,6 +21,7 @@ jobs:
     - name: Install dependencies (macOS)
       if: runner.os == 'macOS'
       run: |
+        brew update
         brew reinstall gfortran
         brew install cmake qt@5 openmotif open-mpi coin3d
         brew link qt@5 --force
