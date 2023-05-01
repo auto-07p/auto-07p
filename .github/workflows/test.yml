@@ -14,10 +14,10 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt-get update
-        sudo apt-get install gfortran libmotif-dev
-        sudo apt-get install python3-matplotlib
+        sudo apt-get install gfortran libmotif-dev libsoqt520-dev
+        sudo apt-get install python-tk python3-matplotlib
         sudo apt-get install openmpi-bin libopenmpi-dev
-        sudo apt-get install texlive texlive-latex-recommended transfig
+        sudo apt-get install texlive texlive-latex-extra transfig
     - name: Install dependencies (macOS)
       if: runner.os == 'macOS'
       run: |
@@ -36,12 +36,15 @@ jobs:
         brew install python-tk
         pip install matplotlib
         pip3 install matplotlib
-    - name: Install packages for Ubuntu 18.04 only
-      if: matrix.os == 'ubuntu-18.04'
-      run: sudo apt-get install libsoqt4-dev python-matplotlib
     - name: Install packages for Ubuntu 20.04 only
       if: matrix.os == 'ubuntu-20.04'
-      run: sudo apt-get install libsoqt520-dev python-tk python-numpy texlive-latex-extra
+      run: sudo apt-get install python-numpy
+    - name: Install packages for Ubuntu 22.04 only
+      if: matrix.os == 'ubuntu-22.04'
+      run: |
+	curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py
+	sudo python2 get-pip.py
+	pip2 install numpy
     - name: Compile
       run: |
         # compile auto
