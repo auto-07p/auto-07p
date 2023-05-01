@@ -42,9 +42,9 @@ jobs:
     - name: Install packages for Ubuntu 22.04 only
       if: matrix.os == 'ubuntu-22.04'
       run: |
-	curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py
-	sudo python2 get-pip.py
-	pip2 install numpy
+        curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py
+        sudo python2 get-pip.py
+        pip2 install numpy
     - name: Compile
       run: |
         # compile auto
