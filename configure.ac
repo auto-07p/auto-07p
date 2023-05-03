@@ -66,7 +66,9 @@ AC_COMPILE_IFELSE([AC_LANG_SOURCE([#include <stdio.h>
 	])],,[CPPFLAGS="$CPPFLAGS -iwithprefix ../../../../include"])
 
 AC_PROG_INSTALL
-AC_PROG_SED
+AC_CHECK_PROG(PERL,perl,perl,)
+AS_IF([test x"$PERL" != x"perl"], [AC_MSG_ERROR([Please install perl.])])
+AC_SUBST(PERL)
 
 AC_LANG_PUSH(Fortran)
 if test x$FCFLAGS != "x"; then
