@@ -611,7 +611,7 @@ main(argc,argv)
 int	argc;
 char	*argv[];
 #else
-main(int argc,char **argv)
+int main(int argc,char **argv)
 #endif
 
 {
@@ -1488,7 +1488,7 @@ void	CreateWriteMenu(Widget menuBar)
   button = XmSelectionBoxGetChild(GW.save_dialog,XmDIALOG_HELP_BUTTON);
   XtUnmanageChild(button);
   XtVaSetValues(GW.save_dialog,XmNselectionLabelString,
-		XmStringCreateSimple("Write as"),NULL,0);
+		XmStringCreateSimple("Write as"),NULL,NULL);
 
   XtAddCallback(GW.save_dialog,XmNokCallback,DialogAcceptCB, (XtPointer)DIALOG_SAVE);
 
@@ -2178,7 +2178,7 @@ XtPointer		call_data	/*  data from widget class  */
     ac=0;
     while(progname[ac] != '.' && progname[ac] != '\0')
      ++ac;
-    if(progname[ac] = '.')
+    if(progname[ac] == '.')
       progname[ac] = '\0';
 
     ac = 0;
@@ -12801,7 +12801,7 @@ char *ProgramName(char *pgm)
 {
   static char *progname;
 
-  if (progname=strrchr(pgm, '/'))
+  if ((progname=strrchr(pgm, '/')))
     {
       progname++;
     }
