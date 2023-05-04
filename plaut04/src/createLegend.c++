@@ -1,3 +1,6 @@
+#include <sstream>
+#include <iomanip>
+
 #include "createLegend.h"
 
 #include <Inventor/nodes/SoDirectionalLight.h>
@@ -38,11 +41,11 @@ printScaleAt(SbVec3f position, double size, double value)
     txtXform->translation.setValue(position);
     textSep->addChild(txtXform);
 
-    char strScale[10];
-    sprintf(strScale, "%8.3e", value);
+    std::stringstream strScale;
+    strScale << std::scientific << std::setprecision(3) << std::setw(8) << value;
 
     SoText2 * txt = new SoText2;
-    txt->string.setValue(strScale);
+    txt->string.setValue(strScale.str().c_str());
     textSep->addChild(txt);
     return textSep;
 }
