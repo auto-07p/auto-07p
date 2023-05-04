@@ -96,6 +96,8 @@ C
        IB3DX  = 1
        IB3DY  = 3
        IB3DZ  = 4
+       ITS    = 0
+       I      = 0
        CALL IBDSY(ITP,SYMBL)
        CALL ICDS0(ICDS)
 C---                                    *SCREEN SIZE

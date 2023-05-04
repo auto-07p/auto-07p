@@ -134,7 +134,7 @@ C-----------------------------------------------------------------------
 C      PRINTS STRING CHARACTERS ON SCREEN
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
-       SUBROUTINE PLCCAL(ICODE)
+       SUBROUTINE PLCCAL()
        INTEGER NVX(2),SPLPT
        REAL IX,IY,MINSX,MAXSX,MINSY,MAXSY
        CHARACTER*1 CHONE,CHTWO*2,CHFIF*15,ADJ*80
