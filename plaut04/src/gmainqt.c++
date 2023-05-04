@@ -95,7 +95,7 @@ DecSpinBox::textFromValue( int value ) const {
 }
 
 int
-DecSpinBox::valueFromText( QString text ) const {
+DecSpinBox::valueFromText( const QString & text ) const {
     return int(text.toFloat()*10);
 }
 #else
@@ -1162,6 +1162,7 @@ MainWindow::buildMenu()
 //
 ////////////////////////////////////////////////////////////////////////
 {
+#if defined(USE_BK_COLOR) || QT_VERSION < 0x40000
     QPopupMenu *pulldown2 = NULL;
     QPopupMenu *pulldown1, *pulldown3, *pulldown4, *pulldown5, *pulldown6, *pulldown7;
 // menu bar
@@ -1173,6 +1174,16 @@ MainWindow::buildMenu()
     pulldown7 = buildCoordMenu();
     pulldown5 = buildOptionMenu();
     pulldown6 = buildHelpMenu();
+#else
+    buildFileMenu();
+    if(useR3B)
+        buildCenterMenu();
+    buildStyleMenu();
+    buildTypeMenu();
+    buildCoordMenu();
+    buildOptionMenu();
+    buildHelpMenu();
+#endif
 
 #ifdef USE_BK_COLOR
 // set the background color for the pull down menus.

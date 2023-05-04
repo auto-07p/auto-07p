@@ -30,7 +30,7 @@ public:
 	       const char *name);
 #if QT_VERSION >= 0x40000
     QString  textFromValue(int value) const;
-    int valueFromText(QString text) const;
+    int valueFromText(const QString &text) const;
 #else
     QString  mapValueToText(int value);
     int mapTextToValue(bool* ok);
