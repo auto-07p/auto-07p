@@ -868,6 +868,8 @@ C
       DATA U(1),U(2),U(3),U(4),U(5)/5.,-5.,10.,-10.,25./
       DATA U(6),U(7),U(8),U(9)/-25.,50.,-50.,0./
       DATA LASTX,LASTY/-1,-1/
+      NO=0
+      DTABL(1)=0
       IF(KDASHT .LT. 0)GO TO 320
       IF(KDASHT .GT. 4)GO TO 101
       IF(KTERM .GE. 3)GO TO 103
@@ -1027,7 +1029,7 @@ C
       RETURN
       END
 C
-      SUBROUTINE INITT(KCPS,KREAD,KWRITE,KBUF,KBL)
+      SUBROUTINE INITT(KCPS,KREAD,KWRITE)
       INCLUDE 'plautcom.f'
       KBAUDR = KCPS
       KPAD2 = KCPS / 22 + 1
@@ -1037,7 +1039,7 @@ C
       KUNIT=3
       KINLFT=0
       KOTLFT=72
-      CALL IOSET(KREAD,KWRITE,KBUF,KBL)
+      CALL IOSET(KREAD,KWRITE)
       CALL RESET
       CALL NEWPAG
       RETURN
@@ -1424,7 +1426,7 @@ C
       RETURN
       END
 C
-      SUBROUTINE AOUTST(NCHAR,IAM)
+      SUBROUTINE AOUTST(NCHAR)
       INCLUDE 'plautcom.f'
       DIMENSION IADE(72)
       ITEMP = NCHAR
@@ -1498,7 +1500,7 @@ C
       NXTOUT = 0
       DO I=FIRST,LAST
         NXTOUT = NXTOUT + 1
-        IOUT(NXTOUT) = IADE(I)
+        IOUT(NXTOUT) = INT(IADE(I), 2)
       ENDDO
       WRITE(KWRITE,101)char(iout(1))
       if(nxtout.gt.1)then
@@ -1551,6 +1553,7 @@ C
       IF((KREAD.EQ.0) .OR. (KWRITE.EQ.0))RETURN
       READ(KREAD,101)IPK
 101   FORMAT(75A1)
+      ITEMP = 0
       DO 40 I=1,75
       IF(IPK(I) .EQ. 0)GO TO 40
       IF(IPK(I) .EQ. 15) GO TO 80
@@ -1564,7 +1567,7 @@ C
       RETURN
       END
 C
-      SUBROUTINE IOSET(KIN,KOUT,KBUF,KBL)
+      SUBROUTINE IOSET(KIN,KOUT)
       INCLUDE 'plautcom.f'
       COMMON /TIOCOM/ KREAD, KWRITE, KSPOOL, INMODE
       DATA KREAD, KWRITE, KSPOOL, INMODE /3*0,0/
