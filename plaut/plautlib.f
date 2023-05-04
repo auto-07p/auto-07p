@@ -298,7 +298,7 @@ C      IF ICODE = 3 THEN CONVERT FROM <E> FORMAT TO STRING CHARACTER
 C-----------------------------------------------------------------------
        SUBROUTINE CVTIFE(IWHOLE,IFRACT,XYNUM,ICODE)
        GO TO (1,2,3) ICODE
- 1     CALL COVTI(IWHOLE,IFRACT,XYNUM)
+ 1     CALL COVTI(IWHOLE,XYNUM)
        RETURN
  2     CALL COVTF(IWHOLE,IFRACT,XYNUM)
        RETURN
@@ -360,8 +360,8 @@ C---                                    *LAST GRID LINE ALWAYS LONG
 C-----------------------------------------------------------------------
 C      CONVERT FROM NUMERIC TO STRING CHARACTER (FN.0 FORMAT)
 C-----------------------------------------------------------------------
-       SUBROUTINE COVTI(WHOLE,FRACT,XYNUM)
-       INTEGER WHOLE,FRACT
+       SUBROUTINE COVTI(WHOLE,XYNUM)
+       INTEGER WHOLE
        CHARACTER*1 CHONE,CH(0:9),CHTWO*2,CHFIF*15
        LOGICAL NEG
        COMMON /LBNM/ INDXCH,CHONE,CHTWO,CHFIF
@@ -1477,6 +1477,7 @@ C---
        PRESGN = 0
        ID     = 0
        IDS    = 0
+       TOOCLS = 0
        XAXIS  = NVX(1)
        YAXIS  = NVX(2)
        NMX    = MAX(XAXIS,YAXIS)
@@ -1964,11 +1965,11 @@ C---
        IF (.NOT.QSCOM) THEN
 C---                                    *X AXIS
          AXIS = 'X'
-         CALL SAXIS(XMIN,XMAX,AXIS,XINCR)
+         CALL SAXIS(XMIN,XMAX,XINCR)
          CALL XAXIS(XINCR)
 C---                                    *Y AXIS
          AXIS = 'Y'
-         CALL SAXIS(YMIN,YMAX,AXIS,YINCR)
+         CALL SAXIS(YMIN,YMAX,YINCR)
          CALL YAXIS(YINCR)
        END IF
        CALL DFDIST
@@ -2226,8 +2227,7 @@ C-----------------------------------------------------------------------
 C   WRITES THE AXIS LINES AND FORMATS PARAMETERS
 C   TO OUTPUT THE GRID LINES AND GRID LABELS.
 C-----------------------------------------------------------------------
-       SUBROUTINE SAXIS(MIN,MAX,AXIS,INCR)
-       CHARACTER*1 AXIS
+       SUBROUTINE SAXIS(MIN,MAX,INCR)
        REAL INCR,MIN,MAX
 C---
 C---
@@ -2589,7 +2589,7 @@ C-----------------------------------------------------------------------
        SUBROUTINE PLOT2D(XAXS,YAXS,PARRY,NUM,BNDS,ANS)
        CHARACTER*2 ANS,CHTWO,CHFIF*15
        CHARACTER*80 XLAB,YLAB,TTITLE,BTITLE,CHONE*1
-       INTEGER ERROR,XAXS,YAXS,PARRY(1999),NVX(2),SPLPT
+       INTEGER XAXS,YAXS,PARRY(1999),NVX(2),SPLPT
        INTEGER ID2D(1999),IDS2D(1999)
        REAL BNDS(251,2),IX,IY,MINSX,MAXSX,MINSY,MAXSY
        LOGICAL DFT,USR,PLTR,BRNCH,POINT,TIT,AXLB,QLBS,GRIDS,DP
@@ -2656,7 +2656,7 @@ C---                                    *PUT TITLE ON Y AXIS
          END IF
        END IF
        CALL SPAGE
-       CALL DRW2D(XAXS,YAXS,PARRY,ERROR,NUM,POINT,PLTR)
+       CALL DRW2D(XAXS,YAXS,PARRY,NUM,POINT,PLTR)
        CALL PLCHDW(3)
        GO TO 2
        END
@@ -2706,7 +2706,7 @@ C---                                    *SAVE GRAPH
          IWRITE = ISAVE
          CALL CRFLNM(1)
          CALL SPAGE
-         CALL DRW2D(XAXS,YAXS,PARRY,ERROR,NUM,POINT,PLTR)
+         CALL DRW2D(XAXS,YAXS,PARRY,NUM,POINT,PLTR)
          CALL PLCHDW(3)
          CALL CRFLNM(2)
          IWRITE = ITERM
@@ -2827,9 +2827,9 @@ C---*GET TWO VALID AXES AND MI
 C-----------------------------------------------------------------------
 C   DRAWS UNIT 8 FILE IN 2D.
 C-----------------------------------------------------------------------
-       SUBROUTINE DRW2D(XAXS,YAXS,PARRY,ERROR,NUM,POINT,PLTR)
+       SUBROUTINE DRW2D(XAXS,YAXS,PARRY,NUM,POINT,PLTR)
        INTEGER PARRY(1999),PTNUM,DOUBLE(1999)
-       INTEGER ERROR,XAXS,YAXS
+       INTEGER XAXS,YAXS
        INTEGER GNUM,SPLPT,SPNUM,NUMPTS,BLKSZE,NVX(2)
        INTEGER ID2D(1999),IDS2D(1999)
        CHARACTER*1 MP(81,251)
@@ -4883,6 +4883,7 @@ C---
         COMMON /SPNUM/ SP1,SP2,SP3,SP4
         COMMON /T3D/ CTIT3C,TIT3C
         DATA WAXIS/'X','Y','Z'/
+        DATA CVIEW/0,0,0/
 C---
 C---
 C---
@@ -5306,7 +5307,7 @@ C---                                    *SAVE PLOT IN UNIT 16
         IF (COMAND.EQ.'SAV'.OR.COMAND.EQ.'sav') THEN
           IWRITE = ISAVE
           CALL CRFLNM(1)
-          CALL SWIND(TRAN,VIEW,MIMA,INFO,IDP2C)
+          CALL SWIND(TRAN,VIEW,INFO,IDP2C)
           CALL PLCHDW(3)
           CALL CRFLNM(2)
           IWRITE = ITERM
@@ -5316,7 +5317,7 @@ C---                                    *SAVE PLOT IN UNIT 16
 C---                                    *PLOTTER
         IF (COMAND.EQ.'PLOT'.OR.COMAND.EQ.'plot') THEN
           PLTR = .TRUE.
-          CALL SWIND(TRAN,VIEW,MIMA,INFO,IDP2C)
+          CALL SWIND(TRAN,VIEW,INFO,IDP2C)
           CALL PLCHDW(3)
           PLTR = .FALSE.
           GO TO 1
@@ -5553,7 +5554,7 @@ C---                                    *RESET CIRCLE
 C---                                    *DISPLAY CURVE
         IF (COMAND.EQ.'DIS'.OR.COMAND.EQ.'dis'.OR.
      +      COMAND.EQ.'D  '.OR.COMAND.EQ.'d  ') THEN
-          CALL SWIND(TRAN,VIEW,MIMA,INFO,IDP2C)
+          CALL SWIND(TRAN,VIEW,INFO,IDP2C)
           CALL PLCHDW(3)
           GO TO 1
         END IF
@@ -5982,12 +5983,12 @@ C---
 C-----------------------------------------------------------------------
 C       DRAWS OUTLINE AND PRINTS TITLE
 C-----------------------------------------------------------------------
-        SUBROUTINE SWIND(TRAN,VIEW,MIMA,INFO,IDP2C)
+        SUBROUTINE SWIND(TRAN,VIEW,INFO,IDP2C)
         INTEGER AX1(8),AY1(8),AZ1(8)
         INTEGER SPLPT,NVX(2)
         REAL TRAN(4,4),VIEW(3),PARA(4,4),MMXYZ(3,2),PARADP(4,4)
         REAL MINQX,MINQY,MINQZ,MAXQX,MAXQY,MAXQZ,ROWIND(4,4)
-        REAL MIMA(3,2),INFO(13,3),IX,IY,MINSX,MAXSX,MINSY,MAXSY
+        REAL INFO(13,3),IX,IY,MINSX,MAXSX,MINSY,MAXSY
         LOGICAL DFDOT,MIDDLE,DIAXIS,ST3D,CIR,DCOOR,PRNUM
         LOGICAL PK,PLTR,POINT
         CHARACTER*1 CH
@@ -6066,7 +6067,7 @@ C---                                   *DIFFERENT VIEWPOINTS
           CALL COPYMA(PARADP,PARA)
           PARADP(3,IDP2C) = PARADP(3,IDP2C) + DIS1 / VIEW(3)
           CALL DICRAV(PARADP,TRAN,INFO)
-          CALL DISP3D(TRAN,PARADP,MIMA)
+          CALL DISP3D(TRAN,PARADP)
           CALL PLCHDW(3)
           WRITE(6,2)
           CALL READ1(CH)
@@ -6074,10 +6075,10 @@ C---                                   *DIFFERENT VIEWPOINTS
           PLTR = PK
           CALL SPAGE
           CALL DICRAV(PARADP,TRAN,INFO)
-          CALL DISP3D(TRAN,PARADP,MIMA)
+          CALL DISP3D(TRAN,PARADP)
         ELSE
           CALL DICRAV(PARA,TRAN,INFO)
-          CALL DISP3D(TRAN,PARA,MIMA)
+          CALL DISP3D(TRAN,PARA)
         END IF
         RETURN
  2      FORMAT(' <RETURN> FOR DIFFERENT VIEW POINT')
@@ -6394,7 +6395,7 @@ C---
             IY = YC(I,2)
             ALFA = ANGXY(I)
             CALL ARROWL(I,IX,IY,ALFA,DA,ANGLE,XC,YC,ICODE)
-            CALL PRTIT3(XC,YC,DA,I,ICODE)
+            CALL PRTIT3(XC,YC,I,ICODE)
  4        CONTINUE
         ELSE IF (MIDDLE) THEN
           P1 = .NOT.P1
@@ -6417,7 +6418,7 @@ C---                                    *PRINT NUMBER
 C-----------------------------------------------------------------------
 C       PRINTS 3 AXES LABELS
 C-----------------------------------------------------------------------
-        SUBROUTINE PRTIT3(XC,YC,DIS,INDX,CODE)
+        SUBROUTINE PRTIT3(XC,YC,INDX,CODE)
         REAL XC(3,4),YC(3,4),IX,IY,MINSX,MAXSX,MINSY,MAXSY
         INTEGER CTIT3C(3),NVX(2),SPLPT,CODE
         CHARACTER*15 TIT3C(3),CHFIF,CHONE*1,CHTWO*2
@@ -7177,10 +7178,10 @@ C-----------------------------------------------------------------------
 C        DISPLAYS THE GRAPH ON THE SCREEN
 C        WITH PARALLEL PROJECTION
 C-----------------------------------------------------------------------
-        SUBROUTINE DISP3D(TRAN,PARA,MIMA)
+        SUBROUTINE DISP3D(TRAN,PARA)
         INTEGER SPLPT,NVX(2),COUNTC
         REAL MINQX,MINQY,MINQZ,MAXQX,MAXQY,MAXQZ
-        REAL TRAN(4,4),PARA(4,4),XS(4),YS(4),XYPT(4,2),MIMA(3,2)
+        REAL TRAN(4,4),PARA(4,4),XS(4),YS(4),XYPT(4,2)
         REAL IX,IY,MINSX,MAXSX,MINSY,MAXSY,PNTS(1999,4)
         LOGICAL PLTR,POINT,SKIP,LINE,CONECT,DASH,B3DC
         CHARACTER*1 MP(81,251)
