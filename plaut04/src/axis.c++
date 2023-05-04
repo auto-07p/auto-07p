@@ -1,3 +1,5 @@
+#include <sstream>
+#include <iomanip>
 #include "gplaut04.h"
 #include "axis.h"
 
@@ -311,15 +313,15 @@ Axis::drawScale(float pos, float scale)
         tkXform->translation.setValue(0, pos, 0.05);
     }
 
-    char strScale[10];
-    sprintf(strScale, "%8.2e", scale);
+    std::stringstream strScale;
+    strScale << std::scientific << std::setprecision(2) << std::setw(8) << scale;
 
 #ifdef TD_FONT
     SoText3 *axScale = new SoText3;
 #else
     SoText2 *axScale = new SoText2;
 #endif
-    axScale->string.setValue(strScale);
+    axScale->string.setValue(strScale.str().c_str());
 
     scaleSep->addChild(tkXform);
     scaleSep->addChild(sclFont);
