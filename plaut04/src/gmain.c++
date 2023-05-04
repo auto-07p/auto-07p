@@ -133,7 +133,7 @@ static SoSeparator * createStarryBackground(int total,float diameter);
 
 static SoSeparator * addLegend();
 
-static SoSeparator * drawStarryBackground(char * bgFileName);
+static SoSeparator * drawStarryBackground(const char * bgFileName);
 
 static int readResourceParameters(const char *dir);
 
@@ -220,9 +220,9 @@ showHelpDialog()
 //
 ////////////////////////////////////////////////////////////////////////
 {
-    char *command = new char [strlen(autoDir) + 50];
-    sprintf(command, "%s%s", autoDir, "/plaut04/doc/userguide.pdf");
-    if (access(command, R_OK) != 0)
+    std::ostringstream command;
+    command << autoDir << "/plaut04/doc/userguide.pdf";
+    if (access(command.str().c_str(), R_OK) != 0)
     {
         system("xmessage 'Sorry, could not find "
             "userguide.pdf' > /dev/null");
@@ -237,9 +237,10 @@ showHelpDialog()
         return;
     }
 
-    sprintf(command, "%s%s%s", "xpdf ",autoDir,"/plaut04/doc/userguide.pdf &");
-    system(command);
-    delete [] command;
+    command.str("");
+    command.clear();
+    command << "xpdf " << autoDir << "/plaut04/doc/userguide.pdf &";
+    system(command.str().c_str());
 }
 
 
@@ -308,10 +309,9 @@ updateScene()
     // create starry background
     if(options[OPT_BACKGROUND])
     {
-        char *bgFileName = new char [strlen(autoDir) + 34];
-        sprintf(bgFileName, "%s%s",autoDir, "/plaut04/widgets/background.jpg");
-        newScene->addChild(drawStarryBackground(bgFileName));
-        delete [] bgFileName;
+        std::ostringstream bgFileName;
+        bgFileName << autoDir << "/plaut04/widgets/background.jpg";
+        newScene->addChild(drawStarryBackground(bgFileName.str().c_str()));
     }
 
     // add legend
@@ -344,7 +344,7 @@ updateScene()
 ////////////////////////////////////////////////////////////////////////
 //
 SoSeparator *
-drawStarryBackground(char * bgFileName)
+drawStarryBackground(const char * bgFileName)
 //
 ////////////////////////////////////////////////////////////////////////
 {
