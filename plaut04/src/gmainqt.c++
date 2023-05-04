@@ -48,7 +48,7 @@
 #define setItemEnabled(i,x) actions()[i]->setEnabled(x)
 #define setItemVisible(i,x) actions()[i]->setVisible(x)
 #define getSaveFileName(dir,filter,parent,name,caption) getSaveFileName(parent,caption,dir,filter)
-#define getOpenFileName(dir,filter,parent) getOpenFileName(parent,QString::null,dir,filter)
+#define getOpenFileName(dir,filter,parent) getOpenFileName(parent,QString(),dir,filter)
 #define KEYSEQUENCE_OPEN QKeySequence::Open
 #define KEYSEQUENCE_SAVE QKeySequence::Save
 #define KEYSEQUENCE_PRINT QKeySequence::Print
@@ -1419,7 +1419,7 @@ MainWindow::MainWindow() : QMainWindow()
 	}
         else if (j < nItems - 1)
 	{
-	    numberP.sprintf("%i", iam);
+	    numberP = QString("%1").arg(QString::number(iam));
 	    iam *= 2;
 	}
 	else
@@ -2378,17 +2378,17 @@ MainWindow::getFileName(int fileMode)
     QString filename; 
 
     if(fileMode == SAVE_ITEM)
-        filename = QFileDialog::getSaveFileName(QString::null,
+        filename = QFileDialog::getSaveFileName(QString(),
                           "Inventor files (*.iv);;Any files (*)",
-                     this, 0, QString::null);
+                     this, 0, QString());
     else if(fileMode == PRINT_ITEM)
-        filename = QFileDialog::getSaveFileName(QString::null,
+        filename = QFileDialog::getSaveFileName(QString(),
 			  "PostScript files (*.ps *.eps);;Any files (*)",
                      this, "print file dialog", "Choose a file to print to" );
     else
-        filename = QFileDialog::getOpenFileName(QString::null,
+        filename = QFileDialog::getOpenFileName(QString(),
                           "AUTO files (b.* s.* d.*);;Any files (*)", this);
-    if(filename == QString::null)
+    if(filename == QString())
         return;
     if(fileMode == SAVE_ITEM)
         writeToFile(filename.toLocal8Bit());
@@ -2680,8 +2680,7 @@ void popupFloquetMultiplierDialog(float data[], int size, int numFM)
 
     for(int i=0; i<size; ++i)
     {
-        QString temp;
-        temp.sprintf("Col[%2d ] = %+E", i+1, data[i]);
+        QString temp = QString::asprintf("Col[%2d ] = %+E", i+1, data[i]);
         str += temp;
         if(size<20 || (size>=20 && (i+1)%2==0)) str += "\n";
         else str += " | ";
@@ -2692,11 +2691,11 @@ void popupFloquetMultiplierDialog(float data[], int size, int numFM)
     {
         QString temp;
         if (fmData[j*2+1] < 0)
-            temp.sprintf(" [%2d] : %E - %Ei\n", j, fmData[j*2], -fmData[j*2+1]);
+            temp = QString::asprintf(" [%2d] : %E - %Ei\n", j, fmData[j*2], -fmData[j*2+1]);
         else if (fmData[j*2+1] > 0)
-            temp.sprintf(" [%2d] : %E + %Ei\n", j, fmData[j*2], fmData[j*2+1]);
+            temp = QString::asprintf(" [%2d] : %E + %Ei\n", j, fmData[j*2], fmData[j*2+1]);
         else
-            temp.sprintf(" [%2d] : %E\n", j, fmData[j*2]);
+            temp = QString::asprintf(" [%2d] : %E\n", j, fmData[j*2]);
         tmpstr += temp;
     }
 

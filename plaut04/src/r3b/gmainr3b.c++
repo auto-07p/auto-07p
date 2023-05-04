@@ -64,6 +64,8 @@ SoSeparator *createR3BPoints(float nodemin[], float nodemax[])
         std::ostringstream txtureFileName;
         txtureFileName << autoDir << "/plaut04/widgets/large.jpg";
         result->addChild(createPrimary(1-mass, pos2, 0.25*largePrimRadius, txtureFileName.str().c_str()));
+        txtureFileName.str("");
+        txtureFileName.clear();
         txtureFileName << autoDir << "/plaut04/widgets/small.jpg";
         result->addChild(createPrimary(mass, pos1, 0.25*smallPrimRadius, txtureFileName.str().c_str()));
     }
