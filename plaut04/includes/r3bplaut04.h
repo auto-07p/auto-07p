@@ -17,7 +17,7 @@
 #define OPT_NORMALIZE_DATA  10
 
 SoSeparator * createR3BPoints(float nodemin[], float nodemax[]);
-SoSeparator * createPrimary(double mass, double pos, float scale, char *txtureFileName);
+SoSeparator * createPrimary(double mass, double pos, float scale, const char *txtureFileName);
 SoSeparator * createLibrationPoint(float mu, float dis, float scale,
 				   int whichCoordSystem);
 void computePrimaryPositionInInertialSystem(int coordSys, float mass, float R, float T, float t,

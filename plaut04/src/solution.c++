@@ -1,5 +1,6 @@
 #include "solution.h"
 
+#include <sstream>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stddef.h>
@@ -2727,12 +2728,13 @@ Solution::createInertialFrameScene(float dis)
             pos1 = 0, pos2= 1;
         else if(whichCoordSystem == INERTIAL_E )
             pos1 = -1, pos2= 0;
-        char *txtureFileName = new char [strlen(autoDir) + 30];
-        sprintf(txtureFileName, "%s%s", autoDir, "/plaut04/widgets/large.rgb");
-        aSep->addChild(createPrimary(1-mass, pos1, 0.25*largePrimRadius, txtureFileName));
-        sprintf(txtureFileName, "%s%s", autoDir, "/plaut04/widgets/small.rgb");
-        aSep->addChild(createPrimary(mass, pos2, 0.25*smallPrimRadius, txtureFileName));
-        delete [] txtureFileName;
+        std::ostringstream txtureFileName;
+        txtureFileName << autoDir << "/plaut04/widgets/large.jpg";
+        aSep->addChild(createPrimary(1-mass, pos1, 0.25*largePrimRadius, txtureFileName.str().c_str()));
+        txtureFileName.str("");
+        txtureFileName.clear();
+        txtureFileName << autoDir << "/plaut04/widgets/small.jpg";
+        aSep->addChild(createPrimary(mass, pos2, 0.25*smallPrimRadius, txtureFileName.str().c_str()));
     }
 
 // create the libration points

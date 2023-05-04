@@ -7,7 +7,7 @@
 //  the mass here for the smaller primary must less than or equal to 0.0;
 //
 SoSeparator *
-createPrimary(double mass, double pos, float scale, char *txtureFileName)
+createPrimary(double mass, double pos, float scale, const char *txtureFileName)
 //
 ////////////////////////////////////////////////////////////////////////
 {
