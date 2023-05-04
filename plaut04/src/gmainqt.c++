@@ -1015,7 +1015,7 @@ MainWindow::buildCenterMenu()
                          SLOT(editMenuRotating()), 0, ROTATING_F);
     pulldown->insertSeparator();
     pulldown->insertItem("Bary &Centered", this,
-                         SLOT(editMenuCentered()), 0, INERTIAL_B);
+                         SLOT(editMenuBary()), 0, INERTIAL_B);
     pulldown->insertItem("&Big Primary Centered", this,
                          SLOT(editMenuBig()), 0, INERTIAL_S);
     pulldown->insertItem("&Small Primary Centered", this,
