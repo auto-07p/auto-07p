@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <sstream>
 #ifdef DEBUG
 using namespace std;
 #include <iostream>
@@ -117,9 +118,9 @@ Bifurcation::drawALabel(int row, float xoffset, long int label)
     }
     labelTranslate->translation.setValue(xyz[0] + xoffset, xyz[1] + yoffset,
                                          xyz[2]);
-    char a[30];
-    sprintf(a, "%ld", label);
-    labelMsg->string.setValue(a);
+    std::ostringstream a;
+    a << label;
+    labelMsg->string.setValue(a.str().c_str());
     result->addChild(labelTranslate);
     result->addChild(labelFont);
     result->addChild(labelMsg);
