@@ -1985,7 +1985,7 @@ C---
 C---
         BLANK = .TRUE.
         K     = 0
-	N     = LEN(LAB)
+        N     = LEN(LAB)
         DO 1 J=1,N
           IF (BLANK) K = K + 1
           IF (LAB(J:J).NE.' ') BLANK = .FALSE.
@@ -2704,11 +2704,11 @@ C---                                    *SAVE GRAPH
      *     ISTR.EQ.'SAV' .OR.ISTR.EQ.'sav' .OR.
      *     ISTR.EQ.'SAVE'.OR.ISTR.EQ.'save' )THEN
          IWRITE = ISAVE
-	 CALL CRFLNM(1)
+         CALL CRFLNM(1)
          CALL SPAGE
          CALL DRW2D(XAXS,YAXS,PARRY,ERROR,NUM,POINT,PLTR)
          CALL PLCHDW(3)
-	 CALL CRFLNM(2)
+         CALL CRFLNM(2)
          IWRITE = ITERM
          CALL COMPLT
          GO TO 1
@@ -5305,10 +5305,10 @@ C---                                    *CHANGE COORDINATES
 C---                                    *SAVE PLOT IN UNIT 16
         IF (COMAND.EQ.'SAV'.OR.COMAND.EQ.'sav') THEN
           IWRITE = ISAVE
-	  CALL CRFLNM(1)
+          CALL CRFLNM(1)
           CALL SWIND(TRAN,VIEW,MIMA,INFO,IDP2C)
           CALL PLCHDW(3)
-	  CALL CRFLNM(2)
+          CALL CRFLNM(2)
           IWRITE = ITERM
           CALL COMPLT
           GO TO 1
@@ -8445,21 +8445,21 @@ C-----------------------------------------------------------------------
          SUBROUTINE CRFLNM(ICODE)
          CHARACTER*20 FLNAME
 C--
-	 GO TO (1, 2) ICODE
- 1	 WRITE(6,*) ' ENTER FILE NAME:'
-	 READ(5,3) FLNAME
-	 IF (FLNAME .EQ.' ') THEN
-	   OPEN(UNIT=16, FILE='fig.1', STATUS='unknown',
+         GO TO (1, 2) ICODE
+ 1       WRITE(6,*) ' ENTER FILE NAME:'
+         READ(5,3) FLNAME
+         IF (FLNAME .EQ.' ') THEN
+           OPEN(UNIT=16, FILE='fig.1', STATUS='unknown',
      +           ACCESS='sequential')
-	 ELSE 
-	   CALL RESLAB(FLNAME)
-	   OPEN(UNIT=16, FILE=FLNAME, STATUS='unknown',
+         ELSE 
+           CALL RESLAB(FLNAME)
+           OPEN(UNIT=16, FILE=FLNAME, STATUS='unknown',
      +          ACCESS='sequential')
-	 END IF
-	 RETURN
+         END IF
+         RETURN
 C--
- 2	 CLOSE(16)
-	 RETURN
+ 2       CLOSE(16)
+         RETURN
 C--
- 3	 FORMAT(A20)
-	 END
+ 3       FORMAT(A20)
+         END

@@ -157,20 +157,20 @@ C---                                    *SAVE COMMAND FOR "BD"
          IF (CHECKB) THEN
            SAVE = .FALSE.
            CALL ASKSVE(SAVE)
-	   IF (SAVE) CALL CRFLNM(1)
+           IF (SAVE) CALL CRFLNM(1)
            CALL BDS(ISTR,I+2,SAVE,ICDS,ICD,SYMBOL)
            CALL PLCHDW(3)
-	   IF (SAVE) CALL CRFLNM(2)
+           IF (SAVE) CALL CRFLNM(2)
            CALL ASKSVE(SAVE)
            CHECKB = .FALSE.
          ELSE IF (CHECKQ) THEN
 C---                                    *SAVE COMMAND FOR "2D"
            IWRITE = ISAVE
-	   IF (SAVE) CALL CRFLNM(1)
+           IF (SAVE) CALL CRFLNM(1)
            CALL SPAGE
            CALL DRW2D(XAXS,YAXS,PARRY,ERROR,NUM,POINT,PLTR)
            CALL PLCHDW(3)
-	   IF (SAVE) CALL CRFLNM(2)
+           IF (SAVE) CALL CRFLNM(2)
             IWRITE = ITERM
            CALL COMPLT
            CHECKQ = .FALSE.
