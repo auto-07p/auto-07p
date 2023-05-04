@@ -224,7 +224,7 @@ int	numFileName;
 int     activeFile;
 int     numParameter;
 int     numDemo;  
-int     nthl,nthu,nuzr,nicp; 
+int     /*nthl,nthu,*/nuzr,nicp;
 char    nthlStr[WX_TEXTLENGTH],nthuStr[WX_TEXTLENGTH],nuzrStr[WX_TEXTLENGTH];
 double  thlValue[2*MAX_NTHL];
 char    thlStrValue[2*MAX_NTHL][WX_TEXTLENGTH];
@@ -615,7 +615,7 @@ int main(int argc,char **argv)
 #endif
 
 {
-  XtAppContext	applContext;
+  /* XtAppContext	applContext; */
   Widget	topLevel,mainWindow;
 
 
@@ -973,9 +973,7 @@ void CreateText(Widget parent)
 {
   Arg		al[10];		/*  arg list		*/
   register int	ac;		/*  arg count		*/
-  register int	i;		/*  counter		*/
-  XFontStruct * newfont;
-  Widget v,h;
+  /* Widget v,h; */
 
   /* create text widget */
 	
@@ -1037,7 +1035,7 @@ void	ConfigInit(Widget parent)
 {
 
   int i,k1,k2;
-  Widget wgt,txtField;
+  Widget txtField;
   char demo[10];
 
   printf("\n");
@@ -1240,7 +1238,7 @@ void	CreateFileMenuDef(Widget menuBar)
 #endif
 
 {
-  Widget                sept;
+  /* Widget                sept; */
   Widget		cascade;	/*  CascadeButton		*/
   Widget		menuPane;	/*  RowColumn	 		*/
   Widget		button;		/*  PushButton			*/
@@ -1518,7 +1516,6 @@ void	CreateEditMenu(Widget menuBar)
 {
   Widget		cascade;	/*  CascadeButton		*/
   Widget		menuPane;	/*  RowColumn	 		*/
-  Widget		button;		/*  PushButton			*/
 
 #if 0
 
@@ -1982,7 +1979,7 @@ void DeletePrimarySelection(Time time)
 
 {
 
-  XClientMessageEvent cm;
+  /* XClientMessageEvent cm; */
 
   /* send a client message to the text widget
      to delete the current selection */
@@ -2015,15 +2012,12 @@ void PasteItemFromClipboard()
   /* retrieve the current data from the clipboard
      and paste it at the current cursor position */
 
-  char * selected_string = XmTextGetSelection (GW.text);
-					      /* containts of selection  */
   int status = 0;			      /* clipboard status	 */
   char *buffer;			      	      /* temporary text buffer 	 */
   unsigned long length;			      /* length of buffer     	 */
   unsigned long outlength = 0;	      	      /* length of bytes copied	 */
   long private_id = 0;			      /* id of item on clipboard */
   XmTextPosition cursorPos;		      /* text cursor position 	 */
-  register int ac;			      /* arg count  	      	 */
   Arg al[10];				      /* arg list	      	 */
 
   /* find the length of the paste item, continue till the length is found */
@@ -2979,7 +2973,7 @@ void	PopupCB1(Widget w,XtPointer userData,XtPointer callbackArg)
 {
      ClientData *tmp;
      char name[10];
-     int i=0,who;
+     int i=0;
      
      tmp = (ClientData *) userData;
 
@@ -3239,7 +3233,7 @@ void	CreateSettingMenu(Widget menuBar)
   Widget setPDPN,setCSCD,lineSEPT;
   Widget probPDPN,probCSCD,probFORM,probPUSH;
   Widget fullPUSH,fullFORM; 
-  Widget accuPDPN,accuCSCD,accuFORM;
+  Widget accuPDPN,accuCSCD;
   Widget tolPDPN,tolCSCD,tolPUSH,tolFORM;
   Widget limPDPN,limCSCD,limPUSH,limFORM;
   Widget stepPDPN,stepCSCD,stepPUSH,stepFORM;
@@ -3252,7 +3246,7 @@ void	CreateSettingMenu(Widget menuBar)
   Widget nmx,rl0,rl1,a0,a1;
   Widget ds,dsmin,dsmax,iads;
   Widget nicp,icp,ilp,isp,isw,mxbf,irs,ips;
-  Widget npr,iid,iplt,nthl,nthu,nuzr,thl,thu,par;
+  Widget npr,iid,iplt,/*nthl,nthu,*/nuzr,thl,thu/*,par*/;
 
   Widget prompt;
 
@@ -4741,7 +4735,7 @@ void   OkFormStepCB(Widget w,XtPointer userData,XtPointer callbackArg)
 {
   String value;
   ClientData *tmp;
-  int i,k1,k2;
+  /* int i,k1,k2; */
 
 #if 0
 
@@ -5291,7 +5285,7 @@ void   OkFormConCB(Widget w,XtPointer userData,XtPointer callbackArg)
 {
   String value;
   ClientData *tmp;
-  int i,k1,k2;
+  /* int i,k1,k2; */
 
 #if 0
 
@@ -5991,7 +5985,7 @@ void   OkFormOutCB(Widget w,XtPointer userData,XtPointer callbackArg)
 {
   String value;
   ClientData *tmp;
-  int i,k1,k2;
+  /*int i,k1,k2;*/
 
 #if 0
 
@@ -6091,7 +6085,10 @@ Widget	CreateFormDefault(Widget parent)
 #endif
 
 {
-  Widget rtrn,rwcl,sept,form,ok,apply,cancel,help,wgt,frame;
+  Widget rtrn,rwcl,ok,apply,cancel,help;
+#if 0
+  Widget sept,form;
+#endif
   static ClientData userData1,userData2;
 
 
@@ -6377,7 +6374,7 @@ void	OkFormDefCB(Widget w,XtPointer userData,XtPointer callbackArg)
 
 {
   String value;
-  int i,k1,k2;
+  int i;
   ClientData *tmp;
 
 #if 0
@@ -7032,7 +7029,8 @@ void	CreateDemoMenu(Widget menuBar)
 #endif
 
 {
-  Widget demoPDPN,demoCSCD,selPUSH,clselPUSH,allPUSH,clallPUSH,lineSEPT;
+  Widget demoPDPN,demoCSCD,selPUSH,clselPUSH;
+  /* Widget allPUSH,clallPUSH,lineSEPT; */
 
   demoPDPN = XmCreatePulldownMenu(menuBar,"DemoPullDown",NULL,0);
 /*
@@ -7640,11 +7638,14 @@ void	CreateMiscMenu(Widget menuBar)
 #endif
 
 {
-  Widget miscPDPN,miscCSCD,filePUSH,tekPUSH,vtPUSH;
+  Widget miscPDPN,miscCSCD,tekPUSH,vtPUSH;
   Widget emacsPDPN,emacsCSCD,enewPUSH,eopenPUSH;
   Widget xeditPDPN,xeditCSCD,xnewPUSH,xopenPUSH;
   Widget lineSEPT,newFile,openFile;
-  Widget readPUSH,readFile,printPUSH;
+#if 0
+  Widget readPUSH,readFile;
+#endif
+  Widget printPUSH;
 
   miscPDPN = XmCreatePulldownMenu(menuBar,"MiscPullDown",NULL,0);
 /*
@@ -7952,7 +7953,7 @@ void	CreateHelpMenu(Widget menuBar)
 #endif
 
 {
-  Widget helpPDPN,helpCSCD,helpPUSH;
+  Widget helpPDPN,helpCSCD;
   Widget parPUSH,manPUSH;
 
   helpPDPN = XmCreatePulldownMenu(menuBar,"HelpPullDown",NULL,0);
@@ -9024,8 +9025,11 @@ Widget PopupThl(Widget parent)
 
 {
    int i,k1,k2;
-   Widget rtrn,wgt,frame,label,rwcl,window,form,ok,apply,cancel,help;
-   Widget rc1,rc2,rc11,rc22,t;
+   Widget rtrn,wgt,frame,label,rwcl,ok,apply,cancel,help;
+   Widget rc1;
+#if 0
+   Widget form,rc2,rc11,rc22,t;
+#endif
    static ClientData userData1,userData2;
 
 
@@ -9585,7 +9589,7 @@ Widget CopyData(Widget parent)
 {
 
    Widget frame,label1,label2,form,ok,cancel,rwcl;
-   Widget rc,rc2,rc11,rc22,t;
+   Widget rc;
    static Widget rtrn;
 
    rtrn = XmCreateFormDialog(parent,"CPrompt",NULL,0);
@@ -9819,7 +9823,7 @@ Widget MoveData(Widget parent)
 {
 
    Widget frame,label1,label2,form,ok,cancel,rwcl;
-   Widget rc,rc2,rc11,rc22,t;
+   Widget rc;
    static Widget rtrn;
 
    rtrn = XmCreateFormDialog(parent,"MPrompt",NULL,0);
@@ -10059,7 +10063,7 @@ Widget AppendData(Widget parent)
 
 
    Widget frame,label1,label2,form,ok,cancel,rwcl;
-   Widget rc,rc2,rc11,rc22,t;
+   Widget rc;
    static Widget rtrn;
 
    rtrn = XmCreateFormDialog(parent,"APrompt",NULL,0);
@@ -10175,9 +10179,12 @@ Widget PopupIcp(Widget parent)
 #endif
 
 {
-   int i,k1,k2;
-   Widget rtrn,wgt,frame,label,rwcl,window,form,ok,apply,cancel,help;
-   Widget rc1,rc2,rc11,rc22,t;
+   int i;
+#if 0
+   int k1,k2;
+#endif
+   Widget rtrn,wgt,frame,label,rwcl,ok,apply,cancel,help;
+   Widget rc1;
    static ClientData userData1,userData2;
 
    rtrn = XmCreateFormDialog(parent,"Prompt",NULL,0);
@@ -10318,8 +10325,11 @@ Widget PopupUzr(Widget parent)
 
 {
    int i,k1,k2;
-   Widget rtrn,wgt,frame,label,rwcl,window,form,ok,apply,cancel,help;
-   Widget rc1,rc2,rc11,rc22,t;
+   Widget rtrn,wgt,frame,label,rwcl,ok,apply,cancel,help;
+   Widget rc1;
+#if 0
+   Widget rc2,rc11,rc22,t;
+#endif
    static ClientData userData1,userData2;
 
    rtrn = XmCreateFormDialog(parent,"Prompt",NULL,0);
@@ -10733,8 +10743,11 @@ Widget PopupThu(Widget parent)
 
 {
    int i,k1,k2;
-   Widget rtrn,wgt,frame,label,rwcl,window,form,ok,apply,cancel,help;
-   Widget rc1,rc2,rc11,rc22,t;
+   Widget rtrn,wgt,frame,label,rwcl,ok,apply,cancel,help;
+   Widget rc1;
+#if 0
+   Widget form,rc2,rc11,rc22,t;
+#endif
    static ClientData userData1,userData2;
 
    rtrn = XmCreateFormDialog(parent,"Prompt",NULL,0);
@@ -11618,7 +11631,7 @@ void   PopupTemplate3
 #endif
 
 {
-  Widget sept,form,rc;
+  Widget sept,rc;
 
   *rwcl = XmCreateRowColumn(parent,"RowColumn",NULL,0);
   XtManageChild(*rwcl);
@@ -11694,7 +11707,7 @@ void   PopupTemplate4(Widget parent,Widget *rwcl,Widget *ok,Widget *cancel)
 #endif
 
 {
-  Widget sept,form,rc;
+  Widget sept,form;
 
   *rwcl = XmCreateRowColumn(parent,"RowColumn",NULL,0);
   XtManageChild(*rwcl);
@@ -11776,7 +11789,8 @@ void   PopupTemplate2(Widget parent,Widget *fm)
 #endif
 
 {
-  Widget sept,form,cancel,help;
+  Widget sept,form,cancel;
+  /* Widget help; */
 
   *fm = XmCreateMainWindow(parent,"MainW",NULL,0);
   XtManageChild(*fm);
@@ -12234,7 +12248,6 @@ void   WriteRfile(char *rfile)
 {
   FILE *fp;
   int c,k1,k2;
-  double tmp;
 
   if( (fp = fopen(rfile,"w")) == NULL) 
     printf("Unable to write file : %s\n",rfile);
@@ -12391,7 +12404,6 @@ void   SetParScreen()
 
 {
   int i,k1,k2;
-  Boolean toggle;
 
   for(i=0; i<MAX_NUZR; i++) {
     if(GP.uzrToggle[i])
@@ -12869,7 +12881,8 @@ void UpdateTime(XtPointer w, XtIntervalId *id)
 #endif
 
 {
-    long  tloc,nextSecond,nextMinute;
+    long  tloc,nextMinute;
+    /* long nextSecond; */
    
     time(&tloc); 
     Wprintf(w, "%s", ctime(&tloc));
