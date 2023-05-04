@@ -1914,9 +1914,8 @@ bool Solution::read(const char* sFileName, int varIndices[])
             orbitCounter++;
         }
 
-        while(fgetc(inFile)!='\n');
-        {
-            {
+        while(fgetc(inFile)!='\n') {}
+
                 for(i=0; i<ntpl; ++i)
                 {
                     ++(totalNumPoints_);
@@ -1967,8 +1966,7 @@ bool Solution::read(const char* sFileName, int varIndices[])
                         }
                     }
                 }
-            }
-        }
+
         if( ntpl != 0) 
             counter++;
     }
