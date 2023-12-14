@@ -7,6 +7,10 @@
 #include <ctype.h>
 #include <math.h>
 
+#ifdef DEBUG
+#include <iostream>
+#endif
+
 #include "gplaut04.h"
 #include "createCoords.h"
 #include "tube.h"
@@ -2026,9 +2030,9 @@ Solution::normalizeData()
     int np = numOrbits_;
 
 #ifdef DEBUG
-    cout <<" Max sol 0 :" <<max_[0]<<" Min "<<min_[0]<<endl;
-    cout <<" Max sol 1 :" <<max_[1]<<" Min "<<min_[1]<<endl;
-    cout <<" Max sol 2 :" <<max_[2]<<" Min "<<min_[2]<<endl;
+    std::cout <<" Max sol 0 :" <<max_[0]<<" Min "<<min_[0]<<std::endl;
+    std::cout <<" Max sol 1 :" <<max_[1]<<" Min "<<min_[1]<<std::endl;
+    std::cout <<" Max sol 2 :" <<max_[2]<<" Min "<<min_[2]<<std::endl;
 #endif
     double div[3], con[3];
     for(int k=0; k<3; k++)
