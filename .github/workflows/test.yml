@@ -41,7 +41,7 @@ jobs:
         pyenv install 2.7.18
         pyenv global 2.7.18
         PATH=$(pyenv root)/shims:$PATH
-        pip install matplotlib
+        pip install numpy==1.16.6 matplotlib
         pip3 install matplotlib
     - name: Install packages for Ubuntu 20.04 only
       if: matrix.os == 'ubuntu-20.04'
