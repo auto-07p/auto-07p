@@ -156,7 +156,7 @@ class fileS(object):
             fdata = []
             if "D".encode("ascii") not in data:
                 fdata = fromstring(data, dtype=float, sep=' ')
-            if fdata == [] or len(fdata) != total:
+            if fdata.tolist() == [] or len(fdata) != total:
                 fdata = N.array(map(parseB.AUTOatof,
                                     data.split()), 'd')
             else:
