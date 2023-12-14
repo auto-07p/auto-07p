@@ -65,6 +65,9 @@ jobs:
         make -C doc auto.pdf ../plaut04/doc/userguide.pdf
     - name: Run test (python2)
       run: |
+        if [ "$RUNNER_OS" == "macOS" ]; then
+          PATH=$(pyenv root)/shims:$PATH
+        fi
         export OMPI_MCA_btl="^openib"
         cd test
         python2 ../python/auto all.auto
