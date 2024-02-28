@@ -1798,25 +1798,31 @@ CONTAINS
     INTEGER, INTENT(IN) :: ITEST
     CHARACTER(LEN=*), INTENT(OUT) :: ATYPE
 
-    Q=FNCSBV(AP,ICP,UPS,NDIM,PAR,ITEST,ATYPE)
-    IF(ITEST==3)THEN
-        Q=FNSPBV(AP,PAR,ATYPE,P0,P1,EV)
-    ENDIF
+    SELECT CASE(ITEST)
+    CASE(0)
+       IF(ALLOCATED(P0))THEN
+          ! compute Floquet multipliers before calling PVLS
+          CALL PVSPBV(AP,PAR,P0,P1,EV)
+       ENDIF
+       Q=FNCSBV(AP,ICP,UPS,NDIM,PAR,ITEST,ATYPE)
+    CASE(1:2)
+       Q=FNCSBV(AP,ICP,UPS,NDIM,PAR,ITEST,ATYPE)
+    CASE(3)
+       Q=FNSPBV(AP,PAR,ATYPE,EV)
+    END SELECT
   END FUNCTION FNCSPS
 
-! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNSPBV(AP,PAR,ATYPE,P0,P1,EV)
+! ---------- ------
+  SUBROUTINE PVSPBV(AP,PAR,P0,P1,EV)
 
     USE FLOQUET
     USE SUPPORT, ONLY: PI, LBTYPE, CHECKSP, NULLVC
 
-! This function returns a quantity that changes sign when a complex
-! pair of eigenvalues of the linearized Poincare map moves in or out
-! of the unit circle or when a real eigenvalues passes through -1.
+! This subroutine determines and prints Floquet multipliers and
+! stability, which can then be used by PVLS
 
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
-    CHARACTER(LEN=*), INTENT(OUT) :: ATYPE
     DOUBLE PRECISION, INTENT(IN) :: P0(AP%NDIM,*),P1(AP%NDIM,*)
     COMPLEX(KIND(1.0D0)), INTENT(INOUT) :: EV(*)
 
@@ -1826,6 +1832,7 @@ CONTAINS
     DOUBLE PRECISION D,AMIN,AZM1,AZINS,tol,V,THETA
     DOUBLE PRECISION, ALLOCATABLE :: Q0(:,:),Q1(:,:),U(:)
     INTEGER, ALLOCATABLE :: IC(:),IR(:),IRPIV(:)
+    CHARACTER(LEN=4) :: ATYPE
 
     NDIM=AP%NDIM
     NDM=AP%NDM
@@ -1838,10 +1845,8 @@ CONTAINS
 
 ! Initialize.
 
-    FNSPBV=0.d0
-    AP%SPBF=FNSPBV
+    AP%SPBF=0.d0
     D=0.d0
-    ATYPE=''
 
     IF(ISP==0)RETURN
 
@@ -2058,15 +2063,8 @@ CONTAINS
        ENDIF
     ENDIF
     IF( LEN_TRIM(ATYPE)>0 .AND. IID>=2 ) WRITE(9,103)ABS(IBR),NTOP+1,D
-    FNSPBV=D
-    AP%SPBF=FNSPBV
-
-    NINS=AP%NINS
-    IF(LEN_TRIM(ATYPE)>0)THEN
-       IF(NINS1==NINS.AND.AP%ITPST/=8)ATYPE=TRIM(ATYPE)//'0'
-    ENDIF
-    NINS=NINS1
-    AP%NINS=NINS
+    AP%SPBF=D
+    AP%NINS=NINS1
 
     IF(IID>0)THEN
 ! Print the Floquet multipliers.
@@ -2087,6 +2085,36 @@ CONTAINS
 104 FORMAT(I4,I6,9X,'Multipliers:     Stable:',I4)
 105 FORMAT(I4,I6,9X,'Multiplier',I3,1X,2ES14.5, &
          '  Abs. Val.',ES14.5)
+
+  END SUBROUTINE PVSPBV
+
+! ------ --------- -------- ------
+  DOUBLE PRECISION FUNCTION FNSPBV(AP,PAR,ATYPE,EV)
+
+! This function returns a quantity that changes sign when a complex
+! pair of eigenvalues of the linearized Poincare map moves in or out
+! of the unit circle or when a real eigenvalues passes through -1.
+
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
+    CHARACTER(LEN=*), INTENT(OUT) :: ATYPE
+    COMPLEX(KIND(1.0D0)), INTENT(IN) :: EV(*)
+
+    ! Local
+    DOUBLE PRECISION :: THETA
+    INTEGER, SAVE :: NINS
+
+    IF(AP%ISP==0)RETURN
+
+    ATYPE=TPSPBV(AP%NDM,AP%EPSS,AP%ITPST,PAR,AP%NPAR,EV,THETA)
+
+    IF(CHECKSP(ATYPE,AP%IPS,AP%ILP,AP%ISP))THEN
+       IF(AP%NINS==NINS.AND.AP%ITPST/=8)ATYPE=TRIM(ATYPE)//'0'
+    ELSE
+       ATYPE=''
+    ENDIF
+    NINS=AP%NINS
+    FNSPBV=AP%SPBF
 
   END FUNCTION FNSPBV
 
