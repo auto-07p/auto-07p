@@ -402,7 +402,7 @@ CONTAINS
     DOUBLE PRECISION, INTENT(OUT) :: TMNEW(0:NNEW)
 ! Local
     INTEGER J,J1
-    DOUBLE PRECISION DAL,UNEQ
+    DOUBLE PRECISION DAL,UNEQ,X1,X2
     DOUBLE PRECISION, ALLOCATABLE :: EQF(:),DEQF(:)
     ALLOCATE(EQF(0:NOLD),DEQF(NOLD))
 
@@ -432,7 +432,14 @@ CONTAINS
           J=J+1
        ENDDO
        J=J-1
-       TMNEW(J1)=TMOLD(J)+(UNEQ-EQF(J))/DEQF(J+1)
+       X1=UNEQ-EQF(J)
+       X2=EQF(J+1)-UNEQ
+       IF(X1<=X2)THEN
+          TMNEW(J1)=TMOLD(J)+X1/DEQF(J+1)
+       ELSE
+          ! More accurate FP rounding for UNEQ closer to EQF(J+1)
+          TMNEW(J1)=TMOLD(J+1)-X2/DEQF(J+1)
+       ENDIF
     ENDDO
 
     TMNEW(NNEW)=TMOLD(NOLD)
