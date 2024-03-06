@@ -217,7 +217,7 @@ class AUTOInteractiveConsole(AUTOInteractive,code.InteractiveConsole):
             except ValueError:
                 #print "split failed for line '%s'" % line  # dbg
                 iFun,theRest = line,''
-            pre = re.match('^(\s*)(.*)',line).groups()[0]
+            pre = re.match(r'^(\s*)(.*)',line).groups()[0]
         else:
             pre,iFun,theRest = lsplit.groups()
 
@@ -370,9 +370,9 @@ def _testFilename(inputname,outputname):
     log.close()
     os.chdir(old_path)
     cmd = ["diff","-b",
-           "--ignore-matching-lines='.*ab\.o.*'",
-           "--ignore-matching-lines='.*cir\.o.*'",
-           "--ignore-matching-lines='.*wav\.o.*'",
+           "--ignore-matching-lines='.*ab\\.o.*'",
+           "--ignore-matching-lines='.*cir\\.o.*'",
+           "--ignore-matching-lines='.*wav\\.o.*'",
            "--ignore-matching-lines='   [0-9][0-9 ]  .*'",
            "--ignore-matching-lines='Finished running:.*'",
            "--ignore-matching-lines='.*Location of special point.*'",
@@ -436,7 +436,7 @@ def autoipython(funcs):
         else:
             cfg.PromptManager.in_template="AUTO In [\\#]: "
             cfg.PromptManager.in2_template="AUTO    .\\D.: "
-            cfg.PromptManager.out_template="Out[\#]: "
+            cfg.PromptManager.out_template="Out[\\#]: "
         cfg.InteractiveShell.confirm_exit = False
         cfg.InteractiveShell.autocall = 2
         cfg.InteractiveShell.banner2 ="""
@@ -461,7 +461,7 @@ man     -> List of AUTO CLUI commands"""
 
     args = ['-pi1','AUTO In [\\#]: ',
             '-pi2','AUTO    .\\D.: ',
-            '-po','Out[\#]: ',
+            '-po','Out[\\#]: ',
             '-noconfirm_exit',
             '-autocall','2']
 

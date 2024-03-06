@@ -81,13 +81,13 @@ class parseD(UserList):
                     break
                 if sp[0:4] == ['BR', 'PT', 'TY', 'LAB']:
                     labline = 1
-            result = re.findall("Eigenvalue\s.*",solution)
+            result = re.findall(r"Eigenvalue\s.*",solution)
             for eigenvalue_string in result:
                 eigenvalue_string = eigenvalue_string.split()
                 real_part = parseB.AUTOatof(eigenvalue_string[2])
                 imag_part = parseB.AUTOatof(eigenvalue_string[3])
                 item["Eigenvalues"].append([real_part,imag_part])
-            result = re.findall("Multiplier\s.*",solution)
+            result = re.findall(r"Multiplier\s.*",solution)
             for multiplier_string in result:
                 multiplier_string = multiplier_string.split()
                 # "inaccurate" or "accurate"
