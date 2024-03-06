@@ -94,7 +94,6 @@ int stpnt (integer ndim, double t, double *u, double *par)
 int pvls (integer ndim, const double *u, double *par)
 {
   integer tmp;
-  extern double getp();
   double x, y, z;
   double xp, yp, zp;
   double mu;
@@ -119,12 +118,19 @@ int pvls (integer ndim, const double *u, double *par)
 }
 /* ---------------------------------------------------------------------- */
 /* ---------------------------------------------------------------------- */
-int bcnd () { return 0; }
+int bcnd(integer ndim, const doublereal *par, const integer *icp, integer nbc,
+	 const doublereal *u0, const doublereal *u1, integer ijac,
+	 doublereal *f, doublereal *dbc) { return 0; }
 /* ---------------------------------------------------------------------- */
 /* ---------------------------------------------------------------------- */
-int icnd () { return 0; } 
+int icnd(integer ndim, const doublereal *par, const integer *icp, integer nint,
+	 const doublereal *u, const doublereal *uold, const doublereal *udot,
+	 const doublereal *upold, integer ijac,
+	 doublereal *fi, doublereal *dint) { return 0; }
 /* ---------------------------------------------------------------------- */
 /* ---------------------------------------------------------------------- */
-int fopt() { return 0; }
+int fopt(integer ndim, const doublereal *u, const integer *icp,
+	 const doublereal *par, integer ijac,
+	 doublereal *fs, doublereal *dfdu, doublereal *dfdp) { return 0; }
 /* ---------------------------------------------------------------------- */
 /* ---------------------------------------------------------------------- */
