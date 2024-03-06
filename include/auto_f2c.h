@@ -74,12 +74,22 @@ extern const user_function_list user;
 extern doublereal getp(const char *code, integer ic, const doublereal *u);
 
 /* user functions */
-static int func();
-static int stpnt();
-static int bcnd();
-static int icnd();
-static int fopt();
-static int pvls();
+static int func(integer ndim, const doublereal *u, const integer *icp,
+	 const doublereal *par, integer ijac,
+	 doublereal *f, doublereal *dfdu, doublereal *dfdp);
+static int stpnt(integer ndim, doublereal t,
+	  doublereal *u, doublereal *par);
+static int bcnd(integer ndim, const doublereal *par, const integer *icp, integer nbc,
+	 const doublereal *u0, const doublereal *u1, integer ijac,
+	 doublereal *f, doublereal *dbc);
+static int icnd(integer ndim, const doublereal *par, const integer *icp, integer nint,
+	 const doublereal *u, const doublereal *uold, const doublereal *udot,
+	 const doublereal *upold, integer ijac,
+	 doublereal *fi, doublereal *dint);
+static int fopt(integer ndim, const doublereal *u, const integer *icp,
+	 const doublereal *par, integer ijac,
+	 doublereal *fs, doublereal *dfdu, doublereal *dfdp);
+static int pvls(integer ndim, const doublereal *u, doublereal *par);
 const user_function_list user = { func, stpnt, bcnd, icnd, fopt, pvls };
 
 #endif
