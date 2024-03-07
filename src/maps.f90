@@ -293,7 +293,9 @@ CONTAINS
     SELECT CASE(ITEST)
     CASE(0)
        ! compute eigenvalues before calling PVLS
-       CALL PVLSDS(AP,PAR,AA,RIMHB)
+       IF(ALLOCATED(AA))THEN
+          CALL PVLSDS(AP,PAR,AA,RIMHB)
+       ENDIF
        Q=FNCSAEF(AP,ICP,U,NDIM,PAR,ITEST,ATYPE,FNDS)
     CASE(4)
        Q=FNRNDS(AP,ATYPE,U,AA)

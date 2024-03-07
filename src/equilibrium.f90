@@ -367,7 +367,9 @@ CONTAINS
           ENDIF
        ENDIF
        ! compute eigenvalues before calling PVLS
-       CALL PVLSAE(AP,PAR,AA)
+       IF(ALLOCATED(AA))THEN
+          CALL PVLSAE(AP,PAR,AA)
+       ENDIF
        Q=FNCSAEF(AP,ICP,U,NDIM,PAR,ITEST,ATYPE,FUNI)
     CASE(1:3)
        Q=FNCSAEF(AP,ICP,U,NDIM,PAR,ITEST,ATYPE,FUNI)
