@@ -1828,7 +1828,7 @@ CONTAINS
 
 ! Local
     COMPLEX(KIND(1.0D0)) ZINS,ZTMP
-    INTEGER ISP,ISW,IID,IBR,NTOT,NTOP,I,J,L,LOC,NINS,NINS1,NDIM,NDM,ITMP,SKIP
+    INTEGER ISP,ISW,IID,IBR,NTOT,NTOP,I,J,L,LOC,NINS,NDIM,NDM,ITMP,SKIP
     DOUBLE PRECISION D,AMIN,AZM1,AZINS,tol,V,THETA
     DOUBLE PRECISION, ALLOCATABLE :: Q0(:,:),Q1(:,:),U(:)
     INTEGER, ALLOCATABLE :: IC(:),IR(:),IRPIV(:)
@@ -1993,8 +1993,7 @@ CONTAINS
 
     AMIN= ABS( EV(1) - 1.d0 )
     IF(AMIN>5.0D-2 .AND. LEN_TRIM(ATYPE)>0) THEN
-       NINS=0
-       AP%NINS=NINS
+       AP%NINS=0
        ISP=-ISP
        AP%ISP=ISP
        IF(IID>0)THEN
@@ -2002,7 +2001,7 @@ CONTAINS
           DO I=1,NDM
              WRITE(9,105)ABS(IBR),NTOP+1,I,EV(I)
           ENDDO
-          WRITE(9,104)ABS(IBR),NTOP+1,NINS
+          WRITE(9,104)ABS(IBR),NTOP+1,AP%NINS
        ENDIF
        RETURN
     ENDIF
@@ -2031,11 +2030,11 @@ CONTAINS
 ! Use, for example, tol=1d-3 for conservative systems.
     tol=1.d-5
 
-    NINS1=1
+    NINS=1
     IF(NDM>1) THEN
        DO I=2,NDM
           IF(EV(I)==CMPLX( HUGE(1.0D0), HUGE(1.0D0), KIND(1.0D0) ))CYCLE
-          IF( ABS(EV(I)).LE.(1.d0+tol))NINS1=NINS1+1
+          IF( ABS(EV(I)).LE.(1.d0+tol))NINS=NINS+1
        ENDDO
        IF(LEN_TRIM(ATYPE)>0)THEN
           IF(ISW.EQ.2)THEN
@@ -2064,7 +2063,7 @@ CONTAINS
     ENDIF
     IF( LEN_TRIM(ATYPE)>0 .AND. IID>=2 ) WRITE(9,103)ABS(IBR),NTOP+1,D
     AP%SPBF=D
-    AP%NINS=NINS1
+    AP%NINS=NINS
 
     IF(IID>0)THEN
 ! Print the Floquet multipliers.
