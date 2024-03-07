@@ -61,7 +61,7 @@ CONTAINS
     INTEGER NDIM,IPS,IRS,ILP,IADS,ISP,ISW,NUZR,MXBF,NBIFS,NBFCS,ITPST
     INTEGER ITNW,ITP,I,ITEST,NINS,NBIF,NBFC,NODIR,NIT,NTOT,NTOP
     INTEGER NDM,IFOUND,ISTEPPED
-    DOUBLE PRECISION DS,DSMAX,RDS,DSTEST,TMP
+    DOUBLE PRECISION DS,DSMAX,RDS,DSTEST
     LOGICAL ISTOP,STEPPED
     INTEGER STOPCNTS(-9:14)
     CHARACTER(4) ATYPE,ATYPEDUM
@@ -159,10 +159,6 @@ CONTAINS
        ELSEIF(ABS(IPS)==1.OR.IPS==11)THEN
           CALL STPRAE(AP,PAR,ICP,FUNI,U,UDOT,THU,-1,AA)
        ENDIF
-       IF(ABS(IPS)==1.OR.IPS==11)THEN
-          ! Get stability
-          TMP=FNCI(AP,ICP,U,NDIM,PAR,6,ATYPEDUM)
-       ENDIF
 
 ! Store plotting data for first point on the bifurcating branch
 ! or for the starting point
@@ -175,15 +171,10 @@ CONTAINS
 ! Provide initial approximation to the second point on the branch and
 ! determine the second point on the bifurcating or original branch
           CALL STEPAE(AP,PAR,ICP,FUNI,RDS,AA,U,UDOT,THU,NIT,ISW<0)
-          IF(NIT>0)CALL PVLI(AP,ICP,U,NDIM,PAR,FNCI)
+          CALL PVLI(AP,ICP,U,NDIM,PAR,FNCI)
 
           IF(ISW<0.OR.NIT==0)THEN
-             IF(ABS(IPS)==1.OR.IPS==11)THEN
-                ! Get stability
-                TMP=FNCI(AP,ICP,U,NDIM,PAR,6,ATYPEDUM)
-             ENDIF
              ! Store plotting data for second point :
-             CALL PVLI(AP,ICP,U,NDIM,PAR,FNCI)
              CALL STPLAE(AP,PAR,ICP,ICU,U,UDOT,NIT,ISTOP)
           ENDIF
        ENDIF

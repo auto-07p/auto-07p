@@ -366,6 +366,8 @@ CONTAINS
              PAR(11)=PI(2.d0)/SQRT(KAPPA)
           ENDIF
        ENDIF
+       ! compute eigenvalues before calling PVLS
+       CALL PVLSAE(AP,PAR,AA)
        Q=FNCSAEF(AP,ICP,U,NDIM,PAR,ITEST,ATYPE,FUNI)
     CASE(1:3)
        Q=FNCSAEF(AP,ICP,U,NDIM,PAR,ITEST,ATYPE,FUNI)
@@ -374,7 +376,7 @@ CONTAINS
     CASE(5) ! Check for generalized Hopf (Bautin)
        Q=FNGHEQ(AP,PAR,ICP,ATYPE,FUNI,U,AA)
     CASE(6) ! Check for Hopf or Zero-Hopf
-       Q=FNHBEQ(AP,PAR,ATYPE,AA)
+       Q=FNHBEQ(AP,ATYPE)
     END SELECT
 
   END FUNCTION FNCSEQF
@@ -510,20 +512,20 @@ CONTAINS
     ENDDO
   END SUBROUTINE STABEQ
 
-! ------ --------- -------- ------
-  DOUBLE PRECISION FUNCTION FNHBEQ(AP,PAR,ATYPE,AA)
+! ---------- ------
+  SUBROUTINE PVLSAE(AP,PAR,AA)
 
     USE SUPPORT, ONLY: PI, EVV, EIG, CHECKSP, LBTYPE
 
     TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
     DOUBLE PRECISION, INTENT(INOUT) :: PAR(*)
-    CHARACTER(LEN=*), INTENT(OUT) :: ATYPE
     DOUBLE PRECISION, INTENT(IN) :: AA(AP%NDIM+1,AP%NDIM+1)
 ! Local
     COMPLEX(KIND(1.0D0)), ALLOCATABLE :: EV(:)
     DOUBLE PRECISION, ALLOCATABLE :: AAA(:,:)
     INTEGER NDM,ISP,IID,IBR,NTOT,NTOP,NINS,LOC,ITPST
     DOUBLE PRECISION RIMHB,REV
+    CHARACTER(LEN=2) ATYPE
 
     NDM=AP%NDM
     ISP=AP%ISP
@@ -536,7 +538,6 @@ CONTAINS
 
 ! INITIALIZE
 
-    FNHBEQ=0d0
     ATYPE=''
 
 ! Compute the eigenvalues of the Jacobian
@@ -572,13 +573,52 @@ CONTAINS
     ELSEIF(ITPST==2.OR.ITPST==3)THEN
        ATYPE='ZH' ! Check for Zero-Hopf
     ENDIF
+    IF(CHECKSP(ATYPE,AP%IPS,AP%ILP,ISP))THEN
+       IF(IID>=2)WRITE(9,101)ABS(IBR),NTOP+1,REV
+    ELSE
+       REV=0.d0
+    ENDIF
+    AP%HBFF=REV
+100 AP%NINS=NINS
+    CALL PRINTEIG(AP)
+    DEALLOCATE(EV)
+
+101 FORMAT(I4,I6,9X,'Hopf Function:',ES14.5)
+
+  END SUBROUTINE PVLSAE
+
+! ------ --------- -------- ------
+  DOUBLE PRECISION FUNCTION FNHBEQ(AP,ATYPE)
+
+    USE SUPPORT, ONLY: CHECKSP
+
+    TYPE(AUTOPARAMETERS), INTENT(INOUT) :: AP
+    CHARACTER(LEN=*), INTENT(OUT) :: ATYPE
+    ! Local
+    INTEGER ISP,ITPST
+    INTEGER, SAVE :: NINS ! no Hopf bif if no change in NINS
+
+    ISP=AP%ISP
+    ITPST=AP%ITPST
+
+! INITIALIZE
+
+    FNHBEQ=0d0
+    ATYPE=''
+
+    ! do not detect special bifs on BP curves or if BT already detected
+    IF(ITPST==1.OR.MOD(AP%ITP,10)==-1)GOTO 100
+
+    IF(ITPST==0)THEN
+       ATYPE='HB'
+    ELSEIF(ITPST==2.OR.ITPST==3)THEN
+       ATYPE='ZH' ! Check for Zero-Hopf
+    ENDIF
     IF(.NOT.CHECKSP(ATYPE,AP%IPS,AP%ILP,ISP))THEN
        ATYPE=''
     ELSE
-       FNHBEQ=REV
-       IF(IID>=2)WRITE(9,101)ABS(IBR),NTOP+1,FNHBEQ
+       FNHBEQ=AP%HBFF
     ENDIF
-    AP%HBFF=FNHBEQ
     IF(LEN_TRIM(ATYPE)>0)THEN
        IF(ITPST==3)THEN ! detect zero on Zero-Hopf
           IF(NINS==AP%NINS)ATYPE(3:3)='0'
@@ -586,11 +626,7 @@ CONTAINS
           IF(ABS(NINS-AP%NINS)<2)ATYPE(3:3)='0'
        ENDIF
     ENDIF
-100 AP%NINS=NINS
-    CALL PRINTEIG(AP)
-    DEALLOCATE(EV)
-
-101 FORMAT(I4,I6,9X,'Hopf Function:',ES14.5)
+100 NINS=AP%NINS
 
   END FUNCTION FNHBEQ
 
