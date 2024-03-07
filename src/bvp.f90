@@ -273,16 +273,17 @@ CONTAINS
             RLCUR,RLOLD,RLDOT,NDIM,UPS,UOLDPS,UDOTPS,UPOLDP, &
             TM,DTM,P0,P1,THL,THU,NITPS,ISTOP,NTSTNA)
 
+       IF(IAM==0)THEN
+          CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
+          IF(IID.GE.2)WRITE(9,*)
+       ENDIF
+
        IFOUND=0
        DSTEST=DSOLD
        IF(ISTOP/=0)THEN
           ISTEPPED=AP%NTEST+1
        ELSE
           ISTEPPED=0
-          IF(IAM==0)THEN
-             CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
-             IF(IID.GE.2)WRITE(9,*)
-          ENDIF
           DO ITEST=1,AP%NTEST
              ! Check for special points
              CALL LCSPBV(AP,DSOLD,DSTEST,PAR,ICP,ITEST,FUNI,BCNI,ICNI,FNCI, &
@@ -320,7 +321,6 @@ CONTAINS
 ! Store plotting data.
 
        CALL MPIBCAST1I(ISTOP)
-       IF(IAM==0)CALL PVLI(AP,ICP,UPS,NDIM,PAR,FNCI)
        CALL STPLBV(AP,PAR,ICP,ICU,RLDOT,NDIM,UPS,UDOTPS,TM,DTM,THU,ISTOP,NA)
 
        IF(ISTOP/=0)EXIT

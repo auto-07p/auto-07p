@@ -188,9 +188,7 @@ CONTAINS
 ! Find the next solution point on the branch
           CALL STEPAE(AP,PAR,ICP,FUNI,RDS,AA,U,UDOT,THU,NIT)
           ISTOP=NIT==0
-          IF(.NOT.ISTOP)THEN
-             CALL PVLI(AP,ICP,U,NDIM,PAR,FNCI)
-          ENDIF
+          CALL PVLI(AP,ICP,U,NDIM,PAR,FNCI)
           DSTEST=RDS
 
           IFOUND=0
@@ -235,7 +233,6 @@ CONTAINS
 ! Store plotting data on unit 7 :
 
           NTOT=AP%NTOT
-          CALL PVLI(AP,ICP,U,NDIM,PAR,FNCI)
           CALL STPLAE(AP,PAR,ICP,ICU,U,UDOT,NIT,ISTOP)
 
 ! Adapt the stepsize along the branch
