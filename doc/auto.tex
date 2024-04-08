@@ -346,15 +346,15 @@ You can use Homebrew, see \url{https://brew.sh/}, to install most
 dependencies:
 \begin{itemize}
 \item Gfortran: \filef{brew install gfortran}
-\item Python: \filef{brew install python-tk; pip3 install matplotlib}
+\item Python: \filef{brew install python-tk; brew install python-matplotlib}
 \item {\cal PLAUT04}: \filef{brew install cmake qt@5 coin3d; brew link qt@5 --force}\\
 You will then need to compile SoQt from source using a tarball available at
 \url{https://github.com/coin3d/soqt/releases}, for example:\\
 {\small \begin{boxedverbatim}
 export PATH="/usr/local/opt/qt@5/bin:$PATH"
 curl -O -L \
-  https://github.com/coin3d/soqt/releases/download/SoQt-1.6.0/soqt-1.6.0-src.tar.gz
-tar xf soqt-1.6.0-src.tar.gz
+  https://github.com/coin3d/soqt/releases/download/v1.6.2/soqt-1.6.2-src.tar.gz
+tar xf soqt-1.6.2-src.tar.gz
 cd soqt/build
 cmake ..
 make
