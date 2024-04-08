@@ -29,21 +29,21 @@ jobs:
         brew install cmake qt@5 openmotif open-mpi coin3d
         brew link qt@5 --force
         export PATH="/usr/local/opt/qt@5/bin:$PATH"
-        curl -O -L https://github.com/coin3d/soqt/releases/download/SoQt-1.6.0/soqt-1.6.0-src.tar.gz
-        tar xf soqt-1.6.0-src.tar.gz
+        curl -O -L https://github.com/coin3d/soqt/releases/download/v1.6.2/soqt-1.6.2-src.tar.gz
+        tar xf soqt-1.6.2-src.tar.gz
         cd soqt/build
         cmake ..
         make -j3
         sudo make install
         brew install basictex fig2dev
         brew install python-tk
+        brew install python-matplotlib
         brew install pyenv
         pyenv install 2.7.18
         pyenv global 2.7.18
         PATH=$(pyenv root)/shims:$PATH
         pip install numpy==1.16.6
         pip install matplotlib
-        pip3 install matplotlib
     - name: Install packages for Ubuntu 20.04 only
       if: matrix.os == 'ubuntu-20.04'
       run: sudo apt-get install python-numpy
