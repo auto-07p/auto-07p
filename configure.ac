@@ -1,4 +1,5 @@
-AC_INIT(plaut04/src/gmain.c++)
+AC_INIT
+AC_CONFIG_SRCDIR([plaut04/src/gmain.c++])
 
 AC_ARG_VAR(FC, [Choose a Fortran (>=90) compiler other than the default])
 AC_ARG_VAR(MPIFC, [Command to use to compile MPI programs (default:  mpif90)])
@@ -125,8 +126,6 @@ AC_PATH_XTRA
 AC_CHECK_LIB(Xm,XmCreateMainWindow,X_LIBS="$X_LIBS -lXm -lXt -lX11",
              no_x=yes,$X_PRE_LIBS $X_LIBS -lXt -lX11 $X_EXTRA_LIBS)
 
-dnl Checks for header files.
-AC_HEADER_STDC
 AC_SUBST(FFLAGS)
 CFLAGS="$CPPFLAGS $CFLAGS"
 
@@ -144,7 +143,8 @@ else
 fi
 AC_SUBST(GUI)
 
-dnl AC_HAVE_LIBRARY([m])
+dnl AC_CHECK_LIB([m],[main],[],[],[])ac_cv_lib_m=ac_cv_lib_m_main
+
 
 AC_PROG_CXX
 AC_LANG(C++)
@@ -365,7 +365,8 @@ AC_SUBST(SOXT_OBJS_R3B)
 
 AC_SUBST(DEPS_LIBS)
 AC_SUBST(DEPS_INCLUDES)
-AC_OUTPUT(Makefile src/Makefile util/Makefile gui/Makefile plaut/Makefile plaut04/Makefile plaut04/src/Makefile cmds/cmds.make cmds/Makefile gui/auto.makefile)
+AC_CONFIG_FILES([Makefile src/Makefile util/Makefile gui/Makefile plaut/Makefile plaut04/Makefile plaut04/src/Makefile cmds/cmds.make cmds/Makefile gui/auto.makefile])
+AC_OUTPUT
 
 if test x$no_x = xyes && test x$ENABLE_GUI = xyes; then
   echo "***************************************************"
