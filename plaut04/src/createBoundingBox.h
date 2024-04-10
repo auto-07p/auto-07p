@@ -5,7 +5,7 @@
 #include <Inventor/SbLinear.h>
 
 SoSeparator *
-drawLine(SbVec3f pointS, SbVec3f pointE, SbVec3f color, float thickness, bool ticker, bool text, int dir);
+drawLine(SbVec3f pointS, SbVec3f pointE, float thickness, bool ticker, bool text, int dir);
 SoSeparator * createBoundingBox();
 
 #endif

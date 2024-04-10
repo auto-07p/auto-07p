@@ -13,7 +13,7 @@ class Solution {
     SoSeparator *createSceneWithWidgets();
     SoSeparator *createInertialFrameScene(float dis);
     bool parse(const char* sFileName);
-    bool read(const char* sFileName, int varIndices[]);
+    bool read(const char* sFileName);
     void normalizeData();
     void alloc();
     void dealloc();
@@ -62,7 +62,7 @@ class Solution {
 
     SoSeparator *animateOrbitInertialSysUsingLine(int iBranch, int iOrbit,
      float (*vertices)[3], float (*largePrimPos)[3], float (*smallPrimPos)[3],
-     float * myColorBase, float period, int size,
+     float * myColorBase, int size,
      float scaler, int stability, int type);
     SoSeparator *drawAnOrbitInertialSysUsingLines(int iBranch, int iOrbit,
      float (*myVertices)[3], float *myColorBase,

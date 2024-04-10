@@ -4,7 +4,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 //
 SoSeparator *
-drawLine(SbVec3f pointS, SbVec3f pointE, SbVec3f color, float thickness, bool ticker, bool text, int dir)
+drawLine(SbVec3f pointS, SbVec3f pointE, float thickness, int dir)
 //
 ///////////////////////////////////////////////////////////////////////////////
 {
@@ -59,50 +59,50 @@ createBoundingBox()
 
     pointS.setValue(xMin,yMin,zMin);
     pointE.setValue(xMax, yMin, zMin);
-    bdBoxSep->addChild(drawLine(pointS, pointE, color, thickness, false, false, 1));
+    bdBoxSep->addChild(drawLine(pointS, pointE, thickness, 1));
 
     pointS.setValue(xMin, yMax, zMin);
     pointE.setValue(xMax, yMax, zMin);
-    bdBoxSep->addChild(drawLine(pointS, pointE, color, thickness, false, false, 1));
+    bdBoxSep->addChild(drawLine(pointS, pointE, thickness, 1));
 
     pointS.setValue(xMin, yMax, zMax);
     pointE.setValue(xMax, yMax, zMax);
-    bdBoxSep->addChild(drawLine(pointS, pointE, color, thickness, false, false, 1));
+    bdBoxSep->addChild(drawLine(pointS, pointE, thickness, 1));
 
     pointS.setValue(xMin, yMin, zMax);
     pointE.setValue(xMax, yMin, zMax);
-    bdBoxSep->addChild(drawLine(pointS, pointE, color, thickness, false, false, 1));
+    bdBoxSep->addChild(drawLine(pointS, pointE, thickness, 1));
 
     pointS.setValue(xMin, yMin, zMin);
     pointE.setValue(xMin, yMin, zMax);
-    bdBoxSep->addChild(drawLine(pointS, pointE, color, thickness, false, false, 3));
+    bdBoxSep->addChild(drawLine(pointS, pointE, thickness, 3));
 
     pointS.setValue(xMax, yMin, zMin);
     pointE.setValue(xMax, yMin, zMax);
-    bdBoxSep->addChild(drawLine(pointS, pointE, color, thickness, false, false, 3));
+    bdBoxSep->addChild(drawLine(pointS, pointE, thickness, 3));
 
     pointS.setValue(xMax, yMax, zMin);
     pointE.setValue(xMax, yMax, zMax);
-    bdBoxSep->addChild(drawLine(pointS, pointE, color, thickness, false, false, 3));
+    bdBoxSep->addChild(drawLine(pointS, pointE, thickness, 3));
 
     pointS.setValue(xMin, yMax, zMin);
     pointE.setValue(xMin, yMax, zMax);
-    bdBoxSep->addChild(drawLine(pointS, pointE, color, thickness, false, false, 3));
+    bdBoxSep->addChild(drawLine(pointS, pointE, thickness, 3));
 
     pointS.setValue(xMin, yMin, zMin);
     pointE.setValue(xMin, yMax, zMin);
-    bdBoxSep->addChild(drawLine(pointS, pointE, color, thickness, false, false, 2));
+    bdBoxSep->addChild(drawLine(pointS, pointE, thickness, 2));
 
     pointS.setValue(xMax, yMin, zMin);
     pointE.setValue(xMax, yMax, zMin);
-    bdBoxSep->addChild(drawLine(pointS, pointE, color, thickness, false, false, 2));
+    bdBoxSep->addChild(drawLine(pointS, pointE, thickness, 2));
 
     pointS.setValue(xMax, yMin, zMax);
     pointE.setValue(xMax, yMax, zMax);
-    bdBoxSep->addChild(drawLine(pointS, pointE, color, thickness, false, false, 2));
+    bdBoxSep->addChild(drawLine(pointS, pointE, thickness, 2));
 
     pointS.setValue(xMin, yMin, zMax);
     pointE.setValue(xMin, yMax, zMax);
-    bdBoxSep->addChild(drawLine(pointS, pointE, color, thickness, false, false, 2));
+    bdBoxSep->addChild(drawLine(pointS, pointE, thickness, 2));
     return bdBoxSep;
 }

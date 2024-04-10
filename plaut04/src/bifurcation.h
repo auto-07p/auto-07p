@@ -14,7 +14,7 @@ class Bifurcation {
     void alloc();
     void dealloc();
     void denormalizePosition(float position[]);
-    bool read(const char *bFileName, int varIndices[]);
+    bool read(const char *bFileName);
     bool parse(const char *bFileName);
     void normalizeData(long int idx, float xyzCoords[3]);
 

@@ -1842,7 +1842,7 @@ bool Solution::parse( const char* sFileName )
 //
 // READ solution (orbits) to the array
 //
-bool Solution::read(const char* sFileName, int varIndices[])
+bool Solution::read(const char* sFileName)
 //
 ///////////////////////////////////////////////////////////////////////
 
@@ -2173,7 +2173,7 @@ Solution::dealloc()
 SoSeparator *
 Solution::animateOrbitInertialSysUsingLine(int iBranch,  int iOrbit,
 float (*vertices)[3], float (*largePrimPos)[3], float (*smallPrimPos)[3],
-float * myColorBase, float period, int size,
+float * myColorBase, int size,
 float scaler, int stability, int type)
 //
 ///////////////////////////////////////////////////////////////////////////
@@ -2665,7 +2665,7 @@ Solution::createInertialFrameScene(float dis)
             {
                 solGroup->addChild(animateOrbitInertialSysUsingLine(
                     iBranch,  kno,  myVertices, largePrimPos, smallPrimPos, myColorBase,
-                    satPeriod, arrSize, lineWidthScaler, stability, type));
+                    arrSize, lineWidthScaler, stability, type));
             }
             else
             {

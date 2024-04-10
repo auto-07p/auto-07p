@@ -10,13 +10,6 @@ static struct coordScaleParameters
     int csclNumTicker;
 } cspX, cspY, cspZ;
 
-SoSeparator * createCoordinates(float sclMax[3], float sclMin[3], SbColor color[3])
-{
-    SoSeparator * aSep = new SoSeparator;
-    return aSep;
-}
-
-
 SoSeparator * createCoordinates(bool show3D, int where, float sclMax[3], float sclMin[3], int tickers[3], SbColor color[3])
 {
     SoSeparator *axisSep = new SoSeparator;

@@ -954,11 +954,9 @@ readSolutionAndBifurcationData(bool blFirstRead,
     clientData.labelIndex = new long int[std::max(myBifNode->totalLabels(),
                                                   mySolNode->totalLabels())][4];
 
-    int varIndices[3];
-
     if( blOpenBifFile)
     {
-        if (!myBifNode->read(bFileName.c_str(), varIndices))
+        if (!myBifNode->read(bFileName.c_str()))
             printf(" Failed to read the bifurcation file!\n");
     }
     else
@@ -968,7 +966,7 @@ readSolutionAndBifurcationData(bool blFirstRead,
 
     if( mySolNode->numOrbits() > 0 )
     {
-        blOpenSolFile = mySolNode->read(sFileName.c_str(), varIndices);
+        blOpenSolFile = mySolNode->read(sFileName.c_str());
         if(!blOpenSolFile)
             printf(" Failed to read the solution file!\n");
         else if(myBifNode->totalLabels() != 0 &&
