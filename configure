@@ -6708,6 +6708,9 @@ _ACEOF
 if ac_fn_cxx_try_link "$LINENO"
 then :
   SOXTLIB="SoQt"
+else case e in #(
+  e) LIBS="$tmp_LIBS1"; SOXT_LIBS="$tmp_SOXT_LIBS" ;;
+esac
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.beam \
     conftest$ac_exeext conftest.$ac_ext ;;
@@ -6789,7 +6792,7 @@ else
 	QT_LIBS=$pkg_cv_QT_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
-	LIBS="$tmp_LIBS1 $QT_LIBS"
+	LIBS="$LIBS $QT_LIBS"
 	CPPFLAGS="$CPPFLAGS $QT_CFLAGS"
 	if test "$cross_compiling" = yes
 then :
@@ -6807,7 +6810,7 @@ if ac_fn_cxx_try_run "$LINENO"
 then :
   SOXTLIB="SoQt"
 	 SOXT_INCLUDES="$SOXT_INCLUDES $QT_CFLAGS"
-	 SOXT_LIBS="$tmp_SOXT_LIBS $QT_LIBS"
+	 SOXT_LIBS="$SOXT_LIBS $QT_LIBS"
 
 fi
 rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
@@ -6818,8 +6821,6 @@ fi
 fi
     if test x$SOXTLIB = xno; then
         #check Qt5/Qt6
-        unset QT_LIBS
-        unset QT_CFLAGS
         #Qt6 may use this path for moc
         PATH=$PATH:/usr/local/opt/qt/share/qt/libexec
 
@@ -7154,7 +7155,7 @@ printf "%s\n" "$ax_cv_qt_test_result" >&6; }
 
         if (test x$have_qt == xyes); then
             #allow for SoQt in /usr/local/lib
-            LIBS="$QT_LIBS -L/usr/local/lib -rpath /usr/local/lib $tmp_LIBS1"
+            LIBS="$QT_LIBS -L/usr/local/lib -rpath /usr/local/lib $LIBS"
             CPPFLAGS="$QT_CXXFLAGS $CPPFLAGS"
             cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -7164,7 +7165,7 @@ _ACEOF
 if ac_fn_cxx_try_link "$LINENO"
 then :
   SOXTLIB="SoQt"
-			 SOXT_LIBS="$QT_LIBS -L/usr/local/lib -rpath /usr/local/lib $tmp_SOXT_LIBS"
+			 SOXT_LIBS="$QT_LIBS -L/usr/local/lib -rpath /usr/local/lib $SOXT_LIBS"
 			 SOXT_INCLUDES="$QT_CXXFLAGS $SOXT_INCLUDES"
                          HAVE_QT5="yes"
 fi

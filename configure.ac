@@ -243,36 +243,34 @@ if test x$ENABLE_PLAUT04_QT = xyes; then
 	       SOXT_LIBS="$SOXT_LIBS -lXi"
 	       AC_LINK_IFELSE([AC_LANG_SOURCE([#include <Inventor/Qt/SoQt.h>
                     int main(void){(void)SoQt::init((const char *)0L);}])],
-               [SOXTLIB="SoQt"])])
+               [SOXTLIB="SoQt"],[LIBS="$tmp_LIBS1"; SOXT_LIBS="$tmp_SOXT_LIBS"])])
 fi
 
 HAVE_QT5="no"
 if (test x$ENABLE_PLAUT04_QT = xyes && test x$SOXTLIB = xno); then
     #explicitly look for Qt4 (sometimes necessary on Mac OS)
     PKG_CHECK_MODULES(QT, [QtCore QtGui QtOpenGL],
-       [LIBS="$tmp_LIBS1 $QT_LIBS"
+       [LIBS="$LIBS $QT_LIBS"
 	CPPFLAGS="$CPPFLAGS $QT_CFLAGS"
 	AC_RUN_IFELSE([AC_LANG_SOURCE([#include <Inventor/Qt/SoQt.h>
                         int main(void){(void)SoQt::init((const char *)0L);}])],
         [SOXTLIB="SoQt"
 	 SOXT_INCLUDES="$SOXT_INCLUDES $QT_CFLAGS"
-	 SOXT_LIBS="$tmp_SOXT_LIBS $QT_LIBS"
+	 SOXT_LIBS="$SOXT_LIBS $QT_LIBS"
 	])],[SOXTLIB="no"],[SOXTLIB="no"])
     if test x$SOXTLIB = xno; then
         #check Qt5/Qt6
-        unset QT_LIBS
-        unset QT_CFLAGS
         #Qt6 may use this path for moc
         PATH=$PATH:/usr/local/opt/qt/share/qt/libexec
         AX_HAVE_QT
         if (test x$have_qt == xyes); then
             #allow for SoQt in /usr/local/lib
-            LIBS="$QT_LIBS -L/usr/local/lib -rpath /usr/local/lib $tmp_LIBS1"
+            LIBS="$QT_LIBS -L/usr/local/lib -rpath /usr/local/lib $LIBS"
             CPPFLAGS="$QT_CXXFLAGS $CPPFLAGS"
             AC_LINK_IFELSE([AC_LANG_SOURCE([#include <Inventor/Qt/SoQt.h>
                          int main(void){(void)SoQt::init((const char *)0L);}])],
                         [SOXTLIB="SoQt"
-			 SOXT_LIBS="$QT_LIBS -L/usr/local/lib -rpath /usr/local/lib $tmp_SOXT_LIBS"
+			 SOXT_LIBS="$QT_LIBS -L/usr/local/lib -rpath /usr/local/lib $SOXT_LIBS"
 			 SOXT_INCLUDES="$QT_CXXFLAGS $SOXT_INCLUDES"
                          HAVE_QT5="yes"])
 	else
