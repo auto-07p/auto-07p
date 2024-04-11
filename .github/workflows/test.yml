@@ -26,9 +26,7 @@ jobs:
         # workaround for brew link failure
         rm -f /usr/local/bin/{2to3-,idle,pydoc,python}3*
         rm -f /usr/local/bin/python3*-config /usr/local/bin/2to3
-        brew install cmake qt@5 openmotif open-mpi coin3d
-        brew link qt@5 --force
-        export PATH="/usr/local/opt/qt@5/bin:$PATH"
+        brew install cmake qt openmotif open-mpi coin3d
         curl -O -L https://github.com/coin3d/soqt/releases/download/v1.6.2/soqt-1.6.2-src.tar.gz
         tar xf soqt-1.6.2-src.tar.gz
         cd soqt/build
