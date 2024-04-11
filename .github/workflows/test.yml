@@ -61,6 +61,10 @@ jobs:
         make
         # compile manual
         make -C doc auto.pdf ../plaut04/doc/userguide.pdf
+    - uses: actions/upload-artifact@v1
+      with:
+        name: config.log
+        path: config.log
     - name: Run test (python2)
       run: |
         if [ "$RUNNER_OS" == "macOS" ]; then
