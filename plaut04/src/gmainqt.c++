@@ -39,7 +39,11 @@
 #define KEYSEQUENCE_QUIT Qt::CTRL+Qt::Key_Q
 #else
 #define setCaption setWindowTitle
+#if QT_VERSION < 0x60300
 #define insertItem(a,b,c,d,e) addAction(a,b,c,d)
+#else
+#define insertItem(a,b,c,d,e) addAction(a,d,b,c)
+#endif
 #define insertSeparator addSeparator
 #define setCurrentItem setCurrentIndex
 #define currentItem currentIndex
@@ -1327,8 +1331,13 @@ MainWindow::MainWindow() : QMainWindow()
         xAxisList->addItem( xAxis[i].c_str() );
     xAxisList->setCurrentItem(xCoordIndices[0]);
     // Connect the activated SIGNALs of the Comboboxes with SLOTs
+#if QT_VERSION < 0x60000
     connect(xAxisList, SIGNAL(activated(const QString &)),
             this, SLOT(xListCallBack(const QString &)));
+#else
+    connect(xAxisList, &QComboBox::textActivated,
+            this, &MainWindow::xListCallBack);
+#endif
 
 #ifdef USE_BK_COLOR
     xAxisList->setPaletteBackgroundColor("white");
@@ -1346,8 +1355,13 @@ MainWindow::MainWindow() : QMainWindow()
         yAxisList->addItem( yAxis[i].c_str() );
     yAxisList->setCurrentItem(yCoordIndices[0]);
     // Connect the activated SIGNALs of the Comboboxes with SLOTs
+#if QT_VERSION < 0x60000
     connect(yAxisList, SIGNAL(activated(const QString &)),
             this, SLOT(yListCallBack(const QString & )));
+#else
+    connect(yAxisList, &QComboBox::textActivated,
+            this, &MainWindow::yListCallBack);
+#endif
 
 #ifdef USE_BK_COLOR
     yAxisList->setPaletteBackgroundColor("white");
@@ -1365,8 +1379,13 @@ MainWindow::MainWindow() : QMainWindow()
         zAxisList->addItem( zAxis[i].c_str() );
     zAxisList->setCurrentItem(zCoordIndices[0]);
     // Connect the activated SIGNALs of the Comboboxes with SLOTs
+#if QT_VERSION < 0x60000
     connect(zAxisList, SIGNAL(activated(const QString &)),
             this, SLOT(zListCallBack(const QString &)));
+#else
+    connect(zAxisList, &QComboBox::textActivated,
+            this, &MainWindow::zListCallBack);
+#endif
 
 #ifdef USE_BK_COLOR
     zAxisList->setPaletteBackgroundColor("white");
@@ -1384,8 +1403,13 @@ MainWindow::MainWindow() : QMainWindow()
     labelsList->setCurrentItem(lblChoice[0]+LBL_OFFSET); //lblIndices[0]
 
 // Add Callback function for the LABELs drop down list
+#if QT_VERSION < 0x60000
     connect(labelsList, SIGNAL(activated(const QString &)),
             this, SLOT(lblListCallBack(const QString &)));
+#else
+    connect(labelsList, &QComboBox::textActivated,
+            this, &MainWindow::lblListCallBack);
+#endif
 
 #ifdef USE_BK_COLOR
     labelsList->setPaletteBackgroundColor("white");
@@ -1406,9 +1430,13 @@ MainWindow::MainWindow() : QMainWindow()
        coloringMethod+CL_SP_ITEMS : coloringMethod+specialColorItems);
 
 // Add Callback function for the coloring method seletion drop down list
+#if QT_VERSION < 0x60000
     connect(colorMethodSeletionList, SIGNAL(activated(const QString &)),
             this, SLOT(colorMethodSelectionCB(const QString &)));
-
+#else
+    connect(colorMethodSeletionList, &QComboBox::textActivated,
+            this, &MainWindow::colorMethodSelectionCB);
+#endif
 //-----------------------------------------------------Nov 06
 
 // build the numPeriodAnimated drop down list
@@ -1448,8 +1476,13 @@ MainWindow::MainWindow() : QMainWindow()
     numPeriodAnimatedList->setCurrentItem(i);
 
 // Add Callback function for the numberPeriodAnimated drop down list
+#if QT_VERSION < 0x60000
     connect(numPeriodAnimatedList, SIGNAL(activated(const QString &)),
             this, SLOT(numPeriodAnimatedCB(const QString &)));
+#else
+    connect(numPeriodAnimatedList, &QComboBox::textActivated,
+            this, &MainWindow::numPeriodAnimatedCB);
+#endif
 
 //----------------------------------------------------------------> Nov 06 End
 
