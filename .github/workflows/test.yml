@@ -62,6 +62,7 @@ jobs:
         # compile manual
         make -C doc auto.pdf ../plaut04/doc/userguide.pdf
     - uses: actions/upload-artifact@v1
+      if: failure()
       with:
         name: config.log
         path: config.log
