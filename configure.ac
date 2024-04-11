@@ -158,6 +158,10 @@ PKG_CHECK_MODULES(COIN, [Coin], [COIN_INCLUDES=$COIN_CFLAGS; HAVE_COIN_CONFIG=tr
     AC_CHECK_PROG(HAVE_COIN_CONFIG, coin-config, true, false)
     if test x$HAVE_COIN_CONFIG = "xtrue"; then
 	COIN_LIBS="`coin-config --libs`"
+	# workaround if this returns a path without -L
+	if test x"${COIN_LIBS#/}" != x"$COIN_LIBS"; then
+	    COIN_LIBS="-L$COIN_LIBS"
+	fi
 	COIN_LDFLAGS="`coin-config --ldflags`"
 	COIN_INCLUDES="`coin-config --cppflags`"
     fi])

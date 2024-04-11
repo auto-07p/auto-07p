@@ -6399,6 +6399,10 @@ fi
 
     if test x$HAVE_COIN_CONFIG = "xtrue"; then
 	COIN_LIBS="`coin-config --libs`"
+	# workaround if this returns a path without -L
+	if test x"${COIN_LIBS#/}" != x"$COIN_LIBS"; then
+	    COIN_LIBS="-L$COIN_LIBS"
+	fi
 	COIN_LDFLAGS="`coin-config --ldflags`"
 	COIN_INCLUDES="`coin-config --cppflags`"
     fi
@@ -6453,6 +6457,10 @@ fi
 
     if test x$HAVE_COIN_CONFIG = "xtrue"; then
 	COIN_LIBS="`coin-config --libs`"
+	# workaround if this returns a path without -L
+	if test x"${COIN_LIBS#/}" != x"$COIN_LIBS"; then
+	    COIN_LIBS="-L$COIN_LIBS"
+	fi
 	COIN_LDFLAGS="`coin-config --ldflags`"
 	COIN_INCLUDES="`coin-config --cppflags`"
     fi
