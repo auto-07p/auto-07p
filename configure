@@ -616,7 +616,15 @@ PLAUT04
 MOC
 MOCPATH
 HAVE_SOXT_CONFIG
-HAVE_CXX11
+QT_LUPDATE
+QT_LRELEASE
+QT_RCC
+QT_MOC
+QT_UIC
+QT_DIR
+QT_CXXFLAGS
+ac_ct_QMAKE
+QMAKE
 QT_LIBS
 QT_CFLAGS
 HAVE_SOQT_CONFIG
@@ -732,6 +740,7 @@ COIN_CFLAGS
 COIN_LIBS
 QT_CFLAGS
 QT_LIBS
+QMAKE
 MOCPATH'
 
 
@@ -1391,6 +1400,7 @@ Some influential environment variables:
   COIN_LIBS   linker flags for COIN, overriding pkg-config
   QT_CFLAGS   C compiler flags for QT, overriding pkg-config
   QT_LIBS     linker flags for QT, overriding pkg-config
+  QMAKE       "Qt make tool"
   MOCPATH     value of host_bins for Qt5Core, overriding pkg-config
 
 Use these variables to override the choices made by 'configure' or to help
@@ -6807,445 +6817,345 @@ fi
 
 fi
     if test x$SOXTLIB = xno; then
-        #check for C++11 and Qt5
-        tmp_CXX="$CXX"
-          ax_cxx_compile_alternatives="11 0x"    ax_cxx_compile_cxx11_required=true
-  ac_ext=cpp
-ac_cpp='$CXXCPP $CPPFLAGS'
-ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
-  ac_success=no
+        #check Qt5/Qt6
+        unset QT_LIBS
+        unset QT_CFLAGS
+        #Qt6 may use this path for moc
+        PATH=$PATH:/usr/local/opt/qt/share/qt/libexec
 
 
 
-    if test x$ac_success = xno; then
-                for alternative in ${ax_cxx_compile_alternatives}; do
-      for switch in -std=c++${alternative} +std=c++${alternative} "-h std=c++${alternative}"; do
-        cachevar=`printf "%s\n" "ax_cv_cxx_compile_cxx11_$switch" | sed "$as_sed_sh"`
-        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether $CXX supports C++11 features with $switch" >&5
-printf %s "checking whether $CXX supports C++11 features with $switch... " >&6; }
-if eval test \${$cachevar+y}
+
+  # openSUSE leap 15.3 installs qmake-qt5, not qmake, for example.
+  # Store the full name (like qmake-qt5) into QMAKE
+  # and the specifier (like -qt5 or empty) into am_have_qt_qmexe_suff.
+
+  if test -n "$ac_tool_prefix"; then
+  for ac_prog in qmake qmake-qt6 qmake-qt5
+  do
+    # Extract the first word of "$ac_tool_prefix$ac_prog", so it can be a program name with args.
+set dummy $ac_tool_prefix$ac_prog; ac_word=$2
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+printf %s "checking for $ac_word... " >&6; }
+if test ${ac_cv_prog_QMAKE+y}
 then :
   printf %s "(cached) " >&6
 else case e in #(
-  e) ac_save_CXX="$CXX"
-           CXX="$CXX $switch"
-           cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-// If the compiler admits that it is not ready for C++11, why torture it?
-// Hopefully, this will speed up the test.
-
-#ifndef __cplusplus
-
-#error "This is not a C++ compiler"
-
-#elif __cplusplus < 201103L
-
-#error "This is not a C++11 compiler"
-
-#else
-
-namespace cxx11
-{
-
-  namespace test_static_assert
-  {
-
-    template <typename T>
-    struct check
-    {
-      static_assert(sizeof(int) <= sizeof(T), "not big enough");
-    };
-
-  }
-
-  namespace test_final_override
-  {
-
-    struct Base
-    {
-      virtual ~Base() {}
-      virtual void f() {}
-    };
-
-    struct Derived : public Base
-    {
-      virtual ~Derived() override {}
-      virtual void f() override {}
-    };
-
-  }
-
-  namespace test_double_right_angle_brackets
-  {
-
-    template < typename T >
-    struct check {};
-
-    typedef check<void> single_type;
-    typedef check<check<void>> double_type;
-    typedef check<check<check<void>>> triple_type;
-    typedef check<check<check<check<void>>>> quadruple_type;
-
-  }
-
-  namespace test_decltype
-  {
-
-    int
-    f()
-    {
-      int a = 1;
-      decltype(a) b = 2;
-      return a + b;
-    }
-
-  }
-
-  namespace test_type_deduction
-  {
-
-    template < typename T1, typename T2 >
-    struct is_same
-    {
-      static const bool value = false;
-    };
-
-    template < typename T >
-    struct is_same<T, T>
-    {
-      static const bool value = true;
-    };
-
-    template < typename T1, typename T2 >
-    auto
-    add(T1 a1, T2 a2) -> decltype(a1 + a2)
-    {
-      return a1 + a2;
-    }
-
-    int
-    test(const int c, volatile int v)
-    {
-      static_assert(is_same<int, decltype(0)>::value == true, "");
-      static_assert(is_same<int, decltype(c)>::value == false, "");
-      static_assert(is_same<int, decltype(v)>::value == false, "");
-      auto ac = c;
-      auto av = v;
-      auto sumi = ac + av + 'x';
-      auto sumf = ac + av + 1.0;
-      static_assert(is_same<int, decltype(ac)>::value == true, "");
-      static_assert(is_same<int, decltype(av)>::value == true, "");
-      static_assert(is_same<int, decltype(sumi)>::value == true, "");
-      static_assert(is_same<int, decltype(sumf)>::value == false, "");
-      static_assert(is_same<int, decltype(add(c, v))>::value == true, "");
-      return (sumf > 0.0) ? sumi : add(c, v);
-    }
-
-  }
-
-  namespace test_noexcept
-  {
-
-    int f() { return 0; }
-    int g() noexcept { return 0; }
-
-    static_assert(noexcept(f()) == false, "");
-    static_assert(noexcept(g()) == true, "");
-
-  }
-
-  namespace test_constexpr
-  {
-
-    template < typename CharT >
-    unsigned long constexpr
-    strlen_c_r(const CharT *const s, const unsigned long acc) noexcept
-    {
-      return *s ? strlen_c_r(s + 1, acc + 1) : acc;
-    }
-
-    template < typename CharT >
-    unsigned long constexpr
-    strlen_c(const CharT *const s) noexcept
-    {
-      return strlen_c_r(s, 0UL);
-    }
-
-    static_assert(strlen_c("") == 0UL, "");
-    static_assert(strlen_c("1") == 1UL, "");
-    static_assert(strlen_c("example") == 7UL, "");
-    static_assert(strlen_c("another\0example") == 7UL, "");
-
-  }
-
-  namespace test_rvalue_references
-  {
-
-    template < int N >
-    struct answer
-    {
-      static constexpr int value = N;
-    };
-
-    answer<1> f(int&)       { return answer<1>(); }
-    answer<2> f(const int&) { return answer<2>(); }
-    answer<3> f(int&&)      { return answer<3>(); }
-
-    void
-    test()
-    {
-      int i = 0;
-      const int c = 0;
-      static_assert(decltype(f(i))::value == 1, "");
-      static_assert(decltype(f(c))::value == 2, "");
-      static_assert(decltype(f(0))::value == 3, "");
-    }
-
-  }
-
-  namespace test_uniform_initialization
-  {
-
-    struct test
-    {
-      static const int zero {};
-      static const int one {1};
-    };
-
-    static_assert(test::zero == 0, "");
-    static_assert(test::one == 1, "");
-
-  }
-
-  namespace test_lambdas
-  {
-
-    void
-    test1()
-    {
-      auto lambda1 = [](){};
-      auto lambda2 = lambda1;
-      lambda1();
-      lambda2();
-    }
-
-    int
-    test2()
-    {
-      auto a = [](int i, int j){ return i + j; }(1, 2);
-      auto b = []() -> int { return '0'; }();
-      auto c = [=](){ return a + b; }();
-      auto d = [&](){ return c; }();
-      auto e = [a, &b](int x) mutable {
-        const auto identity = [](int y){ return y; };
-        for (auto i = 0; i < a; ++i)
-          a += b--;
-        return x + identity(a + b);
-      }(0);
-      return a + b + c + d + e;
-    }
-
-    int
-    test3()
-    {
-      const auto nullary = [](){ return 0; };
-      const auto unary = [](int x){ return x; };
-      using nullary_t = decltype(nullary);
-      using unary_t = decltype(unary);
-      const auto higher1st = [](nullary_t f){ return f(); };
-      const auto higher2nd = [unary](nullary_t f1){
-        return [unary, f1](unary_t f2){ return f2(unary(f1())); };
-      };
-      return higher1st(nullary) + higher2nd(nullary)(unary);
-    }
-
-  }
-
-  namespace test_variadic_templates
-  {
-
-    template <int...>
-    struct sum;
-
-    template <int N0, int... N1toN>
-    struct sum<N0, N1toN...>
-    {
-      static constexpr auto value = N0 + sum<N1toN...>::value;
-    };
-
-    template <>
-    struct sum<>
-    {
-      static constexpr auto value = 0;
-    };
-
-    static_assert(sum<>::value == 0, "");
-    static_assert(sum<1>::value == 1, "");
-    static_assert(sum<23>::value == 23, "");
-    static_assert(sum<1, 2>::value == 3, "");
-    static_assert(sum<5, 5, 11>::value == 21, "");
-    static_assert(sum<2, 3, 5, 7, 11, 13>::value == 41, "");
-
-  }
-
-  // http://stackoverflow.com/questions/13728184/template-aliases-and-sfinae
-  // Clang 3.1 fails with headers of libstd++ 4.8.3 when using std::function
-  // because of this.
-  namespace test_template_alias_sfinae
-  {
-
-    struct foo {};
-
-    template<typename T>
-    using member = typename T::member_type;
-
-    template<typename T>
-    void func(...) {}
-
-    template<typename T>
-    void func(member<T>*) {}
-
-    void test();
-
-    void test() { func<foo>(0); }
-
-  }
-
-}  // namespace cxx11
-
-#endif  // __cplusplus >= 201103L
-
-
-
-_ACEOF
-if ac_fn_cxx_try_compile "$LINENO"
+  e) if test -n "$QMAKE"; then
+  ac_cv_prog_QMAKE="$QMAKE" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  case $as_dir in #(((
+    '') as_dir=./ ;;
+    */) ;;
+    *) as_dir=$as_dir/ ;;
+  esac
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
+    ac_cv_prog_QMAKE="$ac_tool_prefix$ac_prog"
+    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi ;;
+esac
+fi
+QMAKE=$ac_cv_prog_QMAKE
+if test -n "$QMAKE"; then
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $QMAKE" >&5
+printf "%s\n" "$QMAKE" >&6; }
+else
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+fi
+
+
+    test -n "$QMAKE" && break
+  done
+fi
+if test -z "$QMAKE"; then
+  ac_ct_QMAKE=$QMAKE
+  for ac_prog in qmake qmake-qt6 qmake-qt5
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+printf %s "checking for $ac_word... " >&6; }
+if test ${ac_cv_prog_ac_ct_QMAKE+y}
 then :
-  eval $cachevar=yes
+  printf %s "(cached) " >&6
 else case e in #(
-  e) eval $cachevar=no ;;
-esac
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
-           CXX="$ac_save_CXX" ;;
-esac
-fi
-eval ac_res=\$$cachevar
-	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-printf "%s\n" "$ac_res" >&6; }
-        if eval test x\$$cachevar = xyes; then
-          CXX="$CXX $switch"
-          if test -n "$CXXCPP" ; then
-            CXXCPP="$CXXCPP $switch"
-          fi
-          ac_success=yes
-          break
-        fi
-      done
-      if test x$ac_success = xyes; then
-        break
-      fi
-    done
+  e) if test -n "$ac_ct_QMAKE"; then
+  ac_cv_prog_ac_ct_QMAKE="$ac_ct_QMAKE" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  case $as_dir in #(((
+    '') as_dir=./ ;;
+    */) ;;
+    *) as_dir=$as_dir/ ;;
+  esac
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
+    ac_cv_prog_ac_ct_QMAKE="$ac_prog"
+    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
+    break 2
   fi
-  ac_ext=cpp
-ac_cpp='$CXXCPP $CPPFLAGS'
-ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+done
+  done
+IFS=$as_save_IFS
 
-  if test x$ax_cxx_compile_cxx11_required = xtrue; then
-    if test x$ac_success = xno; then
-      as_fn_error $? "*** A compiler with support for C++11 language features is required." "$LINENO" 5
-    fi
-  fi
-  if test x$ac_success = xno; then
-    HAVE_CXX11=0
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: No compiler with C++11 support was found" >&5
-printf "%s\n" "$as_me: No compiler with C++11 support was found" >&6;}
+fi ;;
+esac
+fi
+ac_ct_QMAKE=$ac_cv_prog_ac_ct_QMAKE
+if test -n "$ac_ct_QMAKE"; then
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_ct_QMAKE" >&5
+printf "%s\n" "$ac_ct_QMAKE" >&6; }
+else
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+fi
+
+
+  test -n "$ac_ct_QMAKE" && break
+done
+
+  if test "x$ac_ct_QMAKE" = x; then
+    QMAKE="false"
   else
-    HAVE_CXX11=1
+    case $cross_compiling:$ac_tool_warned in
+yes:)
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
+printf "%s\n" "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
+ac_tool_warned=yes ;;
+esac
+    QMAKE=$ac_ct_QMAKE
+  fi
+fi
 
-printf "%s\n" "#define HAVE_CXX11 1" >>confdefs.h
 
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Qt" >&5
+printf %s "checking for Qt... " >&6; }
+  am_have_qt_qmexe_suff=`echo $QMAKE | sed 's,^.*qmake,,'`
+  # If we have Qt5 or later in the path, we're golden
+  ver=`$QMAKE --version | grep -o "Qt version ."`
+
+  if test "$ver" ">" "Qt version 4"; then
+    have_qt=yes
+    # This pro file dumps qmake's variables, but it only works on Qt 5 or later
+    am_have_qt_dir=`mktemp -d`
+    am_have_qt_pro="$am_have_qt_dir/test.pro"
+    am_have_qt_stash="$am_have_qt_dir/.qmake.stash"
+    am_have_qt_makefile="$am_have_qt_dir/Makefile"
+    # http://qt-project.org/doc/qt-5/qmake-variable-reference.html#qt
+    cat > $am_have_qt_pro << EOF
+win32 {
+    CONFIG -= debug_and_release
+    CONFIG += release
+}
+qtHaveModule(axcontainer):       QT += axcontainer
+qtHaveModule(axserver):          QT += axserver
+qtHaveModule(concurrent):        QT += concurrent
+qtHaveModule(core):              QT += core
+qtHaveModule(dbus):              QT += dbus
+qtHaveModule(declarative):       QT += declarative
+qtHaveModule(designer):          QT += designer
+qtHaveModule(gui):               QT += gui
+qtHaveModule(help):              QT += help
+qtHaveModule(multimedia):        QT += multimedia
+qtHaveModule(multimediawidgets): QT += multimediawidgets
+qtHaveModule(network):           QT += network
+qtHaveModule(opengl):            QT += opengl
+qtHaveModule(printsupport):      QT += printsupport
+qtHaveModule(qml):               QT += qml
+qtHaveModule(qmltest):           QT += qmltest
+qtHaveModule(x11extras):         QT += x11extras
+qtHaveModule(script):            QT += script
+qtHaveModule(scripttools):       QT += scripttools
+qtHaveModule(sensors):           QT += sensors
+qtHaveModule(serialport):        QT += serialport
+qtHaveModule(sql):               QT += sql
+qtHaveModule(svg):               QT += svg
+qtHaveModule(testlib):           QT += testlib
+qtHaveModule(uitools):           QT += uitools
+qtHaveModule(webkit):            QT += webkit
+qtHaveModule(webkitwidgets):     QT += webkitwidgets
+qtHaveModule(xml):               QT += xml
+qtHaveModule(xmlpatterns):       QT += xmlpatterns
+percent.target = %
+percent.commands = @echo -n "\$(\$(@))\ "
+QMAKE_EXTRA_TARGETS += percent
+EOF
+    $QMAKE $am_have_qt_pro -o $am_have_qt_makefile
+    QT_CXXFLAGS=`cd $am_have_qt_dir; make -s -f $am_have_qt_makefile CXXFLAGS INCPATH`
+    QT_LIBS=`cd $am_have_qt_dir; make -s -f $am_have_qt_makefile LIBS`
+    rm $am_have_qt_pro $am_have_qt_stash $am_have_qt_makefile
+    rmdir $am_have_qt_dir
+
+    # Look for specific tools in $PATH
+    QT_MOC=`which moc$am_have_qt_qmexe_suff`
+    QT_UIC=`which uic$am_have_qt_qmexe_suff`
+    QT_RCC=`which rcc$am_have_qt_qmexe_suff`
+    QT_LRELEASE=`which lrelease$am_have_qt_qmexe_suff`
+    QT_LUPDATE=`which lupdate$am_have_qt_qmexe_suff`
+
+    # Get Qt version from qmake
+    QT_DIR=`$QMAKE --version | grep -o -E /.+`
+
+    # All variables are defined, report the result
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $have_qt:
+    QT_CXXFLAGS=$QT_CXXFLAGS
+    QT_DIR=$QT_DIR
+    QT_LIBS=$QT_LIBS
+    QT_UIC=$QT_UIC
+    QT_MOC=$QT_MOC
+    QT_RCC=$QT_RCC
+    QT_LRELEASE=$QT_LRELEASE
+    QT_LUPDATE=$QT_LUPDATE" >&5
+printf "%s\n" "$have_qt:
+    QT_CXXFLAGS=$QT_CXXFLAGS
+    QT_DIR=$QT_DIR
+    QT_LIBS=$QT_LIBS
+    QT_UIC=$QT_UIC
+    QT_MOC=$QT_MOC
+    QT_RCC=$QT_RCC
+    QT_LRELEASE=$QT_LRELEASE
+    QT_LUPDATE=$QT_LUPDATE" >&6; }
+  else
+    # Qt was not found
+    have_qt=no
+    QT_CXXFLAGS=
+    QT_DIR=
+    QT_LIBS=
+    QT_UIC=
+    QT_MOC=
+    QT_RCC=
+    QT_LRELEASE=
+    QT_LUPDATE=
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $have_qt" >&5
+printf "%s\n" "$have_qt" >&6; }
   fi
 
 
-        unset QT_LIBS
-        unset QT_CFLAGS
 
-pkg_failed=no
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Qt5Core Qt5Gui Qt5OpenGL" >&5
-printf %s "checking for Qt5Core Qt5Gui Qt5OpenGL... " >&6; }
 
-if test -n "$QT_CFLAGS"; then
-    pkg_cv_QT_CFLAGS="$QT_CFLAGS"
- elif test -n "$PKG_CONFIG"; then
-    if test -n "$PKG_CONFIG" && \
-    { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"Qt5Core Qt5Gui Qt5OpenGL\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "Qt5Core Qt5Gui Qt5OpenGL") 2>&5
+
+
+
+
+
+
+  #### Being paranoid:
+  if test x"$have_qt" = xyes; then
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking correct functioning of Qt installation" >&5
+printf %s "checking correct functioning of Qt installation... " >&6; }
+    if test ${ax_cv_qt_test_result+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e)
+      cat > ax_qt_test.h << EOF
+#include <qobject.h>
+class Test : public QObject
+{
+Q_OBJECT
+public:
+  Test() {}
+  ~Test() {}
+public slots:
+  void receive() {}
+signals:
+  void send();
+};
+EOF
+
+      cat > ax_qt_main.$ac_ext << EOF
+#include "ax_qt_test.h"
+#include <qapplication.h>
+int main( int argc, char **argv )
+{
+  QApplication app( argc, argv );
+  Test t;
+  QObject::connect( &t, SIGNAL(send()), &t, SLOT(receive()) );
+}
+EOF
+
+      ax_cv_qt_test_result="failure"
+      ax_try_1="$QT_MOC ax_qt_test.h -o moc_ax_qt_test.$ac_ext >/dev/null 2>/dev/null"
+      { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ax_try_1\""; } >&5
+  (eval $ax_try_1) 2>&5
   ac_status=$?
   printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; then
-  pkg_cv_QT_CFLAGS=`$PKG_CONFIG --cflags "Qt5Core Qt5Gui Qt5OpenGL" 2>/dev/null`
-		      test "x$?" != "x0" && pkg_failed=yes
-else
-  pkg_failed=yes
-fi
- else
-    pkg_failed=untried
-fi
-if test -n "$QT_LIBS"; then
-    pkg_cv_QT_LIBS="$QT_LIBS"
- elif test -n "$PKG_CONFIG"; then
-    if test -n "$PKG_CONFIG" && \
-    { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"Qt5Core Qt5Gui Qt5OpenGL\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "Qt5Core Qt5Gui Qt5OpenGL") 2>&5
+  test $ac_status = 0; }
+      if test x"$ac_status" != x0; then
+        echo "$ax_err_1" >&5
+        echo "configure: could not run $QT_MOC on:" >&5
+        cat ax_qt_test.h >&5
+      else
+        ax_try_2="$CXX $QT_CXXFLAGS -c $CXXFLAGS -o moc_ax_qt_test.o moc_ax_qt_test.$ac_ext >/dev/null 2>/dev/null"
+        { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ax_try_2\""; } >&5
+  (eval $ax_try_2) 2>&5
   ac_status=$?
   printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; then
-  pkg_cv_QT_LIBS=`$PKG_CONFIG --libs "Qt5Core Qt5Gui Qt5OpenGL" 2>/dev/null`
-		      test "x$?" != "x0" && pkg_failed=yes
-else
-  pkg_failed=yes
-fi
- else
-    pkg_failed=untried
-fi
-
-
-
-if test $pkg_failed = yes; then
-        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf "%s\n" "no" >&6; }
-
-if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
-        _pkg_short_errors_supported=yes
-else
-        _pkg_short_errors_supported=no
-fi
-        if test $_pkg_short_errors_supported = yes; then
-	        QT_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "Qt5Core Qt5Gui Qt5OpenGL" 2>&1`
+  test $ac_status = 0; }
+        if test x"$ac_status" != x0; then
+          echo "$ax_err_2" >&5
+          echo "configure: could not compile:" >&5
+          cat moc_ax_qt_test.$ac_ext >&5
         else
-	        QT_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "Qt5Core Qt5Gui Qt5OpenGL" 2>&1`
+          ax_try_3="$CXX $QT_CXXFLAGS -c $CXXFLAGS -o ax_qt_main.o ax_qt_main.$ac_ext >/dev/null 2>/dev/null"
+          { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ax_try_3\""; } >&5
+  (eval $ax_try_3) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }
+          if test x"$ac_status" != x0; then
+            echo "$ax_err_3" >&5
+            echo "configure: could not compile:" >&5
+            cat ax_qt_main.$ac_ext >&5
+          else
+            ax_try_4="$CXX -o ax_qt_main ax_qt_main.o moc_ax_qt_test.o $QT_LIBS $LIBS >/dev/null 2>/dev/null"
+            { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ax_try_4\""; } >&5
+  (eval $ax_try_4) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }
+            if test x"$ac_status" != x0; then
+              echo "$ax_err_4" >&5
+            else
+              ax_cv_qt_test_result="success"
+            fi
+          fi
         fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$QT_PKG_ERRORS" >&5
+      fi
+     ;;
+esac
+fi
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_cv_qt_test_result" >&5
+printf "%s\n" "$ax_cv_qt_test_result" >&6; }
+    if test x"$ax_cv_qt_test_result" = "xfailure"; then
+      as_fn_error $? "Failed to find matching components of a complete
+                  Qt installation. Try using more options,
+                  see ./configure --help." "$LINENO" 5
+    fi
 
-	SOXTLIB="no"
-elif test $pkg_failed = untried; then
-        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf "%s\n" "no" >&6; }
-	SOXTLIB="no"
-else
-	QT_CFLAGS=$pkg_cv_QT_CFLAGS
-	QT_LIBS=$pkg_cv_QT_LIBS
-        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-printf "%s\n" "yes" >&6; }
-	LIBS="$tmp_LIBS1 $QT_LIBS -fPIC"
-            CPPFLAGS="$CPPFLAGS $QT_CFLAGS -fPIC"
+    rm -f ax_qt_test.h moc_ax_qt_test.$ac_ext moc_ax_qt_test.o \
+          ax_qt_main.$ac_ext ax_qt_main.o ax_qt_main
+  fi
+
+        if (test x$have_qt == xyes); then
+            #allow for SoQt in /usr/local/lib
+            LIBS="$QT_LIBS -L/usr/local/lib -rpath /usr/local/lib $tmp_LIBS1"
+            CPPFLAGS="$QT_CXXFLAGS $CPPFLAGS"
             cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <Inventor/Qt/SoQt.h>
@@ -7254,16 +7164,15 @@ _ACEOF
 if ac_fn_cxx_try_link "$LINENO"
 then :
   SOXTLIB="SoQt"
-			 SOXT_LIBS="$tmp_SOXT_LIBS $QT_LIBS -fPIC"
-			 SOXT_INCLUDES="$SOXT_INCLUDES $QT_CFLAGS -fPIC"
+			 SOXT_LIBS="$QT_LIBS -L/usr/local/lib -rpath /usr/local/lib $tmp_SOXT_LIBS"
+			 SOXT_INCLUDES="$QT_CXXFLAGS $SOXT_INCLUDES"
                          HAVE_QT5="yes"
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.beam \
     conftest$ac_exeext conftest.$ac_ext
-fi
-        if test x$SOXTLIB = xno; then
-            CXX="$tmp_CXX"
-        fi
+	else
+	    SOXTLIB="no"
+	fi
     fi
 fi
 

@@ -259,23 +259,25 @@ if (test x$ENABLE_PLAUT04_QT = xyes && test x$SOXTLIB = xno); then
 	 SOXT_LIBS="$tmp_SOXT_LIBS $QT_LIBS"
 	])],[SOXTLIB="no"],[SOXTLIB="no"])
     if test x$SOXTLIB = xno; then
-        #check for C++11 and Qt5
-        tmp_CXX="$CXX"
-        AX_CXX_COMPILE_STDCXX(11,noext)
+        #check Qt5/Qt6
         unset QT_LIBS
         unset QT_CFLAGS
-        PKG_CHECK_MODULES(QT, [Qt5Core Qt5Gui Qt5OpenGL],
-           [LIBS="$tmp_LIBS1 $QT_LIBS -fPIC"
-            CPPFLAGS="$CPPFLAGS $QT_CFLAGS -fPIC"
+        #Qt6 may use this path for moc
+        PATH=$PATH:/usr/local/opt/qt/share/qt/libexec
+        AX_HAVE_QT
+        if (test x$have_qt == xyes); then
+            #allow for SoQt in /usr/local/lib
+            LIBS="$QT_LIBS -L/usr/local/lib -rpath /usr/local/lib $tmp_LIBS1"
+            CPPFLAGS="$QT_CXXFLAGS $CPPFLAGS"
             AC_LINK_IFELSE([AC_LANG_SOURCE([#include <Inventor/Qt/SoQt.h>
                          int main(void){(void)SoQt::init((const char *)0L);}])],
                         [SOXTLIB="SoQt"
-			 SOXT_LIBS="$tmp_SOXT_LIBS $QT_LIBS -fPIC"
-			 SOXT_INCLUDES="$SOXT_INCLUDES $QT_CFLAGS -fPIC"
-                         HAVE_QT5="yes"])],[SOXTLIB="no"])
-        if test x$SOXTLIB = xno; then
-            CXX="$tmp_CXX"
-        fi
+			 SOXT_LIBS="$QT_LIBS -L/usr/local/lib -rpath /usr/local/lib $tmp_SOXT_LIBS"
+			 SOXT_INCLUDES="$QT_CXXFLAGS $SOXT_INCLUDES"
+                         HAVE_QT5="yes"])
+	else
+	    SOXTLIB="no"
+	fi
     fi
 fi
 
