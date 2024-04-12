@@ -551,7 +551,7 @@ class Point(object):
             self.coordarray[self._map_names_to_ixs(k)] = v
 
     def items(self):
-        return zip(self._ix_name_map, self.coordarray)
+        return list(zip(self._ix_name_map, self.coordarray))
 
     def iteritems(self):
         return iter(zip(self._ix_name_map, self.coordarray))
@@ -2144,12 +2144,12 @@ class PointInfo(object):
 
     def sortByIndex(self):
         ixkeys = sortedDictKeys(self.by_index)
-        return zip(ixkeys,[self.by_index[ix] for ix in ixkeys])
+        return list(zip(ixkeys,[self.by_index[ix] for ix in ixkeys]))
 
 
     def sortByLabel(self):
         labelkeys = sortedDictKeys(self.by_label)
-        return zip(labelkeys,[self.by_label[label] for label in labelkeys])
+        return list(zip(labelkeys,[self.by_label[label] for label in labelkeys]))
 
 
     def getIndices(self):
