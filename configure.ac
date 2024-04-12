@@ -265,16 +265,22 @@ if (test x$ENABLE_PLAUT04_QT = xyes && test x$SOXTLIB = xno); then
     if test x$SOXTLIB = xno; then
         #check Qt5/Qt6
         #Qt6 may use this path for moc
-        PATH=$PATH:/usr/local/opt/qt/share/qt/libexec
+        if test -x /usr/local/opt/qt/share/qt/libexec/moc; then
+            PATH=$PATH:/usr/local/opt/qt/share/qt/libexec
+        fi
         AX_HAVE_QT
         if (test x$have_qt == xyes); then
-            #allow for SoQt in /usr/local/lib
-            LIBS="$QT_LIBS -L/usr/local/lib -rpath /usr/local/lib $LIBS"
+            #allow for SoQt in /usr/local/lib on Mac
+            unset MAC_LIBS
+            if test -L /usr/local/lib/libSoQt.dylib; then
+                MAC_LIBS="-L/usr/local/lib -Wl,-rpath,/usr/local/lib"
+            fi
+            LIBS="$QT_LIBS $MAC_LIBS $LIBS"
             CPPFLAGS="$QT_CXXFLAGS $CPPFLAGS"
             AC_LINK_IFELSE([AC_LANG_SOURCE([#include <Inventor/Qt/SoQt.h>
                          int main(void){(void)SoQt::init((const char *)0L);}])],
                         [SOXTLIB="SoQt"
-			 SOXT_LIBS="$QT_LIBS -L/usr/local/lib -rpath /usr/local/lib $SOXT_LIBS"
+			 SOXT_LIBS="$QT_LIBS $MAC_LIBS $SOXT_LIBS"
 			 SOXT_INCLUDES="$QT_CXXFLAGS $SOXT_INCLUDES"
                          HAVE_QT5="yes"])
 	else
