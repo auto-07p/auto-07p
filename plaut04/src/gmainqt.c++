@@ -1199,7 +1199,9 @@ MainWindow::buildMenu()
     pulldown6->setPaletteBackgroundColor("white");
 #endif
 // the text in the menubar for these menus
+#if QT_VERSION < 0x40000 || (defined(__APPLE__) && defined(__MACH__))
     QMenuBar *menubar = menuBar();
+#endif
 #if QT_VERSION < 0x40000
     menubar->insertItem("&File", pulldown1);
     menubar->insertItem("&Type", pulldown4);
@@ -2702,8 +2704,8 @@ FmDrawingArea::paintEvent( QPaintEvent * )
         else
             y =(tmp>0.0) ? (int)(150-log10(tmp)*50): (int)(log10(fabs(tmp))*50+250);
 
-        if(x>390) x = 390; if(x<10) y = 10;
-        if(y>390) y = 390; if(y<10) y = 10;
+        if(x>390) {x = 390;} if(x<10) {y = 10;}
+        if(y>390) {y = 390;} if(y<10) {y = 10;}
 
         p.drawLine(x-3, y-3, x+3, y+3);
         p.drawLine(x-3, y+3, x+3, y-3);

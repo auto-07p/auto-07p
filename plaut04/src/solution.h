@@ -110,9 +110,9 @@ class Solution {
     } *orbits_;              // we have an array of numOrbits of these
     int      numAxis_;        // number of groups of axis. 3 is a group.
     int      totalLabels_;
-    double (**parMax_);     // keep the max parameter values in each branch.
-    double (**parMin_);     // keep the min parameter values.
-    double (**parMid_);     // keep the mid parameter values.
+    double **parMax_;       // keep the max parameter values in each branch.
+    double **parMin_;       // keep the min parameter values.
+    double **parMid_;       // keep the mid parameter values.
     int      *parID_;       // keep the id for the par, namely the x for par(x)
 
     // max saves the maximum value of the coordinate.
