@@ -1,3 +1,70 @@
+0.9.4:
+* Main AUTO
+  - Remove support for pre-F2003 compilers.
+    iso_c_binding and and procedure pointers are available since GCC 4.3 & 4.4 from
+    around 2008, there is no need to support older compilers.
+    Use Fortran 2003 C interoperability features for C user files.
+    This replaces the older autoconf based methods, now that F2003 is
+    ubiquitous.
+  - Compute Floquet multipliers before PVLS if possible (#35, #40)
+    This makes custom test functions via PVLS more reliable if they
+    check Floquet multipliers via GETP('EIG',IND,U).
+  - Similarly, compute eigenvalues and eigenvectors before PVLS if possible
+    This makes custom test functions via PVLS more reliable if they
+    check eigenvalues via GETP('EIG',IND,U).
+  - Properly prototype user functions in C.
+    This avoids warnings from Clang.
+  - mesh: use closest point for linear time interpolation.
+    This improves convergence in the ab demo.
+  - Fix allocation/index issues with user-defined integral conditions in HomCont
+    (Bjorn Sandstede ran into this bug).
+    Fixed a similar under-allocation in BPCONT while I was at it.
+  - Fix "make install": "sed" on MacOS doesn't support plain -i;
+    config.h is no longer needed.
+  - Take auto_f2c.h into account as dependency for C user files.
+* auto97 GUI
+  - Fix compiler warnings
+* PLAUT
+  - Fix compiler warnings
+* PLAUT04
+  - Fix compiler warnings
+  - Correct editMenuCentered to editMenuBary
+  - Eliminate deprecated sprintf() and QString::null
+  - Fix DEBUG build of solution.c++ using std::cout and std::endl (#36)
+  - Update SoQt from 1.6.0 to 1.6.2 for Mac OS documentation and testing
+* Python
+  - Use `brew install python-matplotlib` for Mac OS documentation and testing
+  - Properly escape backslashes or use raw strings in strings.
+    This avoids warnings from Python 3.12.
+  - Fix issue in parseS with numpy 1.23.5 preventing plots (#37)
+    We have to use flist.tolist() == [] instead of flist == []
+    Thanks Zachary Nicolaou!
+  - Replace constants["homcont"] with constants.get("homcont") (#34)
+    To fix an issue where HomCont isn't actually used.
+    (Andreas Amann)
+  - Add inline plot support for jupyter notebooks (#32)
+    Calling auto.plot() from a jupyter notebook previously used the
+    TkAgg backend and opened a new TkInter window. This interfered with
+    the jupyter eventloop and made Auto difficult to use from
+    jupyter. This patch avoids the problem, by not interfering with the
+    matplotlib backend, if we run from within a notebook.  This results
+    in (non-interactive) inline plots inside the browser window, similar
+    to matplotlib figures after "%matplotlib inline".
+    (Andreas Amann)
+  - matplotlib grapher: use remove() method of artists to remove them.
+    You can no longer delete them from the lines/texts list in MPL 3.7.
+  - use plain bool instead of numpy.bool
+    numpy.bool was removed and was just an alias to plain bool
+* Testing
+  - CI: remove Ubuntu 18.04, add 22.04 tests, and MacOS 12 (Monterey)
+    18.04 and MacOS 10.15 are deprecated by GitHub, won't run any more.
+    CI: MacOS: Python2 workarounds
+    CI: MacOS: update homebrew to fix the TeX install
+* Demos
+  - Properly prototype 3d.c in python/n-body demo
+  - Minor changes to abcb and fnb demos to pass regression test, as
+    mesh numerics changed a tiny bit (for the better!) depending on platform.
+  - Add demos/cusp/cusp.ipynb Jupyter notebook demo (Andreas Amann)
 0.9.3:
 * Main AUTO
   - Split MPI broadcast for scaling factor off parameter/rds broadcast.
