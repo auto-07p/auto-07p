@@ -115,7 +115,7 @@ class runAUTO:
         files = ["fort.7", "fort.8", "fort.9"]
         v = self.options["constants"].get("sv")
         if v is None:
-            value = re.findall("(Saved as|Appended to) \*\.(\w*)",text)
+            value = re.findall("(Saved as|Appended to) \\*\\.(\\w*)",text)
             if len(value):
                 v = value[-1][1]
         if v is not None:
