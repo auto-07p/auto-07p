@@ -30,7 +30,7 @@ jobs:
         curl -O -L https://github.com/coin3d/soqt/releases/download/v1.6.3/soqt-1.6.3-src.tar.gz
         tar xf soqt-1.6.3-src.tar.gz
         cd soqt/build
-        cmake ..
+        cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ..
         make -j3
         sudo make install
         brew install basictex fig2dev
