@@ -41,6 +41,10 @@ jobs:
         pyenv global 2.7.18
         PATH=$(pyenv root)/shims:$PATH
         pip install numpy==1.16.6
+        # workaround for freetype compilation error
+        brew unlink freetype
+        curl -L https://raw.githubusercontent.com/Homebrew/homebrew-core/d28afc3bfdb5d24eab02157bfffcc9e17ed6666c/Formula/f/freetype.rb > freetype.rb
+        brew install freetype.rb
         pip install matplotlib
     - name: Install packages for Ubuntu 22.04 only
       if: matrix.os == 'ubuntu-22.04'
