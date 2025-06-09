@@ -375,7 +375,7 @@ AC_SUBST(SOXT_OBJS_R3B)
 
 AC_SUBST(DEPS_LIBS)
 AC_SUBST(DEPS_INCLUDES)
-AC_CONFIG_FILES([Makefile src/Makefile util/Makefile gui/Makefile plaut/Makefile plaut04/Makefile plaut04/src/Makefile cmds/cmds.make cmds/Makefile gui/auto.makefile])
+AC_CONFIG_FILES([Makefile src/Makefile util/Makefile gui/Makefile plaut/Makefile plaut04/Makefile plaut04/src/Makefile cmds/auto.env cmds/auto.env.sh cmds/cmds.make cmds/Makefile gui/auto.makefile])
 AC_OUTPUT
 
 if test x$no_x = xyes && test x$ENABLE_GUI = xyes; then
