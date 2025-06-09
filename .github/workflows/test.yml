@@ -70,11 +70,11 @@ jobs:
         cd test
         python2 ../python/auto all.auto
         mv *_log07p python2log.txt
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v4
       with:
         name: python2log
         path: test/python2log.txt
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v4
       with:
         name: python2verification
         path: test/verification
@@ -84,11 +84,11 @@ jobs:
         cd test
         python3 ../python/auto all.auto
         mv *_log07p python3log.txt
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v4
       with:
         name: python3log
         path: test/python3log.txt
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v4
       with:
         name: python3verification
         path: test/verification
@@ -104,11 +104,11 @@ jobs:
           python3 ../python/auto all.auto
           mv *_log07p python3mpilog.txt
         fi
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v4
       with:
         name: python3mpilog
         path: test/python3mpilog.txt
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v4
       with:
         name: python3mpiverification
         path: test/verification
