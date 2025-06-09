@@ -7,7 +7,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04, ubuntu-22.04, macos-12]
+        os: [ubuntu-22.04, ubuntu-24.04, macos-13]
     steps:
     - uses: actions/checkout@v1
     - name: Install dependencies (Linux)
@@ -15,7 +15,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install gfortran libmotif-dev libsoqt520-dev
-        sudo apt-get install python-tk python3-matplotlib
+        sudo apt-get install python3-matplotlib
         sudo apt-get install openmpi-bin libopenmpi-dev
         sudo apt-get install texlive texlive-latex-extra transfig
     - name: Install dependencies (macOS)
@@ -27,8 +27,8 @@ jobs:
         rm -f /usr/local/bin/{2to3-,idle,pydoc,python}3*
         rm -f /usr/local/bin/python3*-config /usr/local/bin/2to3
         brew install cmake qt openmotif open-mpi coin3d
-        curl -O -L https://github.com/coin3d/soqt/releases/download/v1.6.2/soqt-1.6.2-src.tar.gz
-        tar xf soqt-1.6.2-src.tar.gz
+        curl -O -L https://github.com/coin3d/soqt/releases/download/v1.6.3/soqt-1.6.3-src.tar.gz
+        tar xf soqt-1.6.3-src.tar.gz
         cd soqt/build
         cmake ..
         make -j3
@@ -42,12 +42,10 @@ jobs:
         PATH=$(pyenv root)/shims:$PATH
         pip install numpy==1.16.6
         pip install matplotlib
-    - name: Install packages for Ubuntu 20.04 only
-      if: matrix.os == 'ubuntu-20.04'
-      run: sudo apt-get install python-numpy
     - name: Install packages for Ubuntu 22.04 only
       if: matrix.os == 'ubuntu-22.04'
       run: |
+        sudo apt-get install python-tk
         curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py
         sudo python2 get-pip.py
         pip2 install numpy
@@ -61,7 +59,9 @@ jobs:
         make
         # compile manual
         make -C doc auto.pdf ../plaut04/doc/userguide.pdf
+        touch test/python2log.txt
     - name: Run test (python2)
+      if: matrix.os != 'ubuntu-24.04'
       run: |
         if [ "$RUNNER_OS" == "macOS" ]; then
           PATH=$(pyenv root)/shims:$PATH
