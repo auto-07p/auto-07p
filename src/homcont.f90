@@ -266,7 +266,7 @@ CONTAINS
           !       **Derivative to truncation interval
           DO J=1,AP%NFPR
              IF(ICP(J)==IT)THEN
-                DFDP(:,IT)=F(:)
+                DFDP(:,IT)=F(:NDM)
              ELSE
                 DFDP(:,ICP(J))=T*DFDP(:,ICP(J))
              ENDIF

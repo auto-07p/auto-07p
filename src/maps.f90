@@ -249,7 +249,7 @@ CONTAINS
     CALL DGEMM('n','n',NDM,NDM,NDM,1.d0,DFDU,NDM,DFDU,NDM,0.d0,DFDV,NDM)
     THTA=U(NDM*2+1)
     F=2*(1-COS(THTA))
-    DFDV(:,:)=DFDV(:,:)+F*DFDU(:,:)
+    DFDV(:,:NDM)=DFDV(:,:NDM)+F*DFDU(:,:)
     DO I=1,NDM
        DFDV(I,I)=DFDV(I,I)+F
     ENDDO

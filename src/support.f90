@@ -640,7 +640,7 @@ CONTAINS
 ! ------- -------- -------
   LOGICAL FUNCTION STOPPED(IUZ,ITEST,NUZR,ITP,COUNTS)
     INTEGER, INTENT(IN) :: IUZ(*),ITEST,NUZR,ITP
-    INTEGER, INTENT(INOUT) :: COUNTS(-9:10)
+    INTEGER, INTENT(INOUT) :: COUNTS(-9:14)
 
     ! determine if the given TY label has been reached n times so
     ! we need to stop
