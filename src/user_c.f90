@@ -35,7 +35,7 @@ module user_c
        real(c_double), intent(inout) :: u(ndim), par(*)
      end subroutine stpnt_c
 
-     subroutine bcnd_c(ndim, par, icp, nbc, u0, u1, ijac, fb, dbc)
+     subroutine bcnd_c(ndim, par, icp, nbc, u0, u1, ijac, fb, dbc) bind(c)
        import c_int, c_double
        implicit none
        integer(c_int), value :: ndim, nbc, ijac
@@ -45,7 +45,7 @@ module user_c
        real(c_double), intent(inout) :: dbc(nbc, *)
      end subroutine bcnd_c
 
-     subroutine icnd_c(ndim, par, icp, nint, u, uold, udot, upold, ijac, fi, dint)
+     subroutine icnd_c(ndim, par, icp, nint, u, uold, udot, upold, ijac, fi, dint) bind(c)
        import c_int, c_double
        implicit none
        integer(c_int), value :: ndim, nint, ijac
@@ -56,7 +56,7 @@ module user_c
        real(c_double), intent(inout) :: dint(nint, *)
      end subroutine icnd_c
 
-     subroutine fopt_c(ndim, u, icp, par, ijac, fs, dfdu, dfdp)
+     subroutine fopt_c(ndim, u, icp, par, ijac, fs, dfdu, dfdp) bind(c)
        import c_int, c_double
        implicit none
        integer(c_int), value :: ndim, ijac
@@ -66,7 +66,7 @@ module user_c
        real(c_double), intent(inout) :: dfdu(ndim), dfdp(*)
      end subroutine fopt_c
 
-     subroutine pvls_c(ndim, u, par)
+     subroutine pvls_c(ndim, u, par) bind(c)
        import c_int, c_double
        implicit none
        integer(c_int), value :: ndim
