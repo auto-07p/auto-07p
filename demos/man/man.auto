@@ -3,14 +3,14 @@
 # AUTO Demo man
 #==============
 
-print "\n***Compute an initial orbit in the manifold***"
+print("\n***Compute an initial orbit in the manifold***")
 r0=run(e='man',c='man.0')
 save(r0,'0')
 
-print "\n***Compute the manifold***"
+print("\n***Compute the manifold***")
 r1=run(r0('UZ2'),c='man.1')
 save(r1,'1')
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 cl()
 

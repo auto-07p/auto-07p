@@ -6,22 +6,22 @@
 
 pgm="sspg"
 
-print "\n***"+pgm+": run 1: trivial solution***"
+print("\n***"+pgm+": run 1: trivial solution***")
 r1=run(pgm,sv=pgm+'.1')
 bp=r1('BP1')
 
-print "\n***"+pgm+": run 1: branch switch***"
+print("\n***"+pgm+": run 1: branch switch***")
 run(bp,ISW=-1,NMX=5,NPR=1,sv=pgm+'.1.sw')
 
-print "\n***"+pgm+": run 2: switch to BP continuation***"
+print("\n***"+pgm+": run 2: switch to BP continuation***")
 sw=run(bp,ICP=[1,2],ISW=2,NMX=50,NPR=10,sv=pgm+'.2.sw')
 
-print "\n***"+pgm+": run 2: BP continuation (fw)***"
+print("\n***"+pgm+": run 2: BP continuation (fw)***")
 run(sw,sv=pgm+'.2.fw')
 
-print "\n***"+pgm+": run 2: BP continuation (bw)***"
+print("\n***"+pgm+": run 2: BP continuation (bw)***")
 run(sw,DS='-',sv=pgm+'.2.bw')
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 cl()
 

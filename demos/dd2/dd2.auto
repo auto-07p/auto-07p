@@ -3,22 +3,22 @@
 # AUTO Demo dd2
 #==============
 
-print "\nDemo dd2 is started"
-print "\ndd2 : first run : fixed point solution branches"
+print("\nDemo dd2 is started")
+print("\ndd2 : first run : fixed point solution branches")
 r1 = run("dd2")
 save("dd2")
 
-print "\ndd2 : second run : a 2-parameter curve of period-doubling bifurcations"
+print("\ndd2 : second run : a 2-parameter curve of period-doubling bifurcations")
 run(r1("PD1"),ICP=[1,2],ISW=2)
 save("pd")
 
-print "\ndd2 : third run : perform a period-doubling"
+print("\ndd2 : third run : perform a period-doubling")
 r3 = run(r1("PD1"),ISW=-1)
 append("dd2")
 
-print "\ndd2 : fourth run : perform another period-doubling (period-4)"
+print("\ndd2 : fourth run : perform another period-doubling (period-4)")
 run(r3("PD1"))
 append("dd2")
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 clean()

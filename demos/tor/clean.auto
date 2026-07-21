@@ -3,7 +3,7 @@
 # AUTO Demo tor
 #==============
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 dl('1')
 dl('tor')
 dl('tor3')

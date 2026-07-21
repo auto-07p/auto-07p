@@ -3,11 +3,11 @@
 # AUTO Demo enz
 #==============
 
-print "\nDemo enz is started"
-print "\nenz : stationary solution branches"
+print("\nDemo enz is started")
+print("\nenz : stationary solution branches")
 run("enz")
 save("enz")
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 clean()
 

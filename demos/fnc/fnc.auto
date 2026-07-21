@@ -4,7 +4,7 @@
 #==============
 
 pgm = "fnc"
-print "\nDemo %s is started"%pgm
+print("\nDemo %s is started"%pgm)
 
 cd("attr")
 auto("attr.auto")
@@ -22,7 +22,7 @@ save(rl(attr+rep),'attrrep')
 pgm = "fnc" #reinitialize
 dl("xis")
 for i in [3,4,5,6,7,8]:
-    print "calculating orbit for xi"+str(i)
+    print("calculating orbit for xi"+str(i))
     uzlabel = "UZ"+str(i-2)
     sola = attr(uzlabel)
     solr = rep(uzlabel)
@@ -52,5 +52,5 @@ for i in [3,4,5,6,7,8]:
     append(r,"xis")
 
 rl("xis")
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 cl()

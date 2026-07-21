@@ -36,23 +36,6 @@ jobs:
         brew install basictex fig2dev
         brew install python-tk
         brew install python-matplotlib
-        brew install pyenv
-        pyenv install 2.7.18
-        pyenv global 2.7.18
-        PATH=$(pyenv root)/shims:$PATH
-        pip install numpy==1.16.6
-        # workaround for freetype compilation error
-        brew unlink freetype
-        curl -L https://raw.githubusercontent.com/Homebrew/homebrew-core/d28afc3bfdb5d24eab02157bfffcc9e17ed6666c/Formula/f/freetype.rb > freetype.rb
-        brew install freetype.rb
-        pip install matplotlib
-    - name: Install packages for Ubuntu 22.04 only
-      if: matrix.os == 'ubuntu-22.04'
-      run: |
-        sudo apt-get install python-tk
-        curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py
-        sudo python2 get-pip.py
-        pip2 install numpy
     - name: Compile
       run: |
         # compile auto
@@ -63,25 +46,6 @@ jobs:
         make
         # compile manual
         make -C doc auto.pdf ../plaut04/doc/userguide.pdf
-        touch test/python2log.txt
-    - name: Run test (python2)
-      if: matrix.os != 'ubuntu-24.04'
-      run: |
-        if [ "$RUNNER_OS" == "macOS" ]; then
-          PATH=$(pyenv root)/shims:$PATH
-        fi
-        export OMPI_MCA_btl="^openib"
-        cd test
-        python2 ../python/auto all.auto
-        mv *_log07p python2log.txt
-    - uses: actions/upload-artifact@v4
-      with:
-        name: python2log-${{ matrix.os }}
-        path: test/python2log.txt
-    - uses: actions/upload-artifact@v4
-      with:
-        name: python2verification-${{ matrix.os }}
-        path: test/verification
     - name: Run test (python3)
       run: |
         export OMPI_MCA_btl="^openib"
@@ -116,3 +80,63 @@ jobs:
       with:
         name: python3mpiverification-${{ matrix.os }}
         path: test/verification
+    - name: Build wheel
+      run: |
+        python3 -m pip install --upgrade build
+        python3 -m build --wheel
+    - uses: actions/upload-artifact@v4
+      with:
+        name: wheel-${{ matrix.os }}
+        path: dist/*.whl
+
+  # CMake build lane: builds the core engine AND every demo with CMake (instead
+  # of autotools, W6) in one shot, then runs the demo suite against the
+  # CMake-produced lib/. Keeps CMake at parity with the make build
+  # (refactor-plan.md W0). No ./configure needed: CMake generates the CLI's
+  # build config (python/auto/compilers.py) directly, and the CLI links
+  # lib/libauto.a instead of the old cmds.make/lib/*.o glob (W3).
+  build-cmake:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gfortran cmake python3-matplotlib python3-numpy
+        sudo apt-get install -y openmpi-bin libopenmpi-dev
+    - name: Build engine + all demos with CMake (one-shot, W6)
+      run: |
+        # One `cmake --build` produces the engine libraries, lib/libauto.so (PIC,
+        # for the W4 Python-callback path), the installable libauto.a (W5), AND
+        # every demo executable (BUILD_DEMOS) -- so a build break in any demo is
+        # caught here.
+        cmake -S . -B build -DBUILD_DEMOS=ON -DAUTO_BUILD_SHARED=ON
+        cmake --build build -j
+    - name: Run demo suite against the CMake-built lib/
+      run: |
+        export OMPI_MCA_btl="^openib"
+        cd test
+        python3 ../python/auto all.auto
+        mv *_log07p cmake-python3log.txt
+    - uses: actions/upload-artifact@v4
+      with:
+        name: cmake-python3log
+        path: test/cmake-python3log.txt
+    - uses: actions/upload-artifact@v4
+      with:
+        name: cmake-verification
+        path: test/verification
+    - name: Run Python-callback demos (no-compile path, W4)
+      run: |
+        # Runs each demos/pycallback/*.py two ways -- Python callbacks via
+        # lib/libauto.so vs the compiled <name>.f90 + lib/*.o -- and checks the
+        # b-files match. Needs libauto.so (built above) and gfortran (present).
+        export AUTO_DIR="$PWD"
+        export OMPI_MCA_btl="^openib"
+        python3 test/test_pycallback.py
+    - name: Run C-link demo test (installable engine, W5)
+      run: |
+        # Installs the engine to a temp prefix and builds a C equation against
+        # it via find_package(AUTO) (-lauto -lauto_c, no lib/*.o glob), runs it,
+        # and checks the b-file matches the compiled Fortran demo.
+        sh test/test_clink.sh

@@ -8,9 +8,9 @@ except ImportError: # Python 3
 from auto import parseC
 from auto import parseB
 from auto import parseS
+from auto.AUTOSolution import AUTOSolution
 from auto import parseBandS
 from auto import parseH
-from auto import bifDiag
 import os
 from auto import AUTOutil
 import sys
@@ -188,8 +188,8 @@ def us(name,templates=None):
     datfile = "%s.dat"%name
     info("(Required files : %s, %s, %s)\n"%(equation_file,cfile,
                                                  datfile))
-    import runAUTO
-    fconrun = runAUTO.runAUTO(makefile="$AUTO_DIR/cmds/cmds.make fcon")
+    from . import runAUTO
+    fconrun = runAUTO.runAUTO(makefile="fcon")
     fconrun.config(e=name)
     fconrun.runMakefile(name)
     if os.path.exists(cfile):
@@ -315,6 +315,7 @@ def merge(name1=None,name2=None,templates=None):
     Type FUNC('xxx','yyy') to merge branches in the existing data-files
     s.xxx, b.xxx, and d.xxx and save them to s.yyy, b.yyy, and d.yyy.
     """
+    from auto import bifDiag
 
     ntype = type(name1)
     if type(name1) == type(""):
@@ -370,6 +371,7 @@ def subtract(name1,name2,col,branch=1,point=1,templates=None):
     first point on that branch within y or 'b.yyy', where m,n are in
     {1,2,3,...}.
     """
+    from auto import bifDiag
     ntype = type(name1)
     if type(name1) == type(""):
         name1 = filenameTemplate(name1,templates)
@@ -412,6 +414,7 @@ def append(name1,name2=None,templates=None):
     Type FUNC('xxx','yyy') to append existing data-files s.xxx, b.xxx,
     and d.xxx to data-files s.yyy, b.yyy, and d.yyy.
     """
+    from auto import bifDiag
     parsed1=None
     parsed2=None
     if isinstance(name1, bifDiag.bifDiag):
@@ -542,6 +545,7 @@ def save(name1,name2=None,templates=None):
     to b.xxx, s.xxx, d.xxx.  Existing files with these names will be
     overwritten.
     """
+    from auto import bifDiag
     parsed = None
     if not name2 is None:
         parsed = name1
@@ -569,7 +573,7 @@ def save(name1,name2=None,templates=None):
                     break
         else:
             if (type(parsed) == type([]) and
-                isinstance(parsed[0], parseS.AUTOSolution)):
+                isinstance(parsed[0], AUTOSolution)):
                 parsed = parseS.parseS(parsed)
             parsed.writeFilename(n1s)
             msg = "Saving to %s ... done\n"%(n1s)
@@ -611,6 +615,7 @@ commandDeleteDataFiles = command(delete,alias=['dl'])
 
 def deleteLabel(codes=None,name1=None,name2=None,templates=None,
                 keepTY=0,keep=0):
+    from auto import bifDiag
     if hasattr(codes,'deleteLabel'):
         origlen=len(codes())
         new = codes.deleteLabel(name1,keepTY=keepTY,keep=keep,copy=1)
@@ -1422,6 +1427,7 @@ def loadbd(name=None,templates=None,**kw):
 
     Returns a bifurcation diagram object representing the files in b.
     """
+    from auto import bifDiag
     def __applyBsdConfigResolveAbbreviation(**kw):
         abbrev = {}
         for key in ["bifurcationDiagram", "solution", "diagnostics"]:
@@ -1470,8 +1476,8 @@ def pr(parameter=None,runner=None):
     Type FUNC() to print all the parameters.
     Type FUNC('xxx') to return the parameter 'xxx'.
     These commands are equivalent to the commands
-    print s.c
-    print s.c['xxx']
+    print(s.c)
+    print(s.c['xxx'])
     where s is a solution.
     """
     runner = withrunner(runner)
@@ -1488,8 +1494,8 @@ def hpr(parameter=None,runner=None):
     Type FUNC() to print all the HomCont parameters.
     Type FUNC('xxx') to return the HomCont parameter 'xxx'.
     These commands are equivalent to the commands
-    print s.c
-    print s.c['xxx']
+    print(s.c)
+    print(s.c['xxx'])
     where s is a solution.
     """
     runner = withrunner(runner)
@@ -1546,7 +1552,7 @@ def run(data=None,sv=None,ap=None,runner=None,templates=None,**kw):
     AUTO constants or file keyword options.
     
     The results are stored in the bifurcation diagram r which you can
-    later print with ``print r'', obtain branches from via r[0], r[1], ...,
+    later print with ``print(r)'', obtain branches from via r[0], r[1], ...,
     and obtain solutions from via r(3), r(5), r('LP2'), where 3 and 5
     are label numbers, and 'LP2' refers to the second LP label.
 
@@ -1678,6 +1684,7 @@ def plot3(name=None,r3b=False):
     Type FUNC(...,r3b=True) to run PLAUT04 in restricted three body
     problem mode.
     """
+    from auto import bifDiag
     cmd = os.path.join(os.path.expandvars("$AUTO_DIR"),"bin")
     cmd = os.path.join(cmd, "plaut04")
     arg = []
@@ -1701,7 +1708,7 @@ def plot3(name=None,r3b=False):
                 d.writeFilename("fort.8")
             elif isinstance(d,parseB.AUTOBranch):
                 d.writeFilename("fort.7")
-            elif isinstance(d,parseS.AUTOSolution):
+            elif isinstance(d,AUTOSolution):
                 d.writeFilename("fort.8")
     sys.stdout.flush()
     if not os.path.exists(cmd):
@@ -1817,6 +1824,11 @@ try:
                 _root=root
             except:
                 pass
+        # imported locally (like the other commands here) to avoid a cyclic
+        # import with bifDiag; without this, plotting a result raises
+        # NameError: name 'bifDiag' is not defined (only reached when matplotlib
+        # is present, i.e. in CI).
+        from auto import bifDiag
         if parsed:
             nb, ns = None, None
             if isinstance(parsed,bifDiag.bifDiag):
@@ -1831,7 +1843,7 @@ try:
                 ns = parsed
             elif isinstance(parsed,parseB.AUTOBranch):
                 nb = parseB.parseBR([parsed])
-            elif isinstance(parsed,parseS.AUTOSolution):
+            elif isinstance(parsed,AUTOSolution):
                 ns = parseS.parseS([parsed])
             if nb:
                 options["grapher_bifurcation_diagram"] = nb

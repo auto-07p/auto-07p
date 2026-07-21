@@ -1,6 +1,0 @@
-#!/bin/sh
-if ( test $# -eq 1 ) then
-	grep Mult d.$1
-else
-	grep Mult fort.9
-fi

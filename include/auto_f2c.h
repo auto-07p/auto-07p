@@ -70,6 +70,15 @@ typedef struct {
 } user_function_list;
 extern const user_function_list user;
 
+/* Runtime entry points exported by the shared engine (libauto) for the W4
+   Python/C callback path.  In that build variant libauto owns a *mutable*
+   `user` (defined in Fortran, src/user_c.f90) which these fill/clear at
+   runtime.  Compiled-C users keep the `const user` above and never call
+   these, so the declarations are harmless to them. */
+void auto_set_user(const user_function_list *ul); /* copy callbacks into `user` */
+void auto_reset_user(void);                       /* clear all callbacks       */
+int  auto_main_c(void);                            /* run one continuation; 0 ok */
+
 #define getp getp_c
 extern doublereal getp(const char *code, integer ic, const doublereal *u);
 

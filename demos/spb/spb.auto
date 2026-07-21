@@ -3,21 +3,21 @@
 # AUTO Demo spb
 #==============
 
-print "\n***Homotopy from lambda=0 to lambda=1***"
+print("\n***Homotopy from lambda=0 to lambda=1***")
 r0=run(e='spb',c='spb.0')
 save(r0,'0')
 
-print "\n***Letting epsilon become small***"
+print("\n***Letting epsilon become small***")
 r1=run(r0,c='spb.1')
 r1=rl(r1)
 save(r1,'1')
 
-print "\n***Continuation in gamma: First 15 steps***"
+print("\n***Continuation in gamma: First 15 steps***")
 r2=run(r1('UZ2'),c='spb.2')
 
-print "\n***Continuation in gamma: Restart***"
+print("\n***Continuation in gamma: Restart***")
 r3=run(r2,c='spb.3')
 save(rl(r2+r3),'2')
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 cl()

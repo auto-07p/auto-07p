@@ -7,11 +7,11 @@
 pgm="lcbp"
 load(pgm)
 
-print "\n***"+pgm+": run 1: cycle continuation***"
+print("\n***"+pgm+": run 1: cycle continuation***")
 r1=run(sv=pgm+'.1')
 bp=r1('BP1')
 
-print "\n***"+pgm+": run 1: branch switch***"
+print("\n***"+pgm+": run 1: branch switch***")
 run(bp,ISW=-1,NMX=5,NPR=1,sv=pgm+'.1.sw')
 
 for isw in [2,3]:
@@ -24,14 +24,14 @@ for isw in [2,3]:
       bp=load(bp,ICP=[1,2,3,11])
    solprefix=pgm+'.'+str(isw)+'.'
 
-   print msg+"(sw)***"
+   print(msg+"(sw)***")
    sw=run(bp,ISW=isw,NMX=20,NPR=10,DS=1.e-4,UZSTOP={1:0},sv=solprefix+'sw')
 
-   print msg+"(fw)***"
+   print(msg+"(fw)***")
    run(sw,NMX=50,DS=0.01,sv=solprefix+'fw')
 
-   print msg+"(bw)***"
+   print(msg+"(bw)***")
    run(sw,NMX=50,DS=-0.01,STOP=['LP1','BP1'],sv=solprefix+'bw')
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 cl()

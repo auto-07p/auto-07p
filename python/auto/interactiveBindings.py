@@ -25,9 +25,6 @@ class AUTOInteractive(object):
         self.stopdemo = False
         self.oldhelp = __builtin__.help
         locals["help"] = self.help
-        self.atcommands = [cmd 
-                           for cmd in os.listdir(os.environ["AUTO_DIR"]+"/cmds")
-                           if cmd[0]=='@' and cmd[-1]!='~']
 
     def showtraceback(self):
         try:
@@ -55,7 +52,7 @@ class AUTOInteractive(object):
     will proceed each time you press Enter.
 
 Aliases: demofile dmf"""
-        import AUTOclui
+        from auto import AUTOclui
         AUTOInteractiveConsole(AUTOclui.exportFunctions())._demofile(name)
 
     def _demofile(self,name):
@@ -140,7 +137,7 @@ Aliases: auto ex"""
     Type auto('xxx.auto') to run the script xxx.auto.
 
 Aliases: auto ex"""
-        import AUTOclui
+        from auto import AUTOclui
         if name is not None:
             AUTOInteractiveConsole(AUTOclui.exportFunctions()).execfile(name)
         else:
@@ -173,9 +170,6 @@ Aliases: auto ex"""
         elif len(lst) == 1 or lst[1][0] != '(':
             if lst[0]=="shell":
                 command = "shell('"+line[llen+5:].strip()+"')"
-            elif lst[0] in self.atcommands:
-                command = ("shell('" + os.path.join(
-                        os.environ["AUTO_DIR"],"cmds",line.strip()) + "')")
             elif (lst[0] in shortUnixCommands or
                   (lst[0] in shortDuplCommands and
                    (len(lst) != 2 or (len(lst) == 2 and lst[1][0] == '-')))):
@@ -359,7 +353,7 @@ def _quicktest():
     _testFilename("../demos/python/fullTest.auto","test_data/fullTest.log")
     
 def _testFilename(inputname,outputname):
-    import AUTOclui, AUTOutil, runAUTO
+    from auto import AUTOclui, AUTOutil, runAUTO
     old_path = os.getcwd()
     log = open("log","w")
 
@@ -498,7 +492,7 @@ man     -> List of AUTO CLUI commands"""]
     ipshell.mainloop(banner = '\n'.join(banner))
 
 def automain(name=None):
-    import AUTOclui
+    from auto import AUTOclui
     sys.ps1="AUTO> "    
     opts_list,args=getopt.getopt(sys.argv[1:],"c:diqtT:L:")
     opts={}

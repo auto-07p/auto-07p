@@ -3,15 +3,15 @@
 # AUTO Demo pp2
 #==============
 
-print "\n***Compute stationary solution families***"
+print("\n***Compute stationary solution families***")
 pp2 = run('pp2')
 save('pp2')
 
-print "\n***Compute periodic solution families***"
+print("\n***Compute periodic solution families***")
 run(pp2('HB1'), ICP=['quota','PERIOD'], IPS=2, NPR=2,
     UZSTOP={'quota': [0.0, 1.0], 'PERIOD': 36.0})
 save('ps')
 append('pp2')
     
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 clean()

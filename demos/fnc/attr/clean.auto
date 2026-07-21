@@ -10,5 +10,5 @@ dl('2')
 dl('3')
 dl(pgm)
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 cl()

@@ -3,7 +3,7 @@
 # Remove data files that can be regenerated
 #==========================================
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 for f in ['L1', 'H1', 'V1',
    'H1a', 'H1b', 'H1c', 'V1a', 'V1b', 'L1a', 'L1a2',
    'startH1a', 'startH1b', 'startH1c',

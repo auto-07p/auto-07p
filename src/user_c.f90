@@ -8,6 +8,7 @@ module user_c
   implicit none
   private
   public :: user, func_c, bcnd_c, icnd_c, stpnt_c, fopt_c, pvls_c
+  public :: auto_set_user, auto_reset_user
 
   type, bind(c) :: user_function_list
      type(c_funptr) :: func, stpnt, bcnd, icnd, fopt, pvls
@@ -96,6 +97,27 @@ contains
      fcode(3:3) = code(3)
      getp_c = getp(fcode, ic, u)
   end function getp_c
+
+  ! ---- Runtime user-function registration (W4) --------------------------
+  ! Fill or clear the module-level `user` table from C/Python at runtime, so
+  ! the Python build needs no compiled equation object.  Compiled-C users are
+  ! unaffected: their own `const user` definition still wins at link time and
+  ! never calls these setters.
+  subroutine auto_set_user(ul) bind(c, name="auto_set_user")
+     type(user_function_list), intent(in) :: ul
+     user = ul                     ! copies the c_funptr fields + uses_fortran
+  end subroutine auto_set_user
+
+  subroutine auto_reset_user() bind(c, name="auto_reset_user")
+     use, intrinsic :: iso_c_binding, only: c_null_funptr
+     user%func  = c_null_funptr
+     user%stpnt = c_null_funptr
+     user%bcnd  = c_null_funptr
+     user%icnd  = c_null_funptr
+     user%fopt  = c_null_funptr
+     user%pvls  = c_null_funptr
+     user%uses_fortran = 0
+  end subroutine auto_reset_user
 
 end module user_c
 

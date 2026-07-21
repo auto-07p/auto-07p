@@ -1,7 +1,0 @@
-#!/bin/sh
-rm -r b.$1 
-rm -r s.$1 
-rm -r d.$1
-echo "Deleting b.$1 ... done"
-echo "Deleting s.$1 ... done"
-echo "Deleting d.$1 ... done"

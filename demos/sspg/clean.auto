@@ -5,7 +5,7 @@
 
 pgm="sspg"
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 dl(pgm+'.1')
 dl(pgm+'.1.sw')
 dl(pgm+'.2.sw')

@@ -1,3 +1,77 @@
+0.10.0:
+  Modernization: a Python-callable engine, an installable C/C++ library, a
+  self-contained wheel, a one-shot CMake build, and removal of the legacy
+  cmds/ machinery. See refactor-plan.md for the full design and rationale, and
+  doc/migrating-from-cmds.md for the workflow migration.
+
+* Build system
+  - CMake build of the core engine, at parity with the autotools/make build
+    (same lib/ object layout the CLI depends on). One `cmake --build` produces
+    the engine libraries and, with -DBUILD_DEMOS=ON, every demo executable in
+    one shot, so a build break in any demo is caught up front.
+  - Installable core engine for C/C++ users (successor to globbing
+    $AUTO_DIR/lib/*.o). `cmake --install` provides:
+      lib/libauto.a, lib/libauto_c.a (static engine + C dispatcher archive),
+      the public headers under include/auto/,
+      a CMake package config -> find_package(AUTO) : AUTO::auto / AUTO::auto_c,
+      and pkg-config (auto.pc).
+    A user writes an equation in C/Fortran, compiles it, and links -lauto
+    (-lauto_c for C equations) -- no object glob. See demos/clink/.
+  - Removed the legacy cmds/ directory: the 70 @-command shell scripts,
+    cmds.make, and auto.env. The @-commands have direct Python/`auto` command
+    equivalents (run/save/load/...); auto.env is replaced by installing the
+    package. The CLI no longer shells through cmds.make to compile a user
+    equation: it reads the compiler and flags from a build-generated
+    python/auto/compilers.py (emitted by autotools src/Makefile and by CMake)
+    and links lib/libauto.a directly. configure.ac/configure/Makefile.in no
+    longer reference cmds/.
+
+* Python package and wheel
+  - The Python CLI is a proper installable package (pyproject.toml, PEP 621),
+    with an `auto` console entry point replacing the bin/auto launcher.
+  - Self-contained binary wheel: -DBUILD_PYTHON=ON builds and bundles the
+    pre-compiled engine (libauto.so) into the wheel, so `pip install` then run
+    needs no compiler or AUTO_DIR. Built as a platform wheel.
+  - Dropped Python 2; Python 3 only. Absolute imports so the tree imports
+    cleanly as an installed package.
+
+* Python-callable engine (new capability)
+  - New module auto.callback: define the user functions
+    func/stpnt/bcnd/icnd/fopt/pvls as Python functions, register them into the
+    engine's user-function table at run time, and run a continuation with NO
+    compilation (no gfortran/make). Reproduces the compiled engine's results.
+  - NumPy marshaling with no copies; Jacobians are viewed Fortran column-major;
+    par is sized by NPARX. Callbacks are anchored against GC.
+  - capture_output(): capture the engine's Fortran stdout/stderr (for clean
+    notebook output). Repeated in-process runs are supported for well-formed
+    inputs.
+  - See doc/python-callback-api.md for the ABI and the marshaling contract.
+
+* Main AUTO (engine)
+  - Refactored PROGRAM AUTO into a callable subroutine AUTO_MAIN plus a
+    C-callable entry point auto_main_c() (module AUTO_MAIN_MODULE); the
+    executable is now a thin wrapper, behavior unchanged.
+  - Runtime user-function registration: auto_set_user()/auto_reset_user() fill
+    or clear the engine's mutable `user` table from C/Python. The compiled-C
+    path (const `user`) is unaffected.
+  - AUTO_MAIN closes the constants unit (fort.2) after each run so a later
+    in-process call re-reads it from the start.
+
+* Demos, tests, and CI
+  - demos/pycallback/ : demos written as Python functions (ab, exp), runnable
+    with no compilation.
+  - demos/clink/ : a C equation linked against the installed engine, with a
+    find_package(AUTO) example and a pkg-config recipe.
+  - New regression tests, wired into CI: test/test_pycallback.py (the Python
+    callback path reproduces the compiled engine, byte-identical or to a tight
+    tolerance) and test/test_clink.sh (install -> find_package -> link -> run).
+
+* Documentation
+  - New top-level README.md (introduction, build/install, running demos two
+    ways, venv + wheel + Jupyter).
+  - doc/migrating-from-cmds.md (@-command -> Python mapping; auto.env -> pip),
+    doc/python-callback-api.md, refactor-plan.md.
+
 0.9.4:
 * Main AUTO
   - Remove support for pre-F2003 compilers.

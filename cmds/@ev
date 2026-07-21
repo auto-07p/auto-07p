@@ -1,6 +1,0 @@
-#!/bin/sh
-if ( test $# -eq 1 ) then
-	grep Eigenvalue d.$1
-else
-	grep Eigenvalue fort.9
-fi

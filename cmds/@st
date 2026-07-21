@@ -1,6 +1,0 @@
-#!/bin/sh
-if ( test $# -eq 1 ) then
-	grep Stable d.$1
-else
-	grep Stable fort.9
-fi

@@ -3,14 +3,14 @@
 # AUTO Demo vhb
 #==============
 
-print "\n***Compute the zero family***"
+print("\n***Compute the zero family***")
 r1 = run(e='vhb',c='vhb.1')
 
-print "\n***Compute the bifurcating vertical branch of periodic solutions***"
+print("\n***Compute the bifurcating vertical branch of periodic solutions***")
 r2 = run(r1('HB1'),c='vhb.2')
 save(r1+r2,'vhb')
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 cl()
 
 

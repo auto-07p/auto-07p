@@ -5,11 +5,11 @@
 
 auto('V1b.auto')
 
-print "\n*** Locate a connecting orbit on the unstable manifold***"
+print("\n*** Locate a connecting orbit on the unstable manifold***")
 startV1b = loadbd('startV1b')
 hetV1b = run(startV1b,c='man.V1b.2')
 save(rl(hetV1b),'hetV1b')
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 cl()
 

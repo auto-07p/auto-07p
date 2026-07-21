@@ -3,25 +3,25 @@
 # AUTO Demo ab
 #=============
 
-print "\n***Generate starting data***"
+print("\n***Generate starting data***")
 start=run(e='ab',c='ab.1')
 
-print "\n***Compute stationary solution families***"
+print("\n***Compute stationary solution families***")
 ab = []
 for solution in start():
     ab = ab + run(solution,c='ab.2')
 
-print "\n***Relabel and save the output files***"
+print("\n***Relabel and save the output files***")
 ab=rl(ab)
 sv(ab,'ab')
 
-print "\n***Compute periodic solution families***"
+print("\n***Compute periodic solution families***")
 for solution in ab("HB"):
     ab = ab + run(solution,c='ab.3')
 
-print "\n***Relabel and save the output files***"
+print("\n***Relabel and save the output files***")
 ab=rl(ab)
 sv(ab,'ab')
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 cl()

@@ -1,5 +1,19 @@
-!     ------- ----
-      PROGRAM AUTO
+!     ------ ---------------
+      MODULE AUTO_MAIN_MODULE
+
+!     Holds the AUTO driver as a callable subroutine (AUTO_MAIN) plus a
+!     C-callable entry point (AUTO_MAIN_C).  PROGRAM AUTO (below) is a thin
+!     wrapper that just calls AUTO_MAIN, so the executable behaves exactly as
+!     before while the same driver is now reachable from C/Python (W4).
+
+      IMPLICIT NONE
+      PRIVATE
+      PUBLIC :: AUTO_MAIN, AUTO_MAIN_C
+
+      CONTAINS
+
+!     ---------- ---------
+      SUBROUTINE AUTO_MAIN()
 
       USE AUTOMPI
       USE IO
@@ -68,6 +82,11 @@
           CALL CLEANUP()
           IF(KEYS)EXIT
        ENDDO
+       ! Close the constants unit so a later in-process call to AUTO_MAIN
+       ! (via auto_main_c, W4) re-reads fort.2 from the start instead of
+       ! finding unit 2 still connected at end-of-file.  (UNITC==5 is stdin;
+       ! leave it alone.)  Harmless for the executable, which ends here anyway.
+       IF(UNITC==2)CLOSE(UNITC)
        CALL MPIEND()
 
  301  FORMAT(/,' Total Time ',E12.3)
@@ -469,6 +488,34 @@
 
       RETURN
       END SUBROUTINE INIT1
+
+      END SUBROUTINE AUTO_MAIN
+
+!     ---------- -----------
+!     C-callable entry point: run one continuation. Returns 0 on success.
+!     (Reentrancy / stop-vs-return handling is deferred to a later W4 step;
+!     today AUTO_MAIN may still call STOP internally, exactly as PROGRAM AUTO
+!     did, so the executable's behavior is unchanged.)
+      FUNCTION AUTO_MAIN_C() BIND(C, NAME="auto_main_c") RESULT(IERR)
+
+      USE, INTRINSIC :: ISO_C_BINDING, ONLY: C_INT
+      IMPLICIT NONE
+      INTEGER(C_INT) :: IERR
+
+      CALL AUTO_MAIN()
+      IERR = 0_C_INT
+
+      END FUNCTION AUTO_MAIN_C
+
+      END MODULE AUTO_MAIN_MODULE
+
+!     ------- ----
+      PROGRAM AUTO
+
+      USE AUTO_MAIN_MODULE, ONLY: AUTO_MAIN
+      IMPLICIT NONE
+
+      CALL AUTO_MAIN()
 
       END PROGRAM AUTO
 !-----------------------------------------------------------------------

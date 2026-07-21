@@ -3,7 +3,7 @@
 # Demo um3
 #==============
 
-print "\n***Grow an initial orbit by continuation***"
+print("\n***Grow an initial orbit by continuation***")
 init = run(e='um3',
            unames = {1:'x',2:'y',3:'z'},
            parnames = {1:'theta',2:'eps',3:'r0',4:'r1',11:'Period'},
@@ -15,21 +15,21 @@ init = run(e='um3',
            NPAR=11)
 save(init, '1')
 
-print "\n***Decrease the value of the problem parameter eps***"
+print("\n***Decrease the value of the problem parameter eps***")
 decr = run(init,ICP=['eps','Period'],DS='-',DSMAX=1.0,UZSTOP={'eps':0.01})
 save(decr, '2')
 
-print "\n***Part 1 of the unstable manifold***"
+print("\n***Part 1 of the unstable manifold***")
 startman = load(decr, ICP=['theta','Period'],NPR=1,
                 DS=5e-2,DSMIN=1e-5,DSMAX=1e0,
                 UZSTOP={'theta':[1.25,-0.75],'Period':1e4})
 part1 = run(startman)
 
-print "\n***Part 2 of the unstable manifold"
+print("\n***Part 2 of the unstable manifold")
 part2 = run(startman,DS='-')
 
-print "\n***Merge, relabel and save the orbits***"
+print("\n***Merge, relabel and save the orbits***")
 save(relabel(merge(part1+part2)),'3')
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 cl()

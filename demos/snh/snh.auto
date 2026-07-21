@@ -17,4 +17,4 @@ append('tb','all')
 relabel('all')
 
 clean()
-print "\nDone."
+print("\nDone.")

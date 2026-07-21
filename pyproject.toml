@@ -1,0 +1,35 @@
+# Packaging for the AUTO-07p Python CLI (W2).
+#
+# Backend note (see refactor-plan.md P2): this uses the pure-Python setuptools
+# backend for now. W4/W9 will migrate [build-system] to scikit-build-core so the
+# compiled engine (libauto) is bundled into the wheel. The [project] metadata
+# below is backend-agnostic, so that migration only touches [build-system].
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "auto_07p"
+version = "0.0.1"
+description = "AUTO-07p: continuation and bifurcation software for ODEs (Python CLI)"
+readme = { file = "README.md", content-type = "text/markdown" }
+requires-python = ">=3.8"
+dependencies = ["numpy"]
+
+[project.scripts]
+# Replaces the legacy bin/auto shell launcher (W3). Runtime still needs
+# $AUTO_DIR to locate the compiled engine until W4/W9 remove that coupling.
+auto = "auto.interactiveBindings:automain"
+
+[tool.setuptools]
+package-dir = { "" = "python" }
+
+[tool.setuptools.packages.find]
+where = ["python"]
+
+[tool.setuptools.package-data]
+# Data used by the module self-tests (parseBandS.test / bifDiag.test), plus the
+# compiled engine bundled by the CMake BUILD_PYTHON target (W4 step 6) so the
+# wheel is self-contained -- auto.callback loads it with no AUTO_DIR needed.
+auto = ["test_data/*", "libauto.so"]

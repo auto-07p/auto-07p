@@ -3,6 +3,6 @@
 # AUTO Demo bru
 #==============
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 dl('bru')
 cl()

@@ -3,7 +3,7 @@
 # AUTO Demo tfc
 #==============
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 dl('tfc.1')
 dl('tfc.1')
 dl('tfc.2')

@@ -16,19 +16,11 @@ autodir=@libdir@/auto-07p
 PERL=@PERL@
 @SET_MAKE@
 #
-all: src cmds util @GUI@ @PLAUT@ @PLAUT04@
-cmd: src cmds util @PLAUT@
+all: src util @GUI@ @PLAUT@ @PLAUT04@
+cmd: src util @PLAUT@
 
 src: .FORCE
 	cd ./src;$(MAKE)
-
-cmds: .FORCE
-	# work around case insensitive filesystems
-	cd ./cmds; for cmd in @H @LB @R @RD; do \
-	    if test ! -r $$cmd; then \
-		cp -p @$$cmd $$cmd; \
-	    fi \
-	done
 
 util: .FORCE
 	cd ./util;$(MAKE)
@@ -50,7 +42,6 @@ clean:
 	cd ./doc;$(MAKE) clean
 #
 superclean:  clean
-	cd ./cmds; if diff @R @@R > /dev/null; then rm @H @LB @R @RD; fi
 	cd ./plaut04;$(MAKE) superclean
 	rm -rf config.cache config.log config.status autom4te*.cache
 	cd ./bin; rm -f AUTO97 plaut autlab 86to97 94to97 double triple \
@@ -62,8 +53,8 @@ superclean:  clean
 	cd ./include; rm -f stamp-h1
 	rm -f python/*.pyc python/graphics/*.pyc
 	rm -f test/*.pyc test/*_log07p* test/verification/*.html
-	rm -f Makefile cmds/Makefile gui/Makefile plaut/Makefile src/Makefile \
-	  gui/auto.makefile include/config.h cmds/cmds.make \
+	rm -f Makefile gui/Makefile plaut/Makefile src/Makefile \
+	  gui/auto.makefile include/config.h \
 	  util/Makefile
 	@echo "Super cleaning ... done"
 #
@@ -78,13 +69,10 @@ install: all
 	$(INSTALL_DATA) .autorc $(DESTDIR)$(autodir)
 	$(INSTALL_DATA) python/auto/*.py $(DESTDIR)$(autodir)/python/auto/
 	$(INSTALL_DATA) python/auto/graphics/*.py $(DESTDIR)/$(autodir)/python/auto/graphics/
-	$(INSTALL) -d $(DESTDIR)$(autodir)/include $(DESTDIR)$(autodir)/cmds
+	$(INSTALL) -d $(DESTDIR)$(autodir)/include
 	$(INSTALL) -d $(DESTDIR)$(autodir)/lib $(DESTDIR)$(autodir)/bin
 	$(INSTALL_DATA) include/auto_f2c.h $(DESTDIR)$(autodir)/include
 	cd bin && $(INSTALL) autlab deletelp double keepbp keeplp keepsp keepuz listlabels plaut plaut04 reduce relabel triple $(DESTDIR)$(libdir)/auto-07p/bin
-	$(INSTALL) cmds/@* $(DESTDIR)$(libdir)/auto-07p/cmds
-	$(INSTALL_DATA) cmds/[a-zA-Z]* $(DESTDIR)$(autodir)/cmds
-	$(PERL) -i -pe's@(AUTO_DIR[ =]).*@\1$(autodir)@' $(DESTDIR)$(autodir)/cmds/auto.env $(DESTDIR)$(autodir)/cmds/auto.env.sh
 	$(INSTALL_PROGRAM) -m 644 lib/* $(DESTDIR)$(autodir)/lib/
 	$(INSTALL) -d $(DESTDIR)$(autodir)/doc
 	if [ -f doc/auto.pdf ]; then \

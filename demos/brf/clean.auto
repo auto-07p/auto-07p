@@ -3,7 +3,7 @@
 # AUTO Demo brf
 #==============
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 import os,glob
 dl('brf')
 cl()

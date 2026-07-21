@@ -1,14 +1,11 @@
 #! /usr/bin/env python
 
-from auto import AUTOCommands
 import Tkinter
 from auto.graphics import Pmw
-from auto import runAUTO
 from auto.graphics import plotter
 import os
 import tkSimpleDialog
 import sys
-from auto import AUTOclui
 from auto import AUTOutil
 
 class AUTOMessageBar(Pmw.MessageBar):
@@ -51,13 +48,16 @@ class AUTOSimpleGUIComponent(Tkinter.Frame,AUTOGUIComponent):
         self.create()
 
     def create(self,messageFunc=None,textFunc=None,runner=None):
+        from auto import AUTOCommands
         keys = AUTOCommands.__dict__.keys()
         self.simple()
 
     def simple(self,keys):
+        from auto import AUTOCommands
         self.addSimpleCommands([AUTOCommands])
         
     def addSimpleCommands(self,moduleList):
+        from auto import AUTOCommands
         self.defaultEntry = Pmw.EntryField(self,
                                            labelpos = 'w',
                                            label_text = 'Default name:',
@@ -96,13 +96,15 @@ class AUTOExpertGUIComponent(Pmw.MenuBar,AUTOGUIComponent):
         self.create()
 
     def create(self):
+        from auto import AUTOCommands
         if self.textFunc is not None:
             self.textFunc(sys.ps1)
         keys = AUTOCommands.__dict__.keys()
 
         self.expert(keys)
 
-    def expert(self,keys):
+    def from auto import AUTOCommands
+        expert(self,keys):
         baseList = []
         for key in keys:
             # Check to see if it is a command
@@ -119,7 +121,8 @@ class AUTOExpertGUIComponent(Pmw.MenuBar,AUTOGUIComponent):
             else:
                 self.addmenu(base.__name__,'Commands which inherit from %s'%base.__name__)
         self.addExpertCommands([AUTOCommands])
-            
+         rom auto import AUTOCommands
+        f   
     def addExpertCommands(self,moduleList):
         for module in moduleList:
             keys = list(module.__dict__)

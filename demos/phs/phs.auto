@@ -3,13 +3,13 @@
 # AUTO Demo phs
 #==============
 
-print "\n***Compute stationary solution families***"
+print("\n***Compute stationary solution families***")
 r1=run(e='phs',c='phs.1')
 
-print "\n***Compute a periodic solution family***"
+print("\n***Compute a periodic solution family***")
 r2=run(r1('HB1'),c='phs.2')
 save(r1+r2,'phs')
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 cl()
 

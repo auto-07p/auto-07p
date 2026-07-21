@@ -1,0 +1,10 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=@PKGCONFIG_LIBDIR@
+includedir=@PKGCONFIG_INCLUDEDIR@
+
+Name: AUTO
+Description: AUTO-07p continuation and bifurcation engine (installable core)
+Version: @PROJECT_VERSION@
+Libs: -L${libdir} -lauto -lauto_c
+Cflags: -I${includedir}/auto

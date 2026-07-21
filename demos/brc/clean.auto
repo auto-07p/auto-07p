@@ -3,7 +3,7 @@
 # AUTO Demo brc
 #==============
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 import os,glob
 dl('brc')
 cl()

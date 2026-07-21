@@ -1,11 +1,9 @@
 #! /usr/bin/env python
 # this is an enhanced list of bifurcation branches:
 # the labels contain the solutions and diagnostics as well
-from auto import AUTOutil
 from auto import parseB
 from auto import parseC
-from auto import parseH
-from auto import parseS
+from auto.AUTOSolution import AUTOSolution
 from auto import parseD
 from auto import Points
 from auto import AUTOExceptions
@@ -33,6 +31,7 @@ class bifDiag(parseB.parseBR):
                             constants)
 
     def __realinit(self,fort7_filename,fort8_filename,fort9_filename,constants):
+        from auto import parseS
         ioerrors = []
         try:
             parseB.parseBR.__init__(self,fort7_filename)
@@ -42,7 +41,7 @@ class bifDiag(parseB.parseBR):
             ioerrors.append(str(sys.exc_info()[1]))
             parseB.parseBR.__init__(self)
             fort7_filename = None
-        if isinstance(fort8_filename, parseS.AUTOSolution):
+        if isinstance(fort8_filename, AUTOSolution):
             fort8_filename = [fort8_filename]
         try:
             solution = parseS.parseS(fort8_filename)
@@ -102,7 +101,7 @@ class bifDiag(parseB.parseBR):
                     s = solution[i]
                     if x.get("LAB",0) != 0 or s["LAB"] == 0:
                         i = i+1
-                        s = x["solution"] = parseS.AUTOSolution(
+                        s = x["solution"] = AUTOSolution(
                             s, constants=constants)
                         if d.coordnames != []:
                             s.b = d[ind]
@@ -129,6 +128,7 @@ class bifDiag(parseB.parseBR):
         return "<_=%s instance at %#010x>"%(self.__class__.__name__,result)
 
     def getLabel(self,label):
+        from auto import parseS
         sols = parseS.parseS()
         #adjust maximum label/branch
         mbr = max([abs(d["BR"]) for d in self] or [None])
@@ -147,6 +147,7 @@ class bifDiag(parseB.parseBR):
         return self().load(**kw)
 
     def read(self,fort7_input,fort8_input=None,fort9_input=None):
+        from auto import parseS
         parseB.parseBR.read(self,fort7_input)
         for i, d in enumerate(self):
             self[i] = bifDiagBranch(d)
@@ -176,6 +177,7 @@ class bifDiag(parseB.parseBR):
                     d.diagnostics.write(fort9_output)
 
     def readFilename(self,fort7_filename,fort8_filename=None,fort9_filename=None):
+        from auto import parseS
         parseB.parseBR.readFilename(self,fort7_filename)
         for i, d in enumerate(self):
             self[i] = bifDiagBranch(d)
@@ -229,6 +231,7 @@ class bifDiagBranch(parseB.AUTOBranch):
         return super(bifDiagBranch, self).__getattr__(attr)
 
     def getLabel(self,label,mbr=None,mlab=None):
+        from auto import parseS
         sols = []
         for idx in self.labels.getIndices():
             x = self._gettypelabel(idx)[1]
@@ -301,40 +304,11 @@ class bifDiagBranch(parseB.AUTOBranch):
                 new.diagnostics = self.diagnostics
             return new
         parseB.AUTOBranch.relabel(self,old_label,new_label)
-    
-def pointtest7(a,b):
-    if "TY name" not in a:
-        raise AUTOExceptions.AUTORegressionError("No TY name label")
-    if "TY number" not in a:
-        raise AUTOExceptions.AUTORegressionError("No TY number label")
-    if "BR" not in a:
-        raise AUTOExceptions.AUTORegressionError("No BR label")
-    if "data" not in a:
-        raise AUTOExceptions.AUTORegressionError("No data label")
-    if "PT" not in a:
-        raise AUTOExceptions.AUTORegressionError("No PT label")
-    if "LAB" not in a:
-        raise AUTOExceptions.AUTORegressionError("No LAB label")
-    if len(a["data"]) != len(b["data"]):
-        raise AUTOExceptions.AUTORegressionError("Data sections have different lengths")
-   
-    
-def pointtest8(a,b):
-    keys = ['Type number', 'Type name',
-            'Free Parameters',  'Branch number', 'Parameter NULL vector',
-            'data', 'NCOL', 'Label', 'ISW', 'NTST',
-            'Point number', 'Parameters']
-
-    scratch=a['Parameters']
-    scratch=b['Parameters']
-    for key in keys:
-        if key not in a:
-            raise AUTOExceptions.AUTORegressionError("No %s label"%(key,))
-    if len(a["data"]) != len(b["data"]):
-        raise AUTOExceptions.AUTORegressionError("Data sections have different lengths")
 
 
 def test():
+    from auto.pointtest7 import pointtest7
+    from auto.pointtest8 import pointtest8
     foo = bifDiag()
     foo.readFilename("test_data/fort.7","test_data/fort.8")
     if len(foo[0]) != 150:

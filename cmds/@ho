@@ -1,6 +1,0 @@
-#!/bin/sh
-if ( test $# -eq 1 ) then
-	grep Hopf d.$1
-else
-	grep Hopf fort.9
-fi

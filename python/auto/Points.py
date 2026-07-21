@@ -96,11 +96,11 @@ class symbolMapClass(object):
                 raise TypeError("symbolMapClass does not know how to "
                                 "process this type of argument")
             return res
-        elif hasattr(arg, 'iteritems'):
+        elif hasattr(arg, 'items'):
             # ensure return type is the same
             res = copy(arg)
             try:
-                for k, symbol in arg.iteritems():
+                for k, symbol in arg.items():
                     res[self.__getitem__(k)] = self.__getitem__(symbol)
                     # delete unprocessed entry in res, from copy of arg
                     del res[k]
@@ -160,13 +160,13 @@ class symbolMapClass(object):
         return self.lookupDict.items()
 
     def iterkeys(self):
-        return self.lookupDict.iterkeys()
+        return iter(self.lookupDict.keys())
 
     def itervalues(self):
-        return self.lookupDict.itervalues()
+        return iter(self.lookupDict.values())
 
     def iteritems(self):
-        return self.lookupDict.iteritems()
+        return iter(self.lookupDict.items())
 
     def update(self, amap):
         try:
@@ -582,7 +582,7 @@ class Point(object):
                 return [self._name_ix_map[n] for n in namelist]
         except KeyError:
             e = sys.exc_info()[1]
-            import AUTOExceptions
+            from auto import AUTOExceptions
             raise AUTOExceptions.AUTORuntimeError("Name not found: "+str(e))
 
 
@@ -2785,7 +2785,7 @@ w_reconstructed = pointsToPointset(pointlist, 't', wp['t'])"""
     print("-- OK!")
 
     print("\nCan iterate over points and pointsets:")
-    print("for p in wnp.bylabel('a'):\n  print p\n")
+    print("for p in wnp.bylabel('a'):\n  print(p)\n")
     for p in wnp.bylabel('a'):
         print(p)
 

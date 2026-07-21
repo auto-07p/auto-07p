@@ -3,7 +3,7 @@
 # AUTO Demo python/n-body
 #========================
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 import glob
 import os
 toclean = glob.glob("b.*") + glob.glob("s.*") + glob.glob("d.*")

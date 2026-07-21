@@ -1,0 +1,134 @@
+Top 10 Critical Issues (verified)
+1. CRITICAL — eval() with unsanitized GUI input
+AUTOgui.py:33
+
+
+eval("command(%s)"%args)
+args is a raw string from the GUI widget with no sanitization. Any user-supplied argument string is executed. This is direct arbitrary code execution.
+
+2. HIGH — __setitem__("U") corrupts value mid-loop, then re-uses it
+AUTOSolution.py:293-307
+
+
+for i,(k,v) in enumerate(value):
+    if isinstance(k,str):
+        value[i] = self.coordnames.index(k)  # replaces tuple with int
+...
+self.coordarray = Points.N.array([[0.0]]*max(dict(value)))  # dict() fails on int
+for k,v in value:   # unpacking an int as (k,v) -> TypeError
+When a string key is found, the tuple (k,v) is replaced with a bare integer, discarding v. Lines 300 and 306 then try to use those elements as (key, value) pairs — dict(value) and for k,v in value both fail with TypeError. Data never gets written to the solution.
+
+3. HIGH — os.system() inside a signal handler
+runAUTO.py:164
+
+
+os.system("sh -c '%s'"%command)
+Signal handlers must only call async-signal-safe functions. os.system() is not async-safe — it can deadlock if the signal fires while Python holds internal locks (e.g. the GIL, malloc). Also, command is formatted from /bin/kill -KILL <pid> where pid is parsed from raw ps ww output; a process with a crafted name could inject shell metacharacters past the single-quote boundary.
+
+4. HIGH — Triple-nested bare except: in __getitem__ silently returns wrong data
+AUTOSolution.py:338-344
+
+
+try:
+    return Points.Pointset.__getitem__(self,key)
+except:
+    try:
+        return self.PAR[key]
+    except:
+        return self.data[key]   # last resort, no error raised
+Catches SystemExit, KeyboardInterrupt, everything. A missing key silently falls to self.data[key], returning unexpected data or KeyError from the wrong place. The original error context is gone.
+
+5. HIGH — Command injection via ls directory argument
+AUTOCommands.py:1150-1154
+
+
+cmd = "%s %s"%(cmd, dir)
+os.system(cmd)
+dir is a user-supplied parameter passed directly into a shell command. A value like "; rm -rf ~" executes arbitrary commands.
+
+6. HIGH — File handles opened without context managers — leak on exception
+AUTOSolution.py:414-424, runAUTO.py:266-282, runAUTO.py:506-510, runAUTO.py:606-609
+
+
+output = open(filename,"wb")
+self.write(output, mlab)   # exception here leaks the handle
+output.close()
+If self.write() raises, output.close() is never called. Over a long session processing many files this exhausts file descriptors.
+
+7. HIGH — Bare except: pass before irreversible file rename
+AUTOCommands.py:639-646
+
+
+try:
+    os.remove(origb)
+except:
+    pass
+os.rename(changedb, origb)   # proceeds even if prior state is unknown
+Catches all exceptions including PermissionError, OSError, etc. If the backup file can't be removed for a real reason (permissions, path issue), the code silently continues to rename, potentially overwriting or losing data.
+
+8. MEDIUM — __main__ block calls runDemo() with parameters it doesn't accept
+runAUTO.py:655-658
+
+
+runner.runDemo(args[0], log=log, err=err)          # runDemo(self, d) — no log/err
+runner.runDemo(args[0], part=args[1], log=log, err=err)  # no part either
+runDemo(self, d) only accepts one argument. Both CLI invocations raise TypeError immediately. The command-line interface is broken.
+
+9. MEDIUM — user_time timing measurement is dead code / incorrect
+runAUTO.py:480-501
+
+
+user_time = os.times()[2]    # assigned
+...
+user_time = os.times()[2]    # overwritten unconditionally
+user_time is assigned twice with no delta computed between them, then never used. Appears to be an incomplete timing measurement left behind; the variable is always overwritten before use so actual elapsed CPU time is never captured.
+
+10. MEDIUM — __getattr__ deletes self.c while it may still be needed
+bifDiag.py:114-120
+
+
+elif attr == 'data':
+    if hasattr(self,'filenames'):
+        self.__realinit(...)
+        del self.filenames
+        del self.c          # deleted unconditionally
+        return self.data
+self.c is deleted even if __realinit raises an exception partway through. The 'c' branch of __getattr__ (line 111–113) depends on self[0].c, which is only valid after a successful init. Any subsequent access to self.c post-failed-init will silently return None from an uninitialized solution.
+
+Priority ranking
+#	Severity	File	Impact
+1	Critical	AUTOgui.py:33	Remote code execution
+2	High	AUTOSolution.py:293-307	Silent data corruption / TypeError
+3	High	runAUTO.py:164	Deadlock / shell injection in signal handler
+4	High	AUTOSolution.py:338-344	Wrong data returned silently
+5	High	AUTOCommands.py:1150-1154	Shell injection
+6	High	AUTOSolution.py:414-424 + runAUTO.py	FD leak on exception
+7	High	AUTOCommands.py:639-646	Silent failure before irreversible rename
+8	Medium	runAUTO.py:655-658	CLI entry point crashes on any argument
+9	Medium	runAUTO.py:480-501	Dead/broken timing code
+10	Medium	bifDiag.py:114-120	State corruption on failed lazy init
+Would you like me to start fixing any of these?
+
+create a todo list from the previous analysis including the details
+Update Todos
+
+Fix #1 CRITICAL: Replace eval() with direct function call in AUTOgui.py:33 — eval("command(%s)"%args) executes unsanitized GUI input, enabling arbitrary code execution
+
+Fix #2 HIGH: Repair __setitem__("U") bug in AUTOSolution.py:293-307 — line 295 replaces tuple (k,v) with a bare int, causing TypeError at line 300 (dict(value)) and line 306 (for k,v in value), silently corrupting solution data
+
+Fix #3 HIGH: Replace os.system() in signal handler runAUTO.py:164 — os.system() is not async-signal-safe and can deadlock; also 'sh -c \'%s\'' is injectable from crafted process names; use os.kill() directly (already available on line 162)
+
+Fix #4 HIGH: Replace triple bare except: in AUTOSolution.__getitem__ at AUTOSolution.py:338-344 — swallows SystemExit/KeyboardInterrupt and silently returns self.data[key] instead of raising a proper error, hiding bugs
+
+Fix #5 HIGH: Sanitize or avoid os.system() with user-supplied dir in AUTOCommands.py:1150-1154 — cmd = "%s %s"%(cmd, dir) then os.system(cmd) allows shell injection via the dir argument
+
+Fix #6 HIGH: Replace bare open()/close() with context managers (with statements) in AUTOSolution.py:414-424 and runAUTO.py:266-282, 506-510, 606-609 — exceptions between open() and close() leak file descriptors
+
+Fix #7 HIGH: Replace bare except: pass before os.rename() in AUTOCommands.py:639-646 — silently ignores all errors (including PermissionError) before an irreversible rename, risking data loss; use except OSError
+
+Fix #8 MEDIUM: Fix broken CLI entry point in runAUTO.py:655-658 — runDemo(self, d) accepts only one argument but is called with log=, err=, and part= kwargs, raising TypeError on any command-line invocation with arguments
+
+Fix #9 MEDIUM: Remove or complete dead timing code in runAUTO.py:480-501 — user_time is assigned at line 481 then unconditionally overwritten at line 501 with no delta computed; elapsed CPU time is never captured or reported
+
+Fix #10 MEDIUM: Guard del self.c in bifDiag.__getattr__ at bifDiag.py:114-120 — self.c is deleted unconditionally even if __realinit() raises, leaving the object in a broken state where self.c silently returns None on all subsequent accesses
+Todo list created with all 10 issues. Each entry includes the severity, exact file/line reference, and a description of why it's dangerous. Ready to start fixing whenever you'd like — just say which one to tackle first, or say "fix all" to go in order.

@@ -1,2 +1,0 @@
-#!/bin/sh
-cp "$AUTO_DIR"/gui/auto.makefile ./Makefile ; AUTO97 &

@@ -8,17 +8,17 @@ import os,data
 if not os.path.exists('s.H1'):
     auto('r3b.auto')
 
-print "\n*** Compute the Floquet eigenfunction***"
+print("\n*** Compute the Floquet eigenfunction***")
 H1 = loadbd('H1')
 flq = run(H1(7),c='r3b.flq',sv='flq')
 
-print "\n*** Extract data for the selected orbit from s.flq***"
+print("\n*** Extract data for the selected orbit from s.flq***")
 startman = data.get(flq('UZ1'),eps=-1e-3)
 
-print "\n*** Time integration using continuation***"
+print("\n*** Time integration using continuation***")
 startH1a = run(startman,e='man',c='man.H1a.0',sv='startH1a')
 
-print "\n*** Compute part of the unstable manifold***"
+print("\n*** Compute part of the unstable manifold***")
 startUZs = startH1a('UZ')
 startUZ = startUZs[0]
 for s in startUZs:
@@ -28,6 +28,6 @@ for s in startUZs:
 H1a = run(startUZ,c='man.H1a.1')
 save(rl(H1a),'H1a')
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 clean()
 

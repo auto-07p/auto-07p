@@ -3,25 +3,25 @@
 # AUTO Demo fhn: The FitzHugh-Nagumo Equations
 #==============
 
-print "\n***Stationary solutions***"
+print("\n***Stationary solutions***")
 r1 = run(e='fhn',c='fhn.1')
 
-print "\n***Periodic solutions***"
+print("\n***Periodic solutions***")
 r2 = run(r1("HB"),c='fhn.2')
 save(r1+r2,'fhn')
 
-print "\n***Continue Hopf bifurcations in 2 parameters***"
+print("\n***Continue Hopf bifurcations in 2 parameters***")
 r3 = run(r1("HB"),c='fhn.3')
 
-print "\n***Continue Hopf bifurcations in 2 parameters***"
+print("\n***Continue Hopf bifurcations in 2 parameters***")
 r4 = run(r1("HB"),c='fhn.4')
 hb = r3 + r4
 
-print "\n***Relabel and save the Hopf bifurcations files***"
+print("\n***Relabel and save the Hopf bifurcations files***")
 hb = rl(hb)
 save(hb, 'hb')
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 cl()
 
 

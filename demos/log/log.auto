@@ -3,12 +3,12 @@
 # AUTO Demo log
 #==============
 
-print "\nDemo log is started"
-print "\nlog : first run : fixed point solution branch"
+print("\nDemo log is started")
+print("\nlog : first run : fixed point solution branch")
 r = run("log")
 save("log")
 
-print "\nlog : perform 5 period-doublings"
+print("\nlog : perform 5 period-doublings")
 olddiff = 1
 for i in range(5):
     mu = r('PD1')['mu']
@@ -19,7 +19,7 @@ for i in range(5):
     olddiff = diff
 
 relabel("log")
-print('Approximation of Feigenbaum constant: %s'%feig)
+print(('Approximation of Feigenbaum constant: %s'%feig))
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 clean()

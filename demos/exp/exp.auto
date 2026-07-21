@@ -3,13 +3,13 @@
 # AUTO Demo exp
 #==============
 
-print "\n***Compute a solution family***"
+print("\n***Compute a solution family***")
 r1=run(e='exp',c='exp')
 
-print "\n***Restart the solution family***"
+print("\n***Restart the solution family***")
 r2=run(r1,NTST=20)
 save(r1+r2,'exp')
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 cl()
 

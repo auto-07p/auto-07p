@@ -2,7 +2,7 @@
 # AUTO Demo pen
 #==============
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 
 dl("pen")
 dl("pd")

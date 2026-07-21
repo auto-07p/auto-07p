@@ -3,7 +3,7 @@
 # AUTO Demo lin
 #==============
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 dl('lin')
 dl('2p')
 cl()

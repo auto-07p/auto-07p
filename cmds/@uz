@@ -1,4 +1,0 @@
-#!/bin/sh
-unzip  b.*
-unzip  s.*
-unzip  d.*

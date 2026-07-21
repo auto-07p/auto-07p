@@ -3,17 +3,17 @@
 # AUTO Demo abc
 #==============
 
-print "\n***Compute a stationary solution family***"
+print("\n***Compute a stationary solution family***")
 abc=run(e='abc',c='abc.1')
 
-print "\n***Compute periodic solution families***"
+print("\n***Compute periodic solution families***")
 for solution in abc('HB'):
     abc=abc+run(solution,c='abc.2')
 
-print "\n***Relabel the output***"
+print("\n***Relabel the output***")
 abc=rl(abc)
 save(abc,'abc')
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 cl()
 

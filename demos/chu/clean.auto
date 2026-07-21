@@ -3,6 +3,6 @@
 # AUTO Demo chu
 #==============
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 dl('chu')
 cl()

@@ -3,6 +3,6 @@
 # AUTO Demo pvl
 #==============
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 dl('pvl')
 cl()

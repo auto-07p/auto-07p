@@ -10,7 +10,7 @@ def runDemo(demo,**kw):
 def test():
     import os
     import sys
-    import AUTOutil
+    from auto import AUTOutil
 
     log=open("log","w")
     err=open("err","w")

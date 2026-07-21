@@ -3,16 +3,16 @@
 # AUTO Demo ezp
 #==============
 
-print "\n***Compute a solution family***"
+print("\n***Compute a solution family***")
 ezp=run(e='ezp',c='ezp')
 
-print "\n***Compute one leg of the bifurcating family***"
+print("\n***Compute one leg of the bifurcating family***")
 ezp=ezp+run(ezp('BP1'),ISW=-1)
 
-print "\n***Compute the other leg of the bifurcating family***"
+print("\n***Compute the other leg of the bifurcating family***")
 ezp=ezp+run(ezp('BP1'),ISW=-1,DS='-')
 save(ezp,'ezp')
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 cl()
 

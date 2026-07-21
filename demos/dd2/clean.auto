@@ -3,7 +3,7 @@
 # AUTO Demo dd2
 #==============
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 delete('dd2')
 delete('pd')
 clean()

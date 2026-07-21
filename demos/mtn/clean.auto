@@ -2,7 +2,7 @@
 # AUTO Demo mtn
 #==============
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 
 dl("1")
 dl("4")

@@ -22,5 +22,5 @@ dl("xis")
 for f in glob.glob("*.eps"):
     os.remove(f)
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 cl()

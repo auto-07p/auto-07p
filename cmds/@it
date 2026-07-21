@@ -1,6 +1,0 @@
-#!/bin/sh
-if ( test $# -eq 1 ) then
-	grep Iterations d.$1
-else
-	grep Iterations fort.9
-fi

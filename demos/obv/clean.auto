@@ -3,7 +3,7 @@
 # AUTO Demo obv
 #==============
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 dl('obv')
 dl('1')
 dl('2')

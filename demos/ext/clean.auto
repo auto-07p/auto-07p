@@ -3,6 +3,6 @@
 # AUTO Demo ext
 #==============
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 dl('ext')
 cl()

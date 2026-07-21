@@ -2,7 +2,7 @@
 # AUTO Demo lrz
 #==============
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 
 delete("lrz")
 clean()

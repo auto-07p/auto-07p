@@ -1,0 +1,16 @@
+@PACKAGE_INIT@
+
+# AUTO-07p installable engine (refactor-plan.md W5, Goal 9).
+# Provides the imported targets:
+#   AUTO::auto     -- the continuation/bifurcation engine (static) + PROGRAM AUTO
+#   AUTO::auto_c   -- the C-interface dispatchers (link for C-written equations)
+#   AUTO::auto_shared (only if the shared engine was installed)
+#
+# Typical use from a downstream CMake project:
+#   find_package(AUTO REQUIRED)
+#   add_executable(myeqn myeqn.c)          # C equation using <auto/auto_f2c.h>
+#   target_link_libraries(myeqn AUTO::auto AUTO::auto_c)
+
+include("${CMAKE_CURRENT_LIST_DIR}/AUTOTargets.cmake")
+
+check_required_components(AUTO)

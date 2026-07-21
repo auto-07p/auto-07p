@@ -7,7 +7,8 @@ except ImportError: # Python 3
     from io import StringIO
 import re
 import glob
-from auto import AUTOExceptions,parseC,parseS
+from auto import AUTOExceptions,parseC
+from auto.AUTOSolution import AUTOSolution
 import gc
 try:
     import subprocess
@@ -73,7 +74,7 @@ class runAUTO:
         self.options["command"] = None
         self.options["makefile"] = None
         self.options["constants"] = parseC.parseC()
-        self.options["solution"] = parseS.AUTOSolution()
+        self.options["solution"] = AUTOSolution()
         self.options["homcont"] = None
         self.options["selected_solution"] = None
 
@@ -104,7 +105,7 @@ class runAUTO:
                     t=kw.get('t')
                     if "t" in kw and value is not None:
                         del kw["t"]
-                    value = parseS.AUTOSolution(value,t=t)
+                    value = AUTOSolution(value,t=t)
                 self.options[key] = value
 
         self.options["constants"].update(**kw)
@@ -259,26 +260,28 @@ class runAUTO:
         return False
 
     def __getmakevars(self):
-        # do the same as $AUTO_DIR/cmds/cmds.make but in Python
-        # first get the configure-set variables
+        # Compiler configuration used to build user equations. Sourced from the
+        # build-generated auto.compilers module (written by autotools/CMake;
+        # replaces the old cmds/cmds.make recipe), with environment overrides
+        # and sensible defaults so an installed wheel still works.
         auto_dir = self.options["auto_dir"]
-        f = open(os.path.join(auto_dir,"cmds","cmds.make"),"r")
-        var = {}
-        for line in f:
-            line = line.split()
-            if len(line) < 2 or line[1] != '=':
-                continue
-            if line[0] == "SRC":
-                break
-            for key in ["CC","FC","CFLAGS","FFLAGS","OPT"]:
-                if line[0] == key:
-                    if len(line) == 2:
-                        v = ""
-                    else:
-                        v = " ".join(line[2:])
-                        v = v.replace("$(AUTO_DIR)",auto_dir)
-                    var[key] = v
-        f.close()
+        var = {"CC": "cc", "FC": "gfortran", "CFLAGS": "",
+               "FFLAGS": "-fopenmp", "OPT": "-O"}
+        try:
+            from auto import compilers
+        except ImportError:
+            compilers = None
+        for key in var:
+            # the generated module is authoritative when present -- use its value
+            # even if empty (e.g. OPT=""); fall back to the default only when the
+            # module or attribute is absent. Environment always wins.
+            if compilers is not None and hasattr(compilers, key):
+                var[key] = getattr(compilers, key)
+            if os.environ.get(key):
+                var[key] = os.environ[key]
+        # user equations include <auto_f2c.h> / auto.h from the engine headers
+        incdir = os.path.join(auto_dir, "include")
+        var["CFLAGS"] = (var["CFLAGS"] + " -I" + incdir).strip()
         return var
 
     def __make(self,equation,fcon=False):
@@ -311,6 +314,8 @@ class runAUTO:
             self.runCommand(cmd)
         # link
         libdir = os.path.join(auto_dir,"lib")
+        def q(p):
+            return p.replace(" ","\\ ")
         if fcon:
             srcdir = os.path.join(auto_dir,"src")
             libs = os.path.join(srcdir,"fcon.f")
@@ -318,20 +323,29 @@ class runAUTO:
             var["FFLAGS"] = var["FFLAGS"] + " -I" + incdir.replace(" ","\\ ")
             execfile = "fcon"
         else:
-            libs = os.path.join(libdir,"*.o")
-            deps = glob.glob(libs) + [equation+'.o']
+            # link the installable static engine archive rather than globbing
+            # $AUTO_DIR/lib/*.o (W3/W5). Link libauto.a by explicit path (not
+            # -lauto) so a libauto.so beside it is never picked -- the compiled
+            # equation's `user` table must resolve statically. C equations also
+            # link the dispatcher archive; Fortran equations define func/stpnt
+            # directly.
+            libs = os.path.join(libdir,"libauto.a")
+            deps = [libs, equation+'.o']
+            if src[-1] == 'c':
+                deps.append(os.path.join(libdir,"libauto_c.a"))
             execfile = equation + ".exe"
         if not os.path.exists(execfile) or self.__newer(deps,execfile):
-            if src[-1] == 'c':
-                cmd = '%s -L%s %s %s %s.o -o %s %s -lauto_c'%(var["FC"],libdir.replace(" ","\\ "),
-                                   var["FFLAGS"],var["OPT"],equation,execfile,libs)
+            if fcon:
+                archives = q(libs)
+            elif src[-1] == 'c':
+                archives = "%s %s"%(q(libs), q(os.path.join(libdir,"libauto_c.a")))
             else:
-                cmd = "%s %s %s %s.o -o %s %s"%(var["FC"],var["FFLAGS"],var["OPT"],
-                                                    equation,execfile,libs)
+                archives = q(libs)
+            cmd = "%s %s %s %s.o -o %s %s"%(var["FC"],var["FFLAGS"],var["OPT"],
+                                            equation,execfile,archives)
             sys.stdout.write(cmd+"\n")
-            cmd = cmd.replace(libs, " ".join([x.replace(" ","\\ ") for x in deps[:-1]]))
             self.runCommand(cmd)
-        return os.path.exists(equation+'.exe') and not self.__newer(deps,equation+'.exe')
+        return os.path.exists(equation+'.exe') and not self.__newer(deps,execfile)
 
     def load(self,**kw):
         """Load solution with the given AUTO constants.
@@ -417,7 +431,7 @@ class runAUTO:
             else:
                 raise AUTOExceptions.AUTORuntimeError("AUTO_DIR not set as option or as environment variable")
 
-        if self.options["makefile"] == "$AUTO_DIR/cmds/cmds.make fcon":
+        if self.options["makefile"] == "fcon":
             self.__make(equation,fcon=True)
         else:
             if self.options["makefile"] == "":

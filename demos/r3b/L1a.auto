@@ -8,20 +8,20 @@ import os,data
 if not os.path.exists('s.L1'):
     auto('r3b.auto')
 
-print "\n*** Compute the Floquet eigenfunction***"
+print("\n*** Compute the Floquet eigenfunction***")
 L1 = loadbd('L1')
 flq = run(L1(3),c='r3b.flq',sv='flq')
 
-print "\n*** Extract data for the selected orbit from s.flq***"
+print("\n*** Extract data for the selected orbit from s.flq***")
 startman = data.get(flq('UZ1'),eps=-1e-5)
 
-print "\n*** Time integration using continuation***"
+print("\n*** Time integration using continuation***")
 startL1a = run(startman,e='man',c='man.L1a.0',sv='startL1a')
 
-print "\n*** Compute the unstable manifold***"
+print("\n*** Compute the unstable manifold***")
 L1a = run(startL1a,c='man.L1a.1')
 save(rl(L1a),'L1a')
 
-print "\n***Clean the directory***"
+print("\n***Clean the directory***")
 clean()
 

@@ -1,6 +1,0 @@
-#!/bin/sh
-if ( test $# -eq 1 ) then
-	grep Step d.$1
-else
-	grep Step fort.9
-fi

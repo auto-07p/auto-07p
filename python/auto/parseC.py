@@ -20,7 +20,7 @@
 import sys
 from auto import AUTOExceptions
 from auto import AUTOutil
-from auto import parseB
+from auto import parseCommon
 
 # The parseC class parses an AUTO parameter file
 # THESE EXPECT THE FILE TO HAVE VERY SPECIFIC FORMAT!
@@ -81,8 +81,7 @@ class parseC(dict):
                    "parnames"]:
             if item is not None:
                 if key == "PAR":
-                    from auto import parseS
-                    if isinstance(item,parseS.AUTOParameters):
+                    if isinstance(item,parseCommon.AUTOParameters):
                         item = [(k,item(k)) for k in range(1,len(item)+1)]
                 if isinstance(item, dict):
                     item = item.items()
@@ -245,10 +244,10 @@ class parseC(dict):
                         i = i + 1
                         v1 = []
                         while i+1 < len(value) and value[i+1] != ']':
-                            v1.append(parseB.AUTOatof(value[i+1]))
+                            v1.append(parseCommon.AUTOatof(value[i+1]))
                             i = i + 1
                     else:
-                        v1 = parseB.AUTOatof(value[i+1])
+                        v1 = parseCommon.AUTOatof(value[i+1])
                     d.append([v0,v1])
                     i = i + 2
                 value = self.__compactindexed(d)
@@ -269,7 +268,7 @@ class parseC(dict):
                     else:
                         value = int(value)
                 else:
-                    value=parseB.AUTOatof(value)
+                    value=parseCommon.AUTOatof(value)
             elif lineno is not None:
                 raise AUTOExceptions.AUTORuntimeError(
                     "Unknown AUTO constant %s on line %d"%(key,lineno))
@@ -323,7 +322,7 @@ class parseC(dict):
                 if key[0] in 'IJKLMN':
                     self[key] = int(d)
                 else:
-                    self[key] = parseB.AUTOatof(d)
+                    self[key] = parseCommon.AUTOatof(d)
 
         for key in ["THL", "THU", "UZR"]:
             line = inputfile.readline()
@@ -337,7 +336,7 @@ class parseC(dict):
                     d = int(d)
                 except ValueError:
                     pass
-                item.append([d, parseB.AUTOatof(data[1])])
+                item.append([d, parseCommon.AUTOatof(data[1])])
             self[key] = item
 
     def __compactindexed(self, value):
